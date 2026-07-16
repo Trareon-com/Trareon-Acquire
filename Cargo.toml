@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/traeron-core"]
+members = ["crates/traeron-core", "crates/traeron-verifier"]
 resolver = "2"
 
 [workspace.package]

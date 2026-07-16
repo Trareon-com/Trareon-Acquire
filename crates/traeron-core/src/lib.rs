@@ -1,8 +1,10 @@
 #![forbid(unsafe_code)]
 
+mod acquisition;
 mod audit;
 mod domain;
 
+pub use acquisition::{AcquireRequest, AcquisitionSummary, acquire_file};
 pub use audit::{AuditEvent, AuditJournal};
 pub use domain::{AcquisitionId, AcquisitionState, CaseId, CoreError};
 

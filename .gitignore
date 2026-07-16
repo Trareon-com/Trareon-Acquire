@@ -1,8 +1,12 @@
 /target/
+target/
 /node_modules/
 node_modules/
 /apps/traeron-acquire/dist/
+dist/
 /apps/traeron-acquire/src-tauri/target/
 /apps/traeron-acquire/src-tauri/gen/
 *.fsnap/
+.ai-evidence/
+.worktrees/
 .DS_Store

@@ -1,0 +1,5 @@
+# Golden .fsnap fixtures must be byte-identical on every platform: their
+# SHA-256 hashes and audit-chain hashes are baked into the committed
+# manifest/audit files. Without this, Windows checkouts convert LF to CRLF
+# by default and every fixture fails verification with a hash mismatch.
+fixtures/fsnap-v0.1/** -text

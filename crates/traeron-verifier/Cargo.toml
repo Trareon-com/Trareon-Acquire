@@ -9,3 +9,6 @@ authors.workspace = true
 [dependencies]
 serde_json.workspace = true
 traeron-core = { path = "../traeron-core" }
+
+[dev-dependencies]
+tempfile.workspace = true

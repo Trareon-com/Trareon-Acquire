@@ -22,3 +22,4 @@ Barang bukti nyata, disk image sensitif, credential, signing key, dan data priba
 - `MONTH-01/`: runbook copy-paste harian.
 - `RECOVERY-PROMPTS/`: routing untuk hasil tidak terduga.
 - `PHASE-MAPS/`: entry/exit M1-M4 tanpa mengarang hasil platform masa depan.
+- `PACK-VALIDATION.md`: hasil automated dan manual coverage checks untuk pack ini.

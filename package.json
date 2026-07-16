@@ -1,0 +1,13 @@
+{
+  "name": "traeron-acquire-workspace",
+  "private": true,
+  "engines": {
+    "node": "22.22.3",
+    "npm": "10.9.8"
+  },
+  "scripts": {
+    "test:rust": "cargo test --workspace --locked",
+    "lint:rust": "cargo fmt --all --check && cargo clippy --workspace --all-targets --all-features -- -D warnings",
+    "test": "npm run test:rust"
+  }
+}

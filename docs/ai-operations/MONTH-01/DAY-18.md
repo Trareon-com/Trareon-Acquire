@@ -35,7 +35,7 @@ Tambahkan progressive guidance, keyboard/focus semantics, accessible labels, con
 Anda adalah author untuk M0-D18 Trareon Acquire.
 
 Outcome: Tambahkan progressive guidance, keyboard/focus semantics, accessible labels, confirmation copy, Lab Use Only banner, dan NotValidated explanations.
-Scope file/interface: apps/traeron-acquire/src/App.svelte; guidance content; accessibility tests.
+Scope file/interface: apps/trareon-acquire/src/App.svelte; guidance content; accessibility tests.
 Branch wajib: feat/m0-d18-guidance. Baca authority files dan existing code sebelum perubahan. Gunakan TDD: tulis test yang gagal dengan alasan yang diharapkan, jalankan dan catat exit code, implementasikan perubahan minimum, lalu jalankan verification lengkap.
 
 Verification wajib: npm run check; npm run build.
@@ -78,7 +78,7 @@ human_approval_required:
 
 ## Expected Change Map
 
-- Expected files/interfaces: apps/traeron-acquire/src/App.svelte; guidance content; accessibility tests.
+- Expected files/interfaces: apps/trareon-acquire/src/App.svelte; guidance content; accessibility tests.
 - Expected behavior: Tambahkan progressive guidance, keyboard/focus semantics, accessible labels, confirmation copy, Lab Use Only banner, dan NotValidated explanations.
 - Explicit non-goals: fitur setelah Day 18, production claim, raw/elevated operation tanpa gate, refactor di luar scope, dan perubahan RFC.
 - Diff di luar map menjadi `FIX + SCOPE-DRIFT` sampai dijelaskan dan disetujui.

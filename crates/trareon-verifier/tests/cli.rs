@@ -3,7 +3,7 @@ use std::process::Command;
 
 #[test]
 fn no_arguments_returns_usage_error() {
-    let output = Command::new(env!("CARGO_BIN_EXE_traeron-verifier"))
+    let output = Command::new(env!("CARGO_BIN_EXE_trareon-verifier"))
         .output()
         .unwrap();
     assert_eq!(output.status.code(), Some(64));
@@ -19,7 +19,7 @@ fn fixtures_root() -> std::path::PathBuf {
 }
 
 fn verify_fixture(name: &str) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_traeron-verifier"))
+    Command::new(env!("CARGO_BIN_EXE_trareon-verifier"))
         .arg("verify")
         .arg(fixtures_root().join(name))
         .output()

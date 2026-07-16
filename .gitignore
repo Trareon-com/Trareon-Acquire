@@ -2,10 +2,10 @@
 target/
 /node_modules/
 node_modules/
-/apps/traeron-acquire/dist/
+/apps/trareon-acquire/dist/
 dist/
-/apps/traeron-acquire/src-tauri/target/
-/apps/traeron-acquire/src-tauri/gen/
+/apps/trareon-acquire/src-tauri/target/
+/apps/trareon-acquire/src-tauri/gen/
 *.fsnap/
 .ai-evidence/
 .worktrees/

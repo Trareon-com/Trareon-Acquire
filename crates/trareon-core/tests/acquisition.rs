@@ -2,7 +2,7 @@ use std::fs;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use tempfile::tempdir;
-use traeron_core::{AcquireRequest, AcquisitionState, CoreError, acquire_file};
+use trareon_core::{AcquireRequest, AcquisitionState, CoreError, acquire_file};
 
 #[test]
 fn acquisition_copies_every_byte_and_hashes_output() {

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use traeron_core::{AcquireRequest, acquire_file, create_fsnap, verify_fsnap};
+use trareon_core::{AcquireRequest, acquire_file, create_fsnap, verify_fsnap};
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]

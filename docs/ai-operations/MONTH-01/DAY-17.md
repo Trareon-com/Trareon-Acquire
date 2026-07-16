@@ -35,7 +35,7 @@ Buat guided workflow synthetic source: case identity, preflight, confirmation, p
 Anda adalah author untuk M0-D17 Trareon Acquire.
 
 Outcome: Buat guided workflow synthetic source: case identity, preflight, confirmation, progress, result, verifier summary, dan limitation display.
-Scope file/interface: apps/traeron-acquire/src/App.svelte; apps/traeron-acquire/src/lib/api.ts; UI tests.
+Scope file/interface: apps/trareon-acquire/src/App.svelte; apps/trareon-acquire/src/lib/api.ts; UI tests.
 Branch wajib: feat/m0-d17-ui. Baca authority files dan existing code sebelum perubahan. Gunakan TDD: tulis test yang gagal dengan alasan yang diharapkan, jalankan dan catat exit code, implementasikan perubahan minimum, lalu jalankan verification lengkap.
 
 Verification wajib: npm run check; npm run build; cargo test --workspace --all-targets.
@@ -78,7 +78,7 @@ human_approval_required:
 
 ## Expected Change Map
 
-- Expected files/interfaces: apps/traeron-acquire/src/App.svelte; apps/traeron-acquire/src/lib/api.ts; UI tests.
+- Expected files/interfaces: apps/trareon-acquire/src/App.svelte; apps/trareon-acquire/src/lib/api.ts; UI tests.
 - Expected behavior: Buat guided workflow synthetic source: case identity, preflight, confirmation, progress, result, verifier summary, dan limitation display.
 - Explicit non-goals: fitur setelah Day 17, production claim, raw/elevated operation tanpa gate, refactor di luar scope, dan perubahan RFC.
 - Diff di luar map menjadi `FIX + SCOPE-DRIFT` sampai dijelaskan dan disetujui.

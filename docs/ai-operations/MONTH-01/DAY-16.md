@@ -35,7 +35,7 @@ Implementasikan Tauri/Svelte shell dari Foundation Plan Task 7; UI hanya memangg
 Anda adalah author untuk M0-D16 Trareon Acquire.
 
 Outcome: Implementasikan Tauri/Svelte shell dari Foundation Plan Task 7; UI hanya memanggil typed commands dan core menentukan final state.
-Scope file/interface: apps/traeron-acquire/src-tauri; apps/traeron-acquire/src/lib/api.ts; apps/traeron-acquire/src/App.svelte; Cargo.toml.
+Scope file/interface: apps/trareon-acquire/src-tauri; apps/trareon-acquire/src/lib/api.ts; apps/trareon-acquire/src/App.svelte; Cargo.toml.
 Branch wajib: feat/m0-d16-tauri. Baca authority files dan existing code sebelum perubahan. Gunakan TDD: tulis test yang gagal dengan alasan yang diharapkan, jalankan dan catat exit code, implementasikan perubahan minimum, lalu jalankan verification lengkap.
 
 Verification wajib: cargo test --workspace --all-targets; npm ci; npm run check; npm run build.
@@ -78,7 +78,7 @@ human_approval_required:
 
 ## Expected Change Map
 
-- Expected files/interfaces: apps/traeron-acquire/src-tauri; apps/traeron-acquire/src/lib/api.ts; apps/traeron-acquire/src/App.svelte; Cargo.toml.
+- Expected files/interfaces: apps/trareon-acquire/src-tauri; apps/trareon-acquire/src/lib/api.ts; apps/trareon-acquire/src/App.svelte; Cargo.toml.
 - Expected behavior: Implementasikan Tauri/Svelte shell dari Foundation Plan Task 7; UI hanya memanggil typed commands dan core menentukan final state.
 - Explicit non-goals: fitur setelah Day 16, production claim, raw/elevated operation tanpa gate, refactor di luar scope, dan perubahan RFC.
 - Diff di luar map menjadi `FIX + SCOPE-DRIFT` sampai dijelaskan dan disetujui.

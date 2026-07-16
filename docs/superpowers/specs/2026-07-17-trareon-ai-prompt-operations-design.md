@@ -146,6 +146,7 @@ docs/ai-operations/
 ├── CONTROL-PLANE-PROMPT.md
 ├── RESULT-CONTRACT.md
 ├── EVIDENCE-INDEX.md
+├── GITHUB-MONITORING.md
 ├── MONTH-01/
 │   ├── README.md
 │   ├── DAY-01.md
@@ -181,6 +182,25 @@ docs/ai-operations/
 Every day file is self-contained. The operator does not need to reconstruct context from a previous AI conversation.
 
 Raw CI logs and downloaded artifacts live in a local ignored `.ai-evidence/` directory. `EVIDENCE-INDEX.md` stores the exact commit SHA, workflow/run identity, checksums for retained artifacts, concise result, and local evidence path without committing large or sensitive logs.
+
+## GitHub Monitoring Plane
+
+GitHub is the operator's primary monitoring surface. It mirrors every meaningful engineering result without pretending that GitHub performed physical validation.
+
+- GitHub Project contains one item for each Day 01-30 and milestone M1-M4.
+- GitHub Issues hold the task packet, acceptance checklist, owner, risk, autonomy, dependencies, and human decisions.
+- Pull requests hold the frozen commit, implementation summary, Codex review relayed by Claude Code, Antigravity evidence, CI checks, limitations, and merge decision.
+- GitHub Actions provides hosted compile/test/security evidence and artifact links against an exact commit SHA.
+- The Security tab surfaces dependency, secret, and code-scanning findings when repository configuration supports them.
+- Hardware tests run locally and upload only redacted reports, hashes, screenshots, and synthetic artifacts; real evidence and sensitive disk images never enter GitHub.
+
+The Project workflow uses these statuses in order: `Backlog`, `Ready`, `Claude Implementing`, `Codex Reviewing`, `Antigravity Validating`, `CI Running`, `Hardware Validation`, `Human Approval`, and `Done`.
+
+Each Project item records Day, Task ID, Milestone, Risk, Autonomy, Author, Reviewer, Frozen SHA, CI status, Hardware status, Incident category, Human gate, and Evidence URL. A task cannot become `Done` while its pull request head, CI head, reviewed local head, and evidence head differ.
+
+Codex does not update GitHub. Claude Code relays the exact unedited `TaskResult.v1` result, identifies itself as the relay, and links it to the frozen SHA. Antigravity may upload assigned UI artifacts but does not modify code or task state unless its daily prompt explicitly grants that operation.
+
+The repository does not run public pull-request code on MacBook, ThinkPad, Kali, or another persistent self-hosted runner. Physical tests begin manually from a trusted frozen commit and return a redacted platform report.
 
 ## GitHub Access Boundary
 
@@ -419,6 +439,7 @@ These outcomes route to `SECURITY-FINDING`, `AGENT-DISAGREEMENT`, `SPEC-AMBIGUIT
 - human decision;
 - link to result evidence;
 - exact local/remote/CI commit identity when a remote operation occurred;
+- GitHub Issue, pull request, Project item, and Actions evidence links;
 - next permitted packet.
 
 The operator normally performs only five actions:
@@ -463,6 +484,7 @@ The detailed prompt pack for a new rolling wave is generated only after the prev
 - Real evidence and personal data are excluded from AI prompts, logs, screenshots, and hosted services.
 - Secrets and signing keys are unavailable to all development agents.
 - No public pull-request job runs on a self-hosted machine with disk, secret, or internal-network access.
+- GitHub may expose project status, source, synthetic fixtures, redacted logs, checksums, and non-sensitive artifacts; it never receives real evidence, sensitive disk images, credentials, signing material, or unredacted personal/device data.
 - An agent may push only when the approved daily task grants that exact branch-scoped operation. Merge, publish, release, repository administration, purchase, and acceptance of legal terms always require a separate human-approved task.
 - Daily task prompts may grant Claude Code or Antigravity a branch-scoped push and pull-request operation; this never implies merge, release, repository-administration, secret-management, or billing authority.
 - Destructive commands require device allowlisting, stable identity confirmation, and human approval immediately before execution.
@@ -480,6 +502,7 @@ The future prompt pack is accepted only when:
 - all unexpected-output categories route to a concrete prompt or human decision;
 - Codex can complete its review from local commit and exact-SHA evidence without GitHub access;
 - only one named GitHub gateway operates on a task branch, and remote-state divergence has a recovery route;
+- every Day can be monitored from one GitHub Project item linked to its Issue, pull request, exact-SHA checks, and redacted evidence;
 - no prompt authorizes real evidence, secrets, signing, destructive system-disk access, publishing, or silent scope expansion;
 - the master checklist can show the exact frozen commit and evidence status;
 - M1-M4 maps define entry/exit evidence without pretending future platform results are known;

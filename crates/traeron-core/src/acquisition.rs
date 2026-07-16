@@ -17,6 +17,7 @@ pub struct AcquireRequest {
     pub audit_output: PathBuf,
     pub buffer_size: usize,
     pub cancel_flag: Option<Arc<AtomicBool>>,
+    pub split_segment_bytes: Option<u64>,
 }
 
 impl AcquireRequest {
@@ -29,6 +30,7 @@ impl AcquireRequest {
             audit_output,
             buffer_size: 1024 * 1024,
             cancel_flag: None,
+            split_segment_bytes: None,
         }
     }
 
@@ -38,6 +40,21 @@ impl AcquireRequest {
         self.cancel_flag = Some(flag);
         self
     }
+
+    /// Split RAW output into fixed-size segments named `<stem>.NNN.<ext>`
+    /// (starting at 001) instead of one continuous file. The final segment
+    /// may be shorter than `segment_bytes`; no empty trailing segment is
+    /// ever created.
+    pub fn with_split_segment_bytes(mut self, segment_bytes: u64) -> Self {
+        self.split_segment_bytes = Some(segment_bytes);
+        self
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct SegmentInfo {
+    pub path: PathBuf,
+    pub size: u64,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -48,6 +65,7 @@ pub struct AcquisitionSummary {
     pub audit_root: String,
     pub audit_path: PathBuf,
     pub state: AcquisitionState,
+    pub segments: Vec<SegmentInfo>,
 }
 
 fn canonical_parent(path: &Path) -> Result<PathBuf, CoreError> {
@@ -58,6 +76,19 @@ fn canonical_parent(path: &Path) -> Result<PathBuf, CoreError> {
         parent
     };
     fs::canonicalize(parent).map_err(|error| CoreError::Io(error.to_string()))
+}
+
+fn segment_path(output: &Path, index: usize) -> PathBuf {
+    let parent = output.parent().unwrap_or_else(|| Path::new("."));
+    let stem = output
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("segment");
+    let file_name = match output.extension().and_then(|s| s.to_str()) {
+        Some(ext) => format!("{stem}.{index:03}.{ext}"),
+        None => format!("{stem}.{index:03}"),
+    };
+    parent.join(file_name)
 }
 
 pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, CoreError> {
@@ -114,11 +145,19 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
 
         let mut source_file =
             File::open(&request.source).map_err(|error| CoreError::Io(error.to_string()))?;
-        let mut output_file = File::options()
+
+        let mut segment_index: usize = 1;
+        let mut current_segment_path = match request.split_segment_bytes {
+            Some(_) => segment_path(&request.output, segment_index),
+            None => request.output.clone(),
+        };
+        let mut current_file = File::options()
             .write(true)
             .create_new(true)
-            .open(&request.output)
+            .open(&current_segment_path)
             .map_err(|error| CoreError::Io(error.to_string()))?;
+        let mut current_segment_bytes: u64 = 0;
+        let mut segments: Vec<SegmentInfo> = Vec::new();
 
         let mut buffer = vec![0u8; request.buffer_size];
         let mut hasher = Sha256::new();
@@ -139,19 +178,62 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
                 break;
             }
             hasher.update(&buffer[..read]);
-            output_file
-                .write_all(&buffer[..read])
-                .map_err(|error| CoreError::Io(error.to_string()))?;
             bytes_read += read as u64;
-            bytes_written += read as u64;
+
+            let mut offset = 0usize;
+            while offset < read {
+                let take = match request.split_segment_bytes {
+                    Some(limit) => {
+                        let remaining = limit.saturating_sub(current_segment_bytes);
+                        (remaining as usize).min(read - offset)
+                    }
+                    None => read - offset,
+                };
+
+                current_file
+                    .write_all(&buffer[offset..offset + take])
+                    .map_err(|error| CoreError::Io(error.to_string()))?;
+                current_segment_bytes += take as u64;
+                bytes_written += take as u64;
+                offset += take;
+
+                if let Some(limit) = request.split_segment_bytes
+                    && current_segment_bytes == limit
+                    && offset < read
+                {
+                    current_file
+                        .flush()
+                        .map_err(|error| CoreError::Io(error.to_string()))?;
+                    current_file
+                        .sync_all()
+                        .map_err(|error| CoreError::Io(error.to_string()))?;
+                    segments.push(SegmentInfo {
+                        path: current_segment_path.clone(),
+                        size: current_segment_bytes,
+                    });
+
+                    segment_index += 1;
+                    current_segment_path = segment_path(&request.output, segment_index);
+                    current_file = File::options()
+                        .write(true)
+                        .create_new(true)
+                        .open(&current_segment_path)
+                        .map_err(|error| CoreError::Io(error.to_string()))?;
+                    current_segment_bytes = 0;
+                }
+            }
         }
 
-        output_file
+        current_file
             .flush()
             .map_err(|error| CoreError::Io(error.to_string()))?;
-        output_file
+        current_file
             .sync_all()
             .map_err(|error| CoreError::Io(error.to_string()))?;
+        segments.push(SegmentInfo {
+            path: current_segment_path.clone(),
+            size: current_segment_bytes,
+        });
 
         let sha256 = hex::encode(hasher.finalize());
 
@@ -169,6 +251,7 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
             audit_root: String::new(),
             audit_path: request.audit_output.clone(),
             state: AcquisitionState::AcquiredUnverified,
+            segments,
         })
     };
 

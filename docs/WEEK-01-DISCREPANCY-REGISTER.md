@@ -43,7 +43,7 @@ trail. As of this register:
 | 01–05, 08–09, 12–14, 16 | Baseline, workspace, domain, audit, streaming, identity, manifest, package, verifier, Tauri boundary | Implemented, tested, hosted-CI green on 3 OS | No independent Codex review yet |
 | 06 | Canonical hashing determinism/version rejection | Implemented and tested | None known |
 | 07 | This integration gate | In progress (this file) | None known |
-| 10 | Failure semantics | Partially covered (I/O failure → `Failed` state append is implemented and exercised by `acquisition_rejects_same_source_and_destination`) | No dedicated cancel, destination-full, or retry-boundary test yet |
+| 10 | Failure semantics | Cancellation implemented and tested (`CoreError::Cancelled`, cooperative `cancel_flag`); destination-write-failure tested via a portable deterministic substitute (blocked path component) | Retry-boundary and literal destination-full simulation intentionally not implemented — that belongs to raw-device bad-sector policy in Track B/M2, not the file-backed M0 engine |
 | 11 | RAW and split-RAW | Partially covered (single-file RAW output only) | Split-RAW (segment boundary, final short segment, reassembly) not implemented |
 | 15 | CLI and fsnap draft | Partially covered (CLI usage + real fixture round-trip verified manually) | No golden fixture set (valid/mutated/truncated/removed-file/audit-discontinuous) and no `docs/fsnap-v0.1-read-contract.md` |
 | 17–19 | Guided UI, guidance/accessibility, CoC/report preview | Partially covered (Task 7 delivered a simpler guided flow: source/output fields, confirmation checkbox, progress, result card) | No case-identity fields, no dedicated verifier-summary breakdown, no accessibility/keyboard audit, no Chain-of-Custody report rendering |

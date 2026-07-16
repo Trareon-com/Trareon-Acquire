@@ -152,6 +152,12 @@ Cadence default untuk satu pembuat:
 
 Memakai tiga AI pada setiap baris kode akan menambah konflik dan biaya review. Gunakan ketiganya ketika risiko membenarkan; untuk task kecil, satu author dan satu reviewer independen cukup.
 
+## Universal session prompt
+
+Gunakan `docs/AI-UNIVERSAL-SESSION-PROMPT.md` untuk sesi panjang yang butuh discovery otomatis, handoff lintas AI, dan logging ke repo.
+
+Gunakan `docs/AI-UNIVERSAL-SESSION-PROMPT-SIMPLE.md` untuk sesi cepat yang tetap harus membaca konteks repo, melanjutkan kerja terakhir, dan menulis catatan akhir ke `docs/ai-session-log/`.
+
 ## Definition of ready untuk mulai Code
 
 Code M0 boleh dimulai setelah:

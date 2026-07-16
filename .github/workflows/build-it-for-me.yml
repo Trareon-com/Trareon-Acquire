@@ -1,0 +1,87 @@
+name: Build It For Me
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Runner platform to build on"
+        required: true
+        type: choice
+        options:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        default: ubuntu-latest
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  community-build:
+    runs-on: ${{ inputs.platform }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: cargo fmt --check
+        run: cargo fmt --all --check
+
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+      - name: cargo test
+        run: cargo test --workspace --locked
+
+      - name: npm ci
+        run: npm ci --prefix apps/traeron-acquire
+
+      - name: npm run build
+        run: npm run build --prefix apps/traeron-acquire
+
+      - name: cargo build (tauri app, release)
+        run: cargo build --manifest-path apps/traeron-acquire/src-tauri/Cargo.toml --release --locked
+
+      - name: Write community build notice
+        shell: bash
+        run: |
+          mkdir -p community-build
+          cp -r apps/traeron-acquire/dist community-build/dist
+          {
+            echo "Trareon Acquire — Community/Self Build"
+            echo ""
+            echo "Source commit: ${{ github.sha }}"
+            echo "Workflow repository: ${{ github.repository }}"
+            echo "Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "Build class: Community/Self Build"
+            echo ""
+            echo "Not validated for production evidence acquisition."
+          } > community-build/COMMUNITY-SELF-BUILD.txt
+
+      - name: Upload community build artifact
+        id: upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: trareon-acquire-community-build-${{ inputs.platform }}
+          path: community-build
+          retention-days: 7
+
+      - name: Attest community build artifact
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26
+        with:
+          subject-path: community-build/COMMUNITY-SELF-BUILD.txt
+          predicate-type: "https://trareon.com/attestations/community-self-build/v1"
+          predicate: |
+            {
+              "buildClass": "Community/Self Build",
+              "sourceCommit": "${{ github.sha }}",
+              "workflowRepository": "${{ github.repository }}",
+              "validated": false,
+              "notice": "Not validated for production evidence acquisition."
+            }

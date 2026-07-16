@@ -1,0 +1,8 @@
+/target/
+/node_modules/
+node_modules/
+/apps/traeron-acquire/dist/
+/apps/traeron-acquire/src-tauri/target/
+/apps/traeron-acquire/src-tauri/gen/
+*.fsnap/
+.DS_Store

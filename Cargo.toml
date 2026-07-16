@@ -1,5 +1,9 @@
 [workspace]
-members = ["crates/traeron-core", "crates/traeron-verifier"]
+members = [
+  "crates/traeron-core",
+  "crates/traeron-verifier",
+  "apps/traeron-acquire/src-tauri",
+]
 resolver = "2"
 
 [workspace.package]

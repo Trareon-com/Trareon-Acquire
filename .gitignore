@@ -1,0 +1,6 @@
+.DS_Store
+.ai-evidence/
+.worktrees/
+target/
+node_modules/
+dist/

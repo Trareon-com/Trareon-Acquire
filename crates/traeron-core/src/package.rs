@@ -44,7 +44,12 @@ fn hash_file(path: &Path) -> Result<(u64, String), CoreError> {
 
 fn copy_and_sync(source: &Path, destination: &Path) -> Result<(), CoreError> {
     fs::copy(source, destination).map_err(|error| CoreError::Io(error.to_string()))?;
-    let file = File::open(destination).map_err(|error| CoreError::Io(error.to_string()))?;
+    // Must be opened with write access: on Windows, FlushFileBuffers (which
+    // sync_all calls) fails with ERROR_ACCESS_DENIED on a read-only handle.
+    let file = File::options()
+        .write(true)
+        .open(destination)
+        .map_err(|error| CoreError::Io(error.to_string()))?;
     file.sync_all()
         .map_err(|error| CoreError::Io(error.to_string()))?;
     Ok(())

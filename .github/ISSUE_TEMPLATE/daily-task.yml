@@ -1,0 +1,76 @@
+name: Daily AI Task
+description: Satu work packet Trareon Acquire
+title: "[DAY-NN] "
+labels:
+  - ai-operations
+body:
+  - type: input
+    id: day
+    attributes:
+      label: Day dan Task ID
+      description: Gunakan format DAY-01 / M0-D01.
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk
+      options:
+        - Low
+        - Medium
+        - High
+        - Release-critical
+    validations:
+      required: true
+  - type: dropdown
+    id: autonomy
+    attributes:
+      label: Autonomy
+      options:
+        - AUTO
+        - AUTO_WITH_REVIEW
+        - MANUAL_START
+        - HUMAN_APPROVAL
+        - HARD_STOP
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Author dan reviewer
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome dan scope
+      description: Salin dari Day runbook, termasuk explicit non-goals.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance checklist
+      value: |
+        - [ ] Failing test dibuktikan bila TDD berlaku
+        - [ ] Implementasi sesuai scope
+        - [ ] Verification command dan exit code tercatat
+        - [ ] Independent review lulus
+        - [ ] Exact SHA konsisten
+        - [ ] NotValidated capability dicatat
+    validations:
+      required: true
+  - type: input
+    id: frozen_sha
+    attributes:
+      label: Frozen SHA
+      description: Isi setelah commit dibekukan; UNKNOWN berarti UNVERIFIED.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence dan human decisions
+      description: Jangan memasukkan barang bukti nyata, credential, signing key, atau data pribadi.
+    validations:
+      required: true

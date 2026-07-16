@@ -13,3 +13,12 @@ sh scripts/validate-ai-operations.sh
 ```
 
 Barang bukti nyata, disk image sensitif, credential, signing key, dan data pribadi tidak boleh masuk prompt, GitHub, screenshot, log, atau artifact.
+
+## Navigation
+
+- `START-HERE.md`: urutan penggunaan operator.
+- `MASTER-CHECKLIST.md`: monitoring Day 01-30.
+- `GITHUB-MONITORING.md`: Project/Issue/PR/Actions evidence flow.
+- `MONTH-01/`: runbook copy-paste harian.
+- `RECOVERY-PROMPTS/`: routing untuk hasil tidak terduga.
+- `PHASE-MAPS/`: entry/exit M1-M4 tanpa mengarang hasil platform masa depan.

@@ -11,6 +11,7 @@ use crate::{AuditJournal, CoreError, build_identity};
 const EVIDENCE_RELATIVE_PATH: &str = "acquisitions/0001/evidence.raw";
 const AUDIT_RELATIVE_PATH: &str = "audit/audit.jsonl";
 const MANIFEST_RELATIVE_PATH: &str = "manifest/manifest.json";
+const SUPPORTED_SCHEMA: &str = "trareon.fsnap.manifest/1";
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct FsnapManifestV1 {
@@ -79,7 +80,7 @@ pub fn create_fsnap(raw: &Path, audit: &Path, package: &Path) -> Result<(), Core
     let audit_root = AuditJournal::read_jsonl(&audit_path)?.verify()?;
 
     let manifest = FsnapManifestV1 {
-        schema: "trareon.fsnap.manifest/1".to_string(),
+        schema: SUPPORTED_SCHEMA.to_string(),
         build_identity: build_identity().to_string(),
         evidence_relative_path: EVIDENCE_RELATIVE_PATH.to_string(),
         evidence_size,
@@ -168,6 +169,19 @@ pub fn verify_fsnap(package: &Path) -> Result<FsnapManifestV1, CoreError> {
         fs::read(&manifest_path).map_err(|error| CoreError::Io(error.to_string()))?;
     let manifest: FsnapManifestV1 = serde_json::from_slice(&manifest_bytes)
         .map_err(|error| CoreError::Serialization(error.to_string()))?;
+
+    if manifest.schema != SUPPORTED_SCHEMA {
+        return Err(CoreError::Verification(format!(
+            "unsupported fsnap manifest schema: {}",
+            manifest.schema
+        )));
+    }
+    if manifest.build_identity != build_identity() {
+        return Err(CoreError::Verification(format!(
+            "unsupported fsnap build identity: {}",
+            manifest.build_identity
+        )));
+    }
 
     let evidence_path = resolve_within_package(package, &manifest.evidence_relative_path)?;
     let audit_path = resolve_within_package(package, &manifest.audit_relative_path)?;

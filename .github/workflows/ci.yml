@@ -46,3 +46,33 @@ jobs:
         run: npm ci --prefix apps/traeron-acquire
       - name: npm run build
         run: npm run build --prefix apps/traeron-acquire
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked --version 0.20.2
+      - name: cargo deny check (licenses, advisories, bans, sources)
+        run: cargo deny check
+      - name: npm audit (production dependencies only)
+        run: npm audit --omit=dev --prefix apps/traeron-acquire
+      - name: Scan for committed secret patterns
+        run: |
+          if grep -RInE '\-\-\-\-\-BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY\-\-\-\-\-|AKIA[0-9A-Z]{16}|aws_secret_access_key\s*=' \
+            --exclude-dir=target --exclude-dir=node_modules --exclude-dir=.git \
+            --exclude-dir=dist --exclude-dir=gen .; then
+            echo "Potential committed secret pattern found above."
+            exit 1
+          fi
+      - name: Generate dependency manifest (provenance intent, not a full SBOM)
+        run: cargo metadata --locked --format-version 1 > dependency-manifest.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dependency-manifest
+          path: dependency-manifest.json
+          retention-days: 30

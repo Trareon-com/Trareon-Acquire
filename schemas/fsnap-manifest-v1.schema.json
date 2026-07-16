@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trareon.com/schemas/fsnap-manifest-v1.schema.json",
+  "title": "Trareon fsnap foundation manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "build_identity", "evidence_relative_path", "evidence_size", "evidence_sha256", "audit_relative_path", "audit_sha256", "audit_root"],
+  "properties": {
+    "schema": { "const": "trareon.fsnap.manifest/1" },
+    "build_identity": { "const": "traeron-acquire-foundation-v1" },
+    "evidence_relative_path": { "const": "acquisitions/0001/evidence.raw" },
+    "evidence_size": { "type": "integer", "minimum": 1 },
+    "evidence_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "audit_relative_path": { "const": "audit/audit.jsonl" },
+    "audit_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "audit_root": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

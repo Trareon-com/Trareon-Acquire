@@ -55,19 +55,19 @@ jobs:
         run: cargo test --workspace --locked
 
       - name: npm ci
-        run: npm ci --prefix apps/traeron-acquire
+        run: npm ci --prefix apps/trareon-acquire
 
       - name: npm run build
-        run: npm run build --prefix apps/traeron-acquire
+        run: npm run build --prefix apps/trareon-acquire
 
       - name: cargo build (tauri app, release)
-        run: cargo build --manifest-path apps/traeron-acquire/src-tauri/Cargo.toml --release --locked
+        run: cargo build --manifest-path apps/trareon-acquire/src-tauri/Cargo.toml --release --locked
 
       - name: Write community build notice
         shell: bash
         run: |
           mkdir -p community-build
-          cp -r apps/traeron-acquire/dist community-build/dist
+          cp -r apps/trareon-acquire/dist community-build/dist
           {
             echo "Trareon Acquire — Community/Self Build"
             echo ""

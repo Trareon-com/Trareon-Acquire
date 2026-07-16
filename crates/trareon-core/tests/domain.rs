@@ -1,4 +1,4 @@
-use traeron_core::{AcquisitionState, CoreError};
+use trareon_core::{AcquisitionState, CoreError};
 
 #[test]
 fn verified_complete_requires_verifying_state() {

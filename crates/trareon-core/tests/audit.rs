@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use std::fs;
 use tempfile::tempdir;
-use traeron_core::{AcquisitionId, AcquisitionState, AuditJournal};
+use trareon_core::{AcquisitionId, AcquisitionState, AuditJournal};
 use uuid::Uuid;
 
 #[test]

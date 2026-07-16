@@ -35,10 +35,10 @@ Implementasikan audit events dan hash chain dari Foundation Plan Task 3 dengan m
 Anda adalah author untuk M0-D05 Trareon Acquire.
 
 Outcome: Implementasikan audit events dan hash chain dari Foundation Plan Task 3 dengan mutation, removal, reorder, dan discontinuity tests.
-Scope file/interface: crates/traeron-core/src/audit.rs; crates/traeron-core/src/lib.rs; crates/traeron-core/tests/audit.rs.
+Scope file/interface: crates/trareon-core/src/audit.rs; crates/trareon-core/src/lib.rs; crates/trareon-core/tests/audit.rs.
 Branch wajib: feat/m0-d05-audit. Baca authority files dan existing code sebelum perubahan. Gunakan TDD: tulis test yang gagal dengan alasan yang diharapkan, jalankan dan catat exit code, implementasikan perubahan minimum, lalu jalankan verification lengkap.
 
-Verification wajib: cargo test -p traeron-core --test audit; cargo test --workspace --all-targets.
+Verification wajib: cargo test -p trareon-core --test audit; cargo test --workspace --all-targets.
 Acceptance focus: canonical event bytes, previous-hash continuity, tamper selalu terdeteksi.
 
 Jangan memperluas scope, melemahkan assertion, skip test, menghapus perubahan pengguna, memakai real evidence, mengakses raw disk/elevated privilege, menambah dependency tanpa review, merge, release, atau signing. Simpan semua status sebagai core-owned typed result. Capability tanpa evidence adalah NotValidated.
@@ -78,14 +78,14 @@ human_approval_required:
 
 ## Expected Change Map
 
-- Expected files/interfaces: crates/traeron-core/src/audit.rs; crates/traeron-core/src/lib.rs; crates/traeron-core/tests/audit.rs.
+- Expected files/interfaces: crates/trareon-core/src/audit.rs; crates/trareon-core/src/lib.rs; crates/trareon-core/tests/audit.rs.
 - Expected behavior: Implementasikan audit events dan hash chain dari Foundation Plan Task 3 dengan mutation, removal, reorder, dan discontinuity tests.
 - Explicit non-goals: fitur setelah Day 05, production claim, raw/elevated operation tanpa gate, refactor di luar scope, dan perubahan RFC.
 - Diff di luar map menjadi `FIX + SCOPE-DRIFT` sampai dijelaskan dan disetujui.
 
 ## Expected Result
 
-- Verification: `cargo test -p traeron-core --test audit; cargo test --workspace --all-targets`.
+- Verification: `cargo test -p trareon-core --test audit; cargo test --workspace --all-targets`.
 - Expected: command relevan exit 0 setelah TDD cycle; targeted dan regression tests lulus.
 - Required evidence: failing-test proof bila berlaku, commands/exit codes, files changed, exact commit, platforms tested, NotValidated list, dan remaining risks.
 - Performance-sensitive change wajib menjaga byte/hash/coverage/audit/cancel/tamper equivalence.
@@ -97,7 +97,7 @@ Anda adalah independent reviewer Codex untuk M0-D05. Jangan menulis pada worktre
 
 Verifikasi sendiri scope, correctness, negative paths, false-complete resistance, forensic validity, security, dependency boundary, deterministic behavior, performance equivalence, documentation, dan test oracle. Fokus khusus: canonical event bytes, previous-hash continuity, tamper selalu terdeteksi.
 
-Jalankan command aman yang relevan: cargo test -p traeron-core --test audit; cargo test --workspace --all-targets. Bandingkan exact local/remote/PR/CI SHA bila remote evidence tersedia. SHA mismatch adalah BLOCKED + REMOTE-STATE-DIVERGENCE. Hasil tanpa reproducible evidence adalah UNVERIFIED.
+Jalankan command aman yang relevan: cargo test -p trareon-core --test audit; cargo test --workspace --all-targets. Bandingkan exact local/remote/PR/CI SHA bila remote evidence tersedia. SHA mismatch adalah BLOCKED + REMOTE-STATE-DIVERGENCE. Hasil tanpa reproducible evidence adalah UNVERIFIED.
 
 Jangan memperbaiki branch author, merge, release, sign, mengakses real evidence/raw disk, atau menyetujui scope expansion. Kembalikan finding ke author dan akhiri dengan TaskResult.v1 lengkap.
 schema: TaskResult.v1

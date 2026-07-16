@@ -3570,7 +3570,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "traeron-acquire-app"
+name = "trareon-acquire-app"
 version = "0.1.0"
 dependencies = [
  "serde",
@@ -3578,11 +3578,11 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tempfile",
- "traeron-core",
+ "trareon-core",
 ]
 
 [[package]]
-name = "traeron-core"
+name = "trareon-core"
 version = "0.1.0"
 dependencies = [
  "chrono",
@@ -3596,12 +3596,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "traeron-verifier"
+name = "trareon-verifier"
 version = "0.1.0"
 dependencies = [
  "serde_json",
  "tempfile",
- "traeron-core",
+ "trareon-core",
 ]
 
 [[package]]

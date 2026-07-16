@@ -14,16 +14,16 @@
 - `rust-toolchain.toml` (new)
 - `package.json` (new)
 - `.gitignore` (modified)
-- `crates/traeron-core/Cargo.toml` (new)
-- `crates/traeron-core/src/lib.rs` (new)
-- `crates/traeron-core/tests/foundation.rs` (new)
+- `crates/trareon-core/Cargo.toml` (new)
+- `crates/trareon-core/src/lib.rs` (new)
+- `crates/trareon-core/tests/foundation.rs` (new)
 
 ## Commands Run
 - `git checkout -b feat/m0-t01-workspace-core-boundary`
-- `cargo test -p traeron-core --test foundation`
+- `cargo test -p trareon-core --test foundation`
 - `cargo fmt --all`
 - `cargo clippy --workspace --all-targets --all-features -- -D warnings`
-- `git add Cargo.toml Cargo.lock rust-toolchain.toml package.json .gitignore crates/traeron-core`
+- `git add Cargo.toml Cargo.lock rust-toolchain.toml package.json .gitignore crates/trareon-core`
 - `git commit -m "build: establish reproducible core workspace"`
 
 ## Verification Results

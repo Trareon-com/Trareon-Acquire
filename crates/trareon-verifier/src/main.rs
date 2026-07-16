@@ -3,11 +3,11 @@ use std::{env, path::Path, process::ExitCode};
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
     if args.len() != 3 || args[1] != "verify" {
-        eprintln!("usage: traeron-verifier verify PATH");
+        eprintln!("usage: trareon-verifier verify PATH");
         return ExitCode::from(64);
     }
 
-    match traeron_core::verify_fsnap(Path::new(&args[2])) {
+    match trareon_core::verify_fsnap(Path::new(&args[2])) {
         Ok(manifest) => {
             println!(
                 "VALID {} {}",

@@ -1,8 +1,8 @@
 [workspace]
 members = [
-  "crates/traeron-core",
-  "crates/traeron-verifier",
-  "apps/traeron-acquire/src-tauri",
+  "crates/trareon-core",
+  "crates/trareon-verifier",
+  "apps/trareon-acquire/src-tauri",
 ]
 resolver = "2"
 

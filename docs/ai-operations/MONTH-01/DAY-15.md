@@ -35,10 +35,10 @@ Tambahkan CLI round-trip dan golden packages valid, mutated, truncated, removed-
 Anda adalah author untuk M0-D15 Trareon Acquire.
 
 Outcome: Tambahkan CLI round-trip dan golden packages valid, mutated, truncated, removed-file, audit-discontinuous, unsupported-version; tulis read contract v0.1 draft.
-Scope file/interface: crates/traeron-verifier/tests/cli.rs; fixtures/fsnap-v0.1; schemas; docs/fsnap-v0.1-read-contract.md.
+Scope file/interface: crates/trareon-verifier/tests/cli.rs; fixtures/fsnap-v0.1; schemas; docs/fsnap-v0.1-read-contract.md.
 Branch wajib: feat/m0-d15-contract. Baca authority files dan existing code sebelum perubahan. Gunakan TDD: tulis test yang gagal dengan alasan yang diharapkan, jalankan dan catat exit code, implementasikan perubahan minimum, lalu jalankan verification lengkap.
 
-Verification wajib: cargo test -p traeron-verifier -- --nocapture; cargo test --workspace --all-targets.
+Verification wajib: cargo test -p trareon-verifier -- --nocapture; cargo test --workspace --all-targets.
 Acceptance focus: golden fixture deterministik dan Analysis reader contract tidak mengizinkan silent repair.
 
 Jangan memperluas scope, melemahkan assertion, skip test, menghapus perubahan pengguna, memakai real evidence, mengakses raw disk/elevated privilege, menambah dependency tanpa review, merge, release, atau signing. Simpan semua status sebagai core-owned typed result. Capability tanpa evidence adalah NotValidated.
@@ -78,14 +78,14 @@ human_approval_required:
 
 ## Expected Change Map
 
-- Expected files/interfaces: crates/traeron-verifier/tests/cli.rs; fixtures/fsnap-v0.1; schemas; docs/fsnap-v0.1-read-contract.md.
+- Expected files/interfaces: crates/trareon-verifier/tests/cli.rs; fixtures/fsnap-v0.1; schemas; docs/fsnap-v0.1-read-contract.md.
 - Expected behavior: Tambahkan CLI round-trip dan golden packages valid, mutated, truncated, removed-file, audit-discontinuous, unsupported-version; tulis read contract v0.1 draft.
 - Explicit non-goals: fitur setelah Day 15, production claim, raw/elevated operation tanpa gate, refactor di luar scope, dan perubahan RFC.
 - Diff di luar map menjadi `FIX + SCOPE-DRIFT` sampai dijelaskan dan disetujui.
 
 ## Expected Result
 
-- Verification: `cargo test -p traeron-verifier -- --nocapture; cargo test --workspace --all-targets`.
+- Verification: `cargo test -p trareon-verifier -- --nocapture; cargo test --workspace --all-targets`.
 - Expected: command relevan exit 0 setelah TDD cycle; targeted dan regression tests lulus.
 - Required evidence: failing-test proof bila berlaku, commands/exit codes, files changed, exact commit, platforms tested, NotValidated list, dan remaining risks.
 - Performance-sensitive change wajib menjaga byte/hash/coverage/audit/cancel/tamper equivalence.
@@ -97,7 +97,7 @@ Anda adalah independent reviewer Claude Code untuk M0-D15. Jangan menulis pada w
 
 Verifikasi sendiri scope, correctness, negative paths, false-complete resistance, forensic validity, security, dependency boundary, deterministic behavior, performance equivalence, documentation, dan test oracle. Fokus khusus: golden fixture deterministik dan Analysis reader contract tidak mengizinkan silent repair.
 
-Jalankan command aman yang relevan: cargo test -p traeron-verifier -- --nocapture; cargo test --workspace --all-targets. Bandingkan exact local/remote/PR/CI SHA bila remote evidence tersedia. SHA mismatch adalah BLOCKED + REMOTE-STATE-DIVERGENCE. Hasil tanpa reproducible evidence adalah UNVERIFIED.
+Jalankan command aman yang relevan: cargo test -p trareon-verifier -- --nocapture; cargo test --workspace --all-targets. Bandingkan exact local/remote/PR/CI SHA bila remote evidence tersedia. SHA mismatch adalah BLOCKED + REMOTE-STATE-DIVERGENCE. Hasil tanpa reproducible evidence adalah UNVERIFIED.
 
 Jangan memperbaiki branch author, merge, release, sign, mengakses real evidence/raw disk, atau menyetujui scope expansion. Kembalikan finding ke author dan akhiri dengan TaskResult.v1 lengkap.
 schema: TaskResult.v1

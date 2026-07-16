@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window. Only core defaults; no shell or filesystem plugin access.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

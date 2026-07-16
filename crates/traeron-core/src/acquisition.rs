@@ -2,6 +2,7 @@ use std::{
     fs::{self, File},
     io::{Read, Write},
     path::{Path, PathBuf},
+    sync::{Arc, atomic::AtomicBool, atomic::Ordering},
 };
 
 use chrono::Utc;
@@ -15,6 +16,7 @@ pub struct AcquireRequest {
     pub output: PathBuf,
     pub audit_output: PathBuf,
     pub buffer_size: usize,
+    pub cancel_flag: Option<Arc<AtomicBool>>,
 }
 
 impl AcquireRequest {
@@ -26,7 +28,15 @@ impl AcquireRequest {
             output,
             audit_output,
             buffer_size: 1024 * 1024,
+            cancel_flag: None,
         }
+    }
+
+    /// Cooperative cancellation: the acquisition loop checks this flag before
+    /// each read and stops with `CoreError::Cancelled` when it is set.
+    pub fn with_cancel_flag(mut self, flag: Arc<AtomicBool>) -> Self {
+        self.cancel_flag = Some(flag);
+        self
     }
 }
 
@@ -116,6 +126,12 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
         let mut bytes_written: u64 = 0;
 
         loop {
+            if let Some(flag) = &request.cancel_flag
+                && flag.load(Ordering::SeqCst)
+            {
+                return Err(CoreError::Cancelled);
+            }
+
             let read = source_file
                 .read(&mut buffer)
                 .map_err(|error| CoreError::Io(error.to_string()))?;
@@ -162,6 +178,24 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
             journal.write_jsonl(&request.audit_output)?;
             summary.audit_root = audit_root;
             Ok(summary)
+        }
+        Err(CoreError::Cancelled) => {
+            if journal
+                .append(
+                    acquisition_id,
+                    Utc::now(),
+                    AcquisitionState::Cancelled,
+                    "cancelled",
+                )
+                .is_ok()
+            {
+                journal.write_jsonl(&request.audit_output).map_err(|write_error| {
+                    CoreError::Io(format!(
+                        "acquisition cancelled and audit journal could not be persisted: {write_error}"
+                    ))
+                })?;
+            }
+            Err(CoreError::Cancelled)
         }
         Err(error) => {
             if journal

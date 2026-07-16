@@ -36,6 +36,8 @@ pub enum CoreError {
     Serialization(String),
     #[error("verification failed: {0}")]
     Verification(String),
+    #[error("acquisition cancelled")]
+    Cancelled,
 }
 
 impl AcquisitionState {

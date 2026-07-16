@@ -24,7 +24,9 @@
 - At most two bounded recovery cycles are allowed per work packet.
 - Performance work must preserve byte output, hash, coverage, audit order, cancellation semantics, tamper outcome, and capability claims.
 - All operator prose and copy-paste prompts are written in Indonesian; code identifiers, commands, and result field names remain English.
-- The repository is not initialized when this plan is written. Pack-generation tasks validate files but do not initialize Git; the Day 1 runbook owns `git init` and the baseline commit.
+- The local repository is initialized at baseline commit `5bfabef0c3a9aa8194130a44072dc0dfdaab7f0e`, remote `origin` names `https://github.com/Trareon-com/Trareon-Acquire.git`, and pack generation runs on branch `docs/ai-prompt-pack` in an isolated worktree.
+- Day 1 verifies the existing baseline, remote URL, branch-protection intent, and GitHub monitoring setup; it does not repeat `git init`.
+- GitHub is the primary monitoring plane through one Project item per Day linked to its Issue, pull request, exact-SHA checks, and redacted evidence.
 
 ## Document Interfaces
 
@@ -95,7 +97,7 @@ Incident category is exactly one of `NONE`, `IMPLEMENTATION-FAILURE`, `TEST-INFR
 ### Task 1: Validation Harness and Operations Skeleton
 
 **Files:**
-- Create: `.gitignore`
+- Modify: `.gitignore`
 - Create: `scripts/validate-ai-operations.sh`
 - Create: `docs/ai-operations/README.md`
 - Create: `docs/ai-operations/MONTH-01/README.md`
@@ -106,11 +108,12 @@ Incident category is exactly one of `NONE`, `IMPLEMENTATION-FAILURE`, `TEST-INFR
 
 - [ ] **Step 1: Create the directory boundary and local evidence exclusion**
 
-Create `docs/ai-operations/MONTH-01`, `docs/ai-operations/PHASE-MAPS`, `docs/ai-operations/RECOVERY-PROMPTS`, `docs/ai-operations/TEMPLATES`, and `scripts`. Create `.gitignore` with exactly:
+Create `docs/ai-operations/MONTH-01`, `docs/ai-operations/PHASE-MAPS`, `docs/ai-operations/RECOVERY-PROMPTS`, `docs/ai-operations/TEMPLATES`, and `scripts`. Preserve `.gitignore` with exactly:
 
 ```gitignore
 .DS_Store
 .ai-evidence/
+.worktrees/
 target/
 node_modules/
 dist/
@@ -128,7 +131,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 OPS="$ROOT/docs/ai-operations"
 SPEC="$ROOT/docs/superpowers/specs/2026-07-17-trareon-ai-prompt-operations-design.md"
 
-required_root="START-HERE.md MASTER-CHECKLIST.md CONTROL-PLANE-PROMPT.md RESULT-CONTRACT.md EVIDENCE-INDEX.md README.md"
+required_root="START-HERE.md MASTER-CHECKLIST.md CONTROL-PLANE-PROMPT.md RESULT-CONTRACT.md EVIDENCE-INDEX.md GITHUB-MONITORING.md README.md"
 for file in $required_root; do
   test -s "$OPS/$file" || { echo "missing:$OPS/$file"; exit 1; }
 done
@@ -192,7 +195,7 @@ Expected: non-zero exit with `missing:` for `docs/ai-operations/START-HERE.md`. 
 
 - [ ] **Step 5: Record the task result**
 
-Record `EXPECTED_FAIL_TDD` with incident `NONE`, list the four created files, and state `COMMIT_SKIPPED_NO_REPOSITORY`. Do not initialize Git in this pack-generation task.
+Record `EXPECTED_FAIL_TDD` with incident `NONE`, list the four created files, and commit them on `docs/ai-prompt-pack` with message `docs(ai-ops): add validation harness`.
 
 ### Task 2: Control Plane, Result Contract, and Evidence Templates
 
@@ -241,10 +244,14 @@ Expected: all result fields are present in the three contract files and the cont
 **Files:**
 - Create: `docs/ai-operations/START-HERE.md`
 - Create: `docs/ai-operations/MASTER-CHECKLIST.md`
+- Create: `docs/ai-operations/GITHUB-MONITORING.md`
+- Create: `.github/ISSUE_TEMPLATE/daily-task.yml`
+- Create: `.github/ISSUE_TEMPLATE/config.yml`
+- Create: `.github/PULL_REQUEST_TEMPLATE.md`
 
 **Interfaces:**
 - Consumes: daily sequence, roles, autonomy levels, evidence index, and `TaskResult.v1`.
-- Produces: the operator's only required entry point and a thirty-row monitoring dashboard.
+- Produces: the operator's only required entry point, a thirty-row monitoring dashboard, and GitHub-native Issue/PR/Project conventions.
 
 - [ ] **Step 1: Write the five-action operator workflow**
 
@@ -262,13 +269,18 @@ Create exactly one row for Day 01 through Day 30 with columns `Day`, `Task`, `Au
 
 Add Week 1, Week 2, Week 3, and Day 30 milestone gates. Day 30 must require `.fsnap` v0.1 compatibility fixtures, verifier independence, limitation matrix, performance baseline, and human classification approval.
 
-- [ ] **Step 5: Verify the dashboard count**
+- [ ] **Step 5: Add and verify the GitHub monitoring contract**
+
+`GITHUB-MONITORING.md` defines the Project statuses `Backlog`, `Ready`, `Claude Implementing`, `Codex Reviewing`, `Antigravity Validating`, `CI Running`, `Hardware Validation`, `Human Approval`, and `Done`; the fields Day, Task ID, Milestone, Risk, Autonomy, Author, Reviewer, Frozen SHA, CI, Hardware, Incident, Human Gate, and Evidence URL; and the rule that only redacted/non-sensitive evidence is uploaded. The Issue form captures the same task identity and acceptance gates. The PR template captures exact local/remote/PR/CI SHA, tests, Codex relay, Antigravity evidence, capabilities not validated, and human gate. Neither template authorizes merge.
+
+Run:
 
 Run:
 
 ```bash
 test "$(rg -c '^\| [0-9]{2} \|' docs/ai-operations/MASTER-CHECKLIST.md)" -eq 30
 rg -n 'jangan.*bersamaan|exact.*SHA|NotValidated|Production-Directed|fsnap.*v0.1' docs/ai-operations/START-HERE.md docs/ai-operations/MASTER-CHECKLIST.md
+rg -n 'Backlog|Codex Reviewing|Hardware Validation|Evidence URL|real evidence|barang bukti' docs/ai-operations/GITHUB-MONITORING.md .github/ISSUE_TEMPLATE/daily-task.yml .github/PULL_REQUEST_TEMPLATE.md
 ```
 
 Expected: the first command exits zero and the second shows each mandatory operator safeguard.
@@ -290,7 +302,7 @@ Expected: the first command exits zero and the second shows each mandatory opera
 
 - [ ] **Step 1: Write Days 01-02**
 
-Day 01 owns Git initialization, baseline commit, branch/worktree policy, pinned toolchains, and initial CI skeleton without dependency upgrades. Day 02 creates Rust core/verifier/app boundaries and a failing public-dependency test. Both use Claude Code as author and Codex as local reviewer; Antigravity returns `NO_RUN_NOT_VISUAL` with `TaskResult.v1`.
+Day 01 verifies baseline commit `5bfabef0c3a9aa8194130a44072dc0dfdaab7f0e`, the `origin` URL, branch/worktree policy, GitHub Project/Issue/PR monitoring setup, pinned toolchains, and initial CI skeleton without dependency upgrades. Day 02 creates Rust core/verifier/app boundaries and a failing public-dependency test. Both use Claude Code as author and Codex as local reviewer; Antigravity returns `NO_RUN_NOT_VISUAL` with `TaskResult.v1`.
 
 - [ ] **Step 2: Write Days 03-04**
 
@@ -537,4 +549,4 @@ RFC-Digital-Forensic-Acquisition.md: OK
 
 - [ ] **Step 5: Perform manual spec-coverage review**
 
-Inspect the final pack and record evidence that all thirty days, twelve runbook sections, three AI roles, local-only Codex, one-gateway rule, exact-SHA handoff, all incident routes, two-cycle recovery limit, performance-equivalence gate, `.fsnap` Analysis contract, Windows-first production path, M1-M4 maps, and protected human actions are covered. Record `COMMIT_SKIPPED_NO_REPOSITORY`; Day 1 will create the baseline commit.
+Inspect the final pack and record evidence that all thirty days, twelve runbook sections, three AI roles, local-only Codex, one-gateway rule, exact-SHA handoff, GitHub-only monitoring visibility, redacted hardware evidence, all incident routes, two-cycle recovery limit, performance-equivalence gate, `.fsnap` Analysis contract, Windows-first production path, M1-M4 maps, and protected human actions are covered. Commit the complete pack on `docs/ai-prompt-pack`; do not push or merge from Codex.

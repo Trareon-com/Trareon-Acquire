@@ -14,10 +14,12 @@
 
 ## Exit evidence
 
-- Synthetic and injected-failure matrix has no false-complete path.
+- Synthetic and injected-failure matrix has no false-complete path — see `docs/M1-FAILURE-MATRIX.md`.
 - Repeated runs are deterministic and performance remains within documented ceilings.
 - Acquire/Analysis compatibility suite covers valid, mutated, truncated, removed-file, audit-discontinuous, and unsupported-version packages.
-- Next rolling-wave prompts are generated from observed Day 30/M1 evidence.
+- Next rolling-wave prompts are generated from observed Day 30/M1 evidence — see `docs/ai-operations/ROLLING-WAVE/M2-FROM-M1.md`.
+
+**Status (2026-07-17):** file-backed Engineering Alpha exit recorded in `docs/M1-MILESTONE-REVIEW.md`.
 
 ## Anticipated incidents
 

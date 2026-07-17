@@ -27,3 +27,5 @@ Unstable device identity, permission policy differences, controller behavior, an
 ## Trigger
 
 Generate detailed M2 prompts only after allowlisted hardware and the M1 exit bundle are approved.
+
+**M1 exit prompts (draft):** `docs/ai-operations/ROLLING-WAVE/M2-FROM-M1.md` — hardware allowlist still required before destructive lab execution.

@@ -33,12 +33,12 @@ validate privilege boundaries only — not production raw-device adapters.
 | SHA-256 of acquired bytes | Implemented | Acquisition summary + independent re-hash in verify | — |
 | Append-only audit hash chain | Implemented | Audit tests + package verify | — |
 | Cooperative cancel (`cancel_flag`) | Implemented (core + UI) | Acquisition / property / Tauri cancel tests | Resume of cancelled file-backed acquire is M1 (non-split) |
-| Checkpoint / resume (file-backed) | Implemented (non-split) | `checkpoint.rs` + acquisition resume tests | Split-RAW resume not supported; never false-complete |
+| Checkpoint / resume (file-backed) | Implemented (non-split + split-RAW) | `checkpoint.rs` + acquisition resume tests | Physical-media resume still M2 |
 | Split-RAW segment writes | Implemented (core + package) | Acquisition + `create_fsnap_from_segments` | Optional `evidence_segments`; single-file Analysis goldens unchanged |
 | `.fsnap` v0.1 create/verify | Implemented + **Analysis-frozen** | Package tests + 6 golden fixtures + CLI | Single `evidence.raw` only |
 | Independent verifier CLI | Implemented | `trareon-verifier` CLI tests | Exit 0 / 2 only; no repair |
-| Analysis read-only importer | Implemented (M1) | `trareon-analysis` + golden import tests | Indexes outside package; no repair/upgrade |
-| Guided synthetic UI | Partial | App.svelte CoC card + Cancel + a11y labels | No formal a11y audit |
+| Analysis read-only importer | Implemented (M1 exit) | `trareon-analysis` covers all 6 goldens + immutability | Indexes outside package; no repair/upgrade |
+| Guided synthetic UI | Partial | App.svelte CoC + Cancel + a11y labels | Manual a11y checklist PASS; automated scanner open |
 | Cross-OS CI matrix | Implemented | GitHub Actions `test` × 3 OS | See Day 20 recovery-cycle note |
 | DevSecOps gates | Implemented | `deny.toml`, CI `security` job, `SECURITY.md` | Unmaintained advisories explicitly ignored |
 | Bounded property tests | Implemented | `tests/properties.rs` + fuzz corpus docs | Full `cargo-fuzz` `NotValidated` |

@@ -51,8 +51,9 @@ trail. As of this register:
 | 21 | DevSecOps gates | Implemented via PR #34 (merged); rename path fix via PR #35 (merged) | Independent Codex review still `NOT_STARTED` |
 | 22 | Property and fuzz baseline | Implemented via PR #37 (`feat/m0-d22-fuzz`, frozen SHA `f225d33`) — bounded property suite + synthetic corpus + CI smoke; hosted CI `PASS_3OS` | Full `cargo-fuzz`/libFuzzer remains `NotValidated` (needs dependency/toolchain review). Day 22 entry gate asked for Day 21 independent review `EXPECTED_PASS`, which has not happened yet |
 | 23–25 | Platform raw-device feasibility (Linux/Windows/macOS) | Not started | `MANUAL_START` + physical devices required |
-| 26 | Performance baseline | Implemented via PR #43 (`feat/m0-d26-performance`, frozen SHA `4008934`) — harness + synthetic timings + CI smoke; no optimization | Peak RSS `NotValidated`; Day 25 entry gate not formally met |
-| 27–30 | Capability matrix, docs, adversarial review, freeze gate | Not started | Tracked as `NOT_STARTED` in `MASTER-CHECKLIST.md` |
+| 26 | Performance baseline | Implemented via PR #43 (merged) — harness + synthetic timings + CI smoke; no optimization | Peak RSS `NotValidated`; Day 25 entry gate not formally met |
+| 27 | Capability matrix + fsnap freeze candidate | Implemented — `docs/CAPABILITY-MATRIX-M0.md`; read contract marked freeze candidate | Hard freeze blocked: split-RAW packaging, Codex reviews, Days 23–25 devices, Day 30 human gate |
+| 28–30 | Docs About/limitations, adversarial review, EAC freeze gate | Not started / in progress separately | Day 30 requires `HUMAN_APPROVAL` |
 
 ## P0/P1 status
 

@@ -20,7 +20,9 @@ without exact hardware evidence remains `NotValidated`.
 | Desktop shell (Tauri + Svelte) | Implemented — guided foundation demo UI |
 | Cross-platform CI (Ubuntu / Windows / macOS) | Hosted CI green for the foundation slice |
 | DevSecOps gates (`cargo deny`, npm audit, secret scan) | Implemented on `main` |
-| Bounded property tests / fuzz corpus docs | In progress on feature branches; full `cargo-fuzz` still deferred |
+| Bounded property tests / fuzz corpus docs | Implemented on `main` (Day 22); full `cargo-fuzz` still deferred |
+| Performance baseline (synthetic) | Implemented on `main` (Day 26); peak RSS `NotValidated` |
+| Capability / limitation matrix | See [`docs/CAPABILITY-MATRIX-M0.md`](docs/CAPABILITY-MATRIX-M0.md) |
 | Raw-device adapters (Linux / Windows / macOS) | **Not started** — needs lab hardware (`MANUAL_START`) |
 | Production release / signing / certification | **Out of scope** for this slice |
 

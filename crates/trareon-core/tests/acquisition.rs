@@ -262,6 +262,44 @@ fn resume_split_after_partial_segments_matches_full_hash() {
 }
 
 #[test]
+fn max_bytes_bounds_file_acquire() {
+    let dir = tempdir().unwrap();
+    let source = dir.path().join("source.img");
+    let output = dir.path().join("evidence.raw");
+    fs::write(&source, vec![9u8; 10_000]).unwrap();
+    let summary = acquire_file(
+        &AcquireRequest::new(&source, &output)
+            .with_max_bytes(1500)
+            .with_buffer_size(512),
+    )
+    .unwrap();
+    assert_eq!(summary.bytes_written, 1500);
+    assert_eq!(fs::metadata(&output).unwrap().len(), 1500);
+}
+
+#[test]
+fn raw_device_without_max_bytes_is_rejected_even_if_allowlisted() {
+    let dir = tempdir().unwrap();
+    let allow = dir.path().join("allow.json");
+    fs::write(
+        &allow,
+        r#"{
+  "schema": "trareon.lab-allowlist/1",
+  "human_approved": true,
+  "approved_by": "test",
+  "entries": [{"source_identity": "/dev/rdisk10", "notes": "t"}]
+}"#,
+    )
+    .unwrap();
+    let err = acquire_file(
+        &AcquireRequest::new("/dev/rdisk10", dir.path().join("out.raw"))
+            .with_lab_allowlist_path(&allow),
+    )
+    .unwrap_err();
+    assert!(err.to_string().contains("max_bytes"), "{err}");
+}
+
+#[test]
 fn resume_split_mismatch_settings_is_rejected() {
     let dir = tempdir().unwrap();
     let source = dir.path().join("source.img");

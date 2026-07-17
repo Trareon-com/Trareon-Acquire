@@ -58,6 +58,28 @@ NTFS is mounted **read-only** on this Mac. Options:
 PR CI may fail with billing/spending-limit errors unrelated to this branch.
 Fix billing in GitHub org settings, then re-run checks on PR #56.
 
+## E. Bounded raw content smoke (1 MiB — not full disk)
+
+After elevated open of `/dev/rdisk10` is **Available**, run a **bounded** sample
+only. This never images the whole USB.
+
+```bash
+cd "/Users/user/Projects/Trareon/Trareon Acquire"
+sudo cargo run -p trareon-core --example lab_raw_bounded_smoke -- \
+  /dev/rdisk10 fixtures/lab-allowlists/tiny11-2311-disk10.json 1048576
+```
+
+Expect `RAW_BOUNDED_OK` with `bytes=1048576`. Output lands under
+`/tmp/trareon-raw-bounded-lab/` (not committed).
+
+To probe the partition node instead, unmount first (destructive to open
+handles — only if you intend it):
+
+```bash
+# optional — makes disk10s1 not busy
+diskutil unmount "/Volumes/tiny11 2311"
+```
+
 ## Still out of policy without a new explicit gate
 
 - Imaging entire `/dev/rdisk10` into the repo

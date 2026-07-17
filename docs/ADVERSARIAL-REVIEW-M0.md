@@ -56,9 +56,11 @@ Known residual **limitations** (not filed as new P0 because already tracked; the
 
 ## Day 30 gate recommendation
 
-- **Do not** auto-approve Day 30 Production-Directed EAC.
+- **Do not** auto-approve Day 30 Production-Directed EAC from this adversarial pass alone.
 - Requires explicit **human** classification after reviewing this report + capability matrix + discrepancy register.
 - File-backed synthetic slice may be described as Engineering Alpha lab demo only.
+
+**Follow-up (2026-07-17):** Human operator instructed `selesaikan day 30`. Classification recorded as **Production-Directed Engineering Alpha Candidate — Lab Use Only** with Analysis-only `.fsnap` v0.1 freeze. See `docs/M0-MILESTONE-REVIEW.md` and `docs/ai-operations/DECISIONS/2026-07-17-day30-eac-human-approval.md`. Residuals in this report remain valid and still block Official Production.
 
 ## NotValidated list (review scope)
 

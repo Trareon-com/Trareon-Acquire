@@ -53,10 +53,10 @@ trail. As of this register:
 | 23 | Linux raw-device privilege-boundary feasibility | Implemented via PR #47 (`feat/m0-d23-linux`, frozen SHA `b377e3b`) on real Kali hardware (human-operated relay, no direct network path from this session) — `crates/trareon-core/src/platform.rs` probe, `docs/platform/day23-linux-feasibility.md` | Only loop-device/synthetic-file feasibility tested; real physical disk attach/read intentionally out of scope (system disk excluded per policy) |
 | 24–25 | Windows/macOS raw-device feasibility | Not started | `MANUAL_START` + physical devices required |
 | 26 | Performance baseline | Implemented via PR #43 (merged) — harness + synthetic timings + CI smoke; no optimization | Peak RSS `NotValidated`; Day 25 entry gate not formally met |
-| 27 | Capability matrix + fsnap freeze candidate | Implemented — `docs/CAPABILITY-MATRIX-M0.md`; read contract marked freeze candidate | Hard freeze blocked: split-RAW packaging, Codex reviews, Days 23–25 devices, Day 30 human gate |
+| 27 | Capability matrix + fsnap freeze candidate | Implemented — `docs/CAPABILITY-MATRIX-M0.md`; later promoted to Analysis freeze at Day 30 | Split-RAW packaging and Official Production still out of scope |
 | 28 | User guide / About / legal draft | Implemented on `feat/m0-d28-docs` — USER-GUIDE, LEGAL-LIMITATIONS-DRAFT, About UI | Legal text remains draft; no certification claim |
-| 29 | Adversarial review | Implemented — `docs/ADVERSARIAL-REVIEW-M0.md`; no new P0/P1 | Residual limitations still block EAC |
-| 30 | EAC / fsnap freeze gate | Not started | Requires explicit `HUMAN_APPROVAL` |
+| 29 | Adversarial review | Implemented — `docs/ADVERSARIAL-REVIEW-M0.md`; no new P0/P1 | Residuals block Official Production; Lab-Use-Only EAC still allowed with human approval |
+| 30 | EAC / fsnap Analysis freeze | Implemented — milestone review, risk register, evidence index, human decision record | Classification Lab Use Only; Days 24–25 still open; Codex reviews still `NOT_STARTED` |
 
 ## P0/P1 status
 

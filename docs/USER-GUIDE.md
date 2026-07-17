@@ -26,21 +26,23 @@ workstation, not live evidence acquisition from raw disks.
 | Output directory | Destination for acquire + package | Must be writable |
 | Synthetic confirmation checkbox | Gate before Run | Required |
 | Run | Invokes core acquire → package → verify | UI does not invent success |
-| Chain of Custody Summary | Displays core-returned status only | Failed / Verified Complete |
+| Cancel | Arms cooperative `cancel_flag` for in-flight demo | Shows Cancelled; never Verified Complete |
+| Chain of Custody Summary | Displays core-returned status only | Failed / Cancelled / Verified Complete |
 | About | Attribution + limitation links | See in-app About section |
 
-## Supported workflow (M0)
+## Supported workflow (M0 / early M1)
 
 1. Build/test locally (`cargo test --workspace --locked`, `npm run build`).
 2. Launch the Tauri demo (`npm run tauri --prefix apps/trareon-acquire -- dev`).
 3. Acquire a synthetic source; confirm checkbox.
-4. Independently verify the package with `trareon-verifier`.
+4. Optionally Cancel an in-flight Run (cooperative cancel; incomplete checkpoint may remain on disk for resume tooling).
+5. Independently verify the package with `trareon-verifier`.
+6. Optionally import a verified package into Analysis indexes with `trareon-analysis import PACKAGE --index-dir DIR` (index must be outside the package).
 
 ## Not supported yet
 
-- Raw-device / elevated acquisition (Days 23–25).
-- UI cancellation of an in-flight acquire.
-- Privileged raw-device broker helper (protocol spike only).
+- Raw-device / elevated acquisition (Days 23–25 probes only).
+- Privileged raw-device broker elevation (protocol + `StubElevationHelper` only; no OS elevate).
 - Signing, release channels, or certification claims.
 
 See [`docs/CAPABILITY-MATRIX-M0.md`](CAPABILITY-MATRIX-M0.md) for the full matrix.

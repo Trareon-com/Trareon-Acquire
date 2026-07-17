@@ -1,5 +1,9 @@
 <script lang="ts">
-  import { runFoundationDemo, type FoundationDemoResult } from "./lib/api";
+  import {
+    cancelFoundationDemo,
+    runFoundationDemo,
+    type FoundationDemoResult,
+  } from "./lib/api";
 
   let caseIdentity = $state("");
   let source = $state("");
@@ -19,7 +23,10 @@
   // returned; the UI never invents a completion state of its own.
   const reportStatus = $derived.by(() => {
     if (result && result.status === "verified_complete") return "Verified Complete";
-    if (errorMessage) return "Failed";
+    if (errorMessage) {
+      if (errorMessage.toLowerCase().includes("cancel")) return "Cancelled";
+      return "Failed";
+    }
     return null;
   });
 
@@ -39,10 +46,22 @@
     } catch (error) {
       errorMessage = error instanceof Error ? error.message : String(error);
       result = null;
-      progress = "Failed.";
+      progress = errorMessage.toLowerCase().includes("cancel") ? "Cancelled." : "Failed.";
     } finally {
       ranAt = new Date().toISOString();
       running = false;
+    }
+  }
+
+  async function cancel() {
+    if (!running) {
+      return;
+    }
+    progress = "Cancelling…";
+    try {
+      await cancelFoundationDemo();
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
     }
   }
 </script>
@@ -96,9 +115,14 @@
     I confirm the source is a synthetic or training file, not real evidence.
   </label>
 
-  <button onclick={run} disabled={!canRun} aria-busy={running}>
-    {running ? "Running…" : "Run"}
-  </button>
+  <div class="actions">
+    <button onclick={run} disabled={!canRun} aria-busy={running}>
+      {running ? "Running…" : "Run"}
+    </button>
+    <button onclick={cancel} disabled={!running} aria-busy={running}>
+      Cancel
+    </button>
+  </div>
 
   <div aria-live="polite">
     {#if progress}
@@ -110,7 +134,7 @@
     <section
       class="result"
       class:verified={reportStatus === "Verified Complete"}
-      class:failed={reportStatus === "Failed"}
+      class:failed={reportStatus === "Failed" || reportStatus === "Cancelled"}
       aria-live="polite"
     >
       <h2>Chain of Custody Summary — {reportStatus}</h2>
@@ -193,8 +217,14 @@
     margin-top: 1rem;
   }
 
-  button {
+  .actions {
+    display: flex;
+    gap: 0.75rem;
     margin-top: 1rem;
+  }
+
+  button {
+    margin-top: 0;
   }
 
   .result.verified {

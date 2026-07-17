@@ -1,6 +1,6 @@
 use std::{
     fs::{self, File},
-    io::{Read, Write},
+    io::{Read, Seek, SeekFrom, Write},
     path::{Path, PathBuf},
     sync::{Arc, atomic::AtomicBool, atomic::Ordering},
 };
@@ -8,7 +8,10 @@ use std::{
 use chrono::Utc;
 use sha2::{Digest, Sha256};
 
-use crate::{AcquisitionId, AcquisitionState, AuditJournal, CoreError};
+use crate::{
+    AcquisitionId, AcquisitionState, AuditJournal, CoreError,
+    checkpoint::{self, AcquisitionCheckpoint},
+};
 
 #[derive(Debug, Clone)]
 pub struct AcquireRequest {
@@ -18,6 +21,9 @@ pub struct AcquireRequest {
     pub buffer_size: usize,
     pub cancel_flag: Option<Arc<AtomicBool>>,
     pub split_segment_bytes: Option<u64>,
+    /// When true, resume from `checkpoint_path` if present (non-split only).
+    pub resume: bool,
+    pub checkpoint_path: Option<PathBuf>,
 }
 
 impl AcquireRequest {
@@ -31,6 +37,8 @@ impl AcquireRequest {
             buffer_size: 1024 * 1024,
             cancel_flag: None,
             split_segment_bytes: None,
+            resume: false,
+            checkpoint_path: None,
         }
     }
 
@@ -48,6 +56,28 @@ impl AcquireRequest {
     pub fn with_split_segment_bytes(mut self, segment_bytes: u64) -> Self {
         self.split_segment_bytes = Some(segment_bytes);
         self
+    }
+
+    pub fn with_buffer_size(mut self, buffer_size: usize) -> Self {
+        self.buffer_size = buffer_size.max(1);
+        self
+    }
+
+    /// Resume a previously cancelled/incomplete non-split acquisition using its checkpoint.
+    pub fn with_resume(mut self, resume: bool) -> Self {
+        self.resume = resume;
+        self
+    }
+
+    pub fn with_checkpoint_path(mut self, path: impl Into<PathBuf>) -> Self {
+        self.checkpoint_path = Some(path.into());
+        self
+    }
+
+    pub fn checkpoint_file(&self) -> PathBuf {
+        self.checkpoint_path
+            .clone()
+            .unwrap_or_else(|| checkpoint::default_checkpoint_path(&self.output))
     }
 }
 
@@ -143,26 +173,74 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
             "acquiring",
         )?;
 
+        let checkpoint_file = request.checkpoint_file();
+        let mut resume_bytes: u64 = 0;
+        if request.resume {
+            if request.split_segment_bytes.is_some() {
+                return Err(CoreError::Verification(
+                    "resume is not supported with split-RAW segments yet".to_string(),
+                ));
+            }
+            if checkpoint_file.exists() {
+                let loaded = checkpoint::load_checkpoint(&checkpoint_file)?;
+                if loaded.source != request.source.to_string_lossy() {
+                    return Err(CoreError::Verification(
+                        "checkpoint source does not match request".to_string(),
+                    ));
+                }
+                if loaded.output != request.output.to_string_lossy() {
+                    return Err(CoreError::Verification(
+                        "checkpoint output does not match request".to_string(),
+                    ));
+                }
+                resume_bytes = loaded.bytes_completed;
+            }
+        }
+
         let mut source_file =
             File::open(&request.source).map_err(|error| CoreError::Io(error.to_string()))?;
+        if resume_bytes > 0 {
+            source_file
+                .seek(SeekFrom::Start(resume_bytes))
+                .map_err(|error| CoreError::Io(error.to_string()))?;
+        }
 
         let mut segment_index: usize = 1;
         let mut current_segment_path = match request.split_segment_bytes {
             Some(_) => segment_path(&request.output, segment_index),
             None => request.output.clone(),
         };
-        let mut current_file = File::options()
-            .write(true)
-            .create_new(true)
-            .open(&current_segment_path)
-            .map_err(|error| CoreError::Io(error.to_string()))?;
-        let mut current_segment_bytes: u64 = 0;
+        // Resume may leave a zero-length or partial output from a prior cancel.
+        // Never invent completion: only append when checkpoint bytes > 0.
+        let mut current_file = if resume_bytes > 0 {
+            File::options()
+                .append(true)
+                .open(&current_segment_path)
+                .map_err(|error| CoreError::Io(error.to_string()))?
+        } else if request.resume && current_segment_path.exists() {
+            File::options()
+                .write(true)
+                .truncate(true)
+                .open(&current_segment_path)
+                .map_err(|error| CoreError::Io(error.to_string()))?
+        } else {
+            File::options()
+                .write(true)
+                .create_new(true)
+                .open(&current_segment_path)
+                .map_err(|error| CoreError::Io(error.to_string()))?
+        };
+        let mut current_segment_bytes: u64 = resume_bytes;
         let mut segments: Vec<SegmentInfo> = Vec::new();
 
         let mut buffer = vec![0u8; request.buffer_size];
-        let mut hasher = Sha256::new();
-        let mut bytes_read: u64 = 0;
-        let mut bytes_written: u64 = 0;
+        let mut hasher = if resume_bytes > 0 {
+            checkpoint::hash_prefix(&current_segment_path, resume_bytes)?
+        } else {
+            Sha256::new()
+        };
+        let mut bytes_read: u64 = resume_bytes;
+        let mut bytes_written: u64 = resume_bytes;
 
         loop {
             if let Some(flag) = &request.cancel_flag
@@ -260,6 +338,7 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
             let audit_root = journal.verify()?;
             journal.write_jsonl(&request.audit_output)?;
             summary.audit_root = audit_root;
+            checkpoint::clear_checkpoint(&request.checkpoint_file())?;
             Ok(summary)
         }
         Err(CoreError::Cancelled) => {
@@ -277,6 +356,14 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
                         "acquisition cancelled and audit journal could not be persisted: {write_error}"
                     ))
                 })?;
+            }
+            // Persist resumable checkpoint for non-split acquisitions only.
+            if request.split_segment_bytes.is_none() {
+                let completed = fs::metadata(&request.output)
+                    .map(|meta| meta.len())
+                    .unwrap_or(0);
+                let cp = AcquisitionCheckpoint::new(&request.source, &request.output, completed);
+                let _ = checkpoint::write_checkpoint(&request.checkpoint_file(), &cp);
             }
             Err(CoreError::Cancelled)
         }

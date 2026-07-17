@@ -38,12 +38,35 @@ Every pull request and push to `main` runs a `security` CI job
   artifact. This is provenance-intent only — it is not a full CycloneDX
   or SPDX SBOM.
 
-Known, currently-accepted advisory exceptions (all "unmaintained crate"
-findings, not known vulnerabilities) are documented with their exact
-`RUSTSEC-*` IDs and reasoning in `deny.toml`'s `[advisories] ignore` list —
-most of them inherited transitively from Tauri 2's default Linux GTK3
+Known, currently-accepted advisory exceptions are documented with their
+exact `RUSTSEC-*` IDs and reasoning in `deny.toml`'s `[advisories] ignore`
+list — most inherited transitively from Tauri 2's default Linux GTK3
 backend, which upstream has marked unmaintained while the ecosystem moves
 to GTK4.
+
+### Dependabot alert: `glib` GHSA-wrw7-89jp-8q8g / RUSTSEC-2024-0429
+
+| Field | Value |
+|---|---|
+| Package | `glib` **0.18.5** (Linux-only, transitive) |
+| Severity | Medium (unsoundness in `VariantStrIter`) |
+| Patched | `glib >= 0.20.0` |
+| Status | **Accepted / dismissed** — no compatible upgrade on Tauri 2 |
+
+**Why it cannot be fixed in-tree today:** Tauri 2.11.x pulls `gtk 0.18` →
+`glib ^0.18`. The GTK3 `gtk-rs` line is unmaintained and has no `glib 0.20`
+release. Forcing `glib 0.20` fails Cargo resolution. A real fix requires
+Tauri's Linux stack to move to GTK4 / WebKitGTK6 (upstream work, not a
+Trareon patch).
+
+**Why risk is tolerable for this repo:** the advisory is Linux GUI
+backend only (not compiled into Windows/macOS builds); Trareon Acquire
+does not call `glib::VariantStrIter`; CI still tracks it via
+`cargo deny` ignore with rationale. Re-open / upgrade when a Tauri
+release ships the GTK4 backend.
+
+GitHub: https://github.com/Trareon-com/Trareon-Acquire/security/dependabot/1  
+Upstream: https://github.com/tauri-apps/tauri/issues/12048
 
 ## What is not covered here
 

@@ -54,7 +54,8 @@ trail. As of this register:
 | 26 | Performance baseline | Implemented via PR #43 (merged) — harness + synthetic timings + CI smoke; no optimization | Peak RSS `NotValidated`; Day 25 entry gate not formally met |
 | 27 | Capability matrix + fsnap freeze candidate | Implemented — `docs/CAPABILITY-MATRIX-M0.md`; read contract marked freeze candidate | Hard freeze blocked: split-RAW packaging, Codex reviews, Days 23–25 devices, Day 30 human gate |
 | 28 | User guide / About / legal draft | Implemented on `feat/m0-d28-docs` — USER-GUIDE, LEGAL-LIMITATIONS-DRAFT, About UI | Legal text remains draft; no certification claim |
-| 29–30 | Adversarial review, EAC freeze gate | Not finished | Day 30 requires `HUMAN_APPROVAL` |
+| 29 | Adversarial review | Implemented — `docs/ADVERSARIAL-REVIEW-M0.md`; no new P0/P1 | Residual limitations still block EAC |
+| 30 | EAC / fsnap freeze gate | Not started | Requires explicit `HUMAN_APPROVAL` |
 
 ## P0/P1 status
 

@@ -30,7 +30,9 @@ Update: Day 28 (About / user guide / legal draft) menambah `docs/USER-GUIDE.md`,
 
 Update: Day 29 (adversarial review) menulis `docs/ADVERSARIAL-REVIEW-M0.md` terhadap freeze base `9e24b15` + tip branch docs/UI. Tidak ada P0/P1 baru; residual limitations tetap memblokir klaim EAC. **Day 30 tidak di-auto-approve.**
 
-Day 23-25 tetap `NOT_STARTED` (`MANUAL_START`). Day 30 menunggu `HUMAN_APPROVAL`. Independent review Codex untuk Day 01-29 masih `NOT_STARTED`.
+Update: Day 23 (Linux feasibility) selesai lewat PR #47 dengan real hardware — mesin Kali fisik (bukan VM), dioperasikan manusia lewat RustDesk relay (sesi ini tidak punya jalur jaringan langsung ke device). Temuan: enumerasi metadata (`lsblk`/`ls -la`/`stat`) tersedia untuk semua user; attach loop device sintetis read-only (`losetup -r`) berhasil sebagai root; sebagai user non-root `kali` (bukan anggota grup `disk`), `losetup -f`/`losetup -fr` **ditolak eksplisit** ("Permission denied") sebelum menyentuh file apa pun — validasi nyata untuk kebutuhan privileged broker Track C. Disk sistem asli (`nvme0n1`) diidentifikasi tapi **tidak pernah disentuh**; semua pengujian device pakai file sintetis yang dibuat dan dihapus. Kode `crates/trareon-core/src/platform.rs` mereplikasi probe ini di Rust (tanpa dependency baru, tanpa `unsafe`). Detail lengkap: `docs/platform/day23-linux-feasibility.md`. Entry gate Day 22 review `EXPECTED_PASS` belum formal terpenuhi (pola sama seperti Day lain); Human Gate diisi `PROVIDED` karena eksekusi manual device sungguh terjadi.
+
+Day 24-25 tetap `NOT_STARTED` (`MANUAL_START`, butuh mesin Windows/macOS fisik). Day 30 menunggu `HUMAN_APPROVAL`. Independent review Codex untuk Day 01-29 masih `NOT_STARTED`.
 
 | Day | Task | Author | Reviewer | Risk | Autonomy | Branch | Frozen SHA | Implementation | Review | CI | Platform | Incident | Recovery | Human Gate | Evidence | Next |
 |---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -56,7 +58,7 @@ Day 23-25 tetap `NOT_STARTED` (`MANUAL_START`). Day 30 menunggu `HUMAN_APPROVAL`
 | 20 | Cross-platform CI | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d20-ci | bad982f5218df5e5a7b39bc4f47d7b2a24a5827f | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | IMPLEMENTATION-FAILURE | 3 | NOT_REQUIRED | PR-33 | 21 |
 | 21 | DevSecOps gates | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d21-devsecops | 229f2109ad9af27c99729eb846605c9e33ee7a5a | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-34 | 22 |
 | 22 | Property and fuzz | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d22-fuzz | f225d33a974aca59c3febf9a0d61e46dc89952b8 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-37 | 23 |
-| 23 | Linux feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d23-linux | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 24 |
+| 23 | Linux feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d23-linux | b377e3bec3e9f8286da1e26e09effa1cd9c936c4 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | PROVIDED_KALI_REAL_HW | NONE | 0 | PROVIDED | PR-47 | 24 |
 | 24 | Windows feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d24-windows | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 25 |
 | 25 | macOS feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d25-macos | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 26 |
 | 26 | Performance baseline | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d26-performance | 4008934abccd5a339c97bd58e5ab233693af8581 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-43 | 27 |

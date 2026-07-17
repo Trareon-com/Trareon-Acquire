@@ -223,15 +223,58 @@ fn checkpoint_claiming_complete_is_rejected() {
 }
 
 #[test]
-fn resume_with_split_is_rejected() {
+fn resume_split_after_partial_segments_matches_full_hash() {
+    let dir = tempdir().unwrap();
+    let source = dir.path().join("source.img");
+    let output = dir.path().join("evidence.raw");
+    let bytes: Vec<u8> = (0..=255).cycle().take(4096 * 2 + 777).collect();
+    fs::write(&source, &bytes).unwrap();
+
+    let full = acquire_file(
+        &AcquireRequest::new(&source, dir.path().join("full.raw")).with_split_segment_bytes(4096),
+    )
+    .unwrap();
+
+    // Seed two full segments + a short prefix of the third, then checkpoint.
+    fs::write(dir.path().join("evidence.001.raw"), &bytes[..4096]).unwrap();
+    fs::write(dir.path().join("evidence.002.raw"), &bytes[4096..8192]).unwrap();
+    fs::write(
+        dir.path().join("evidence.003.raw"),
+        &bytes[8192..8192 + 100],
+    )
+    .unwrap();
+    let checkpoint_path = default_checkpoint_path(&output);
+    let cp =
+        trareon_core::AcquisitionCheckpoint::new(&source, &output, 8192 + 100).with_split(4096);
+    trareon_core::write_checkpoint(&checkpoint_path, &cp).unwrap();
+
+    let resumed = acquire_file(
+        &AcquireRequest::new(&source, &output)
+            .with_split_segment_bytes(4096)
+            .with_resume(true)
+            .with_checkpoint_path(&checkpoint_path),
+    )
+    .unwrap();
+
+    assert_eq!(resumed.sha256, full.sha256);
+    assert_eq!(resumed.segments.len(), 3);
+    assert!(!checkpoint_path.exists());
+}
+
+#[test]
+fn resume_split_mismatch_settings_is_rejected() {
     let dir = tempdir().unwrap();
     let source = dir.path().join("source.img");
     let output = dir.path().join("evidence.raw");
     fs::write(&source, b"abc").unwrap();
+    let checkpoint_path = default_checkpoint_path(&output);
+    let cp = trareon_core::AcquisitionCheckpoint::new(&source, &output, 0).with_split(64);
+    trareon_core::write_checkpoint(&checkpoint_path, &cp).unwrap();
     let err = acquire_file(
         &AcquireRequest::new(&source, &output)
             .with_resume(true)
-            .with_split_segment_bytes(1),
+            .with_split_segment_bytes(128)
+            .with_checkpoint_path(&checkpoint_path),
     )
     .unwrap_err();
     assert!(matches!(err, CoreError::Verification(_)));

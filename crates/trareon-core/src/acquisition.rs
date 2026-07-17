@@ -146,13 +146,20 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
     };
     let source_identity = lab_policy::assert_source_permitted(&request.source, allowlist.as_ref())?;
 
-    let source_metadata = fs::metadata(&request.source)
-        .map_err(|error| CoreError::Io(format!("source unavailable: {error}")))?;
-
     let allow_block_device = matches!(
         source_identity.kind,
         lab_policy::SourceKind::BlockDeviceSuspect
     ) && allowlist.as_ref().is_some_and(|list| list.human_approved);
+
+    if allow_block_device && request.max_bytes.is_none() {
+        return Err(CoreError::Verification(
+            "raw/block-device acquire requires max_bytes (bounded lab sample; full-disk not auto)"
+                .to_string(),
+        ));
+    }
+
+    let source_metadata = fs::metadata(&request.source)
+        .map_err(|error| CoreError::Io(format!("source unavailable: {error}")))?;
 
     if !source_metadata.is_file() && !allow_block_device {
         return Err(CoreError::Verification(
@@ -163,12 +170,6 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
     if source_metadata.is_file() && source_metadata.len() == 0 {
         return Err(CoreError::Verification(
             "source must not be empty".to_string(),
-        ));
-    }
-    if allow_block_device && request.max_bytes.is_none() {
-        return Err(CoreError::Verification(
-            "raw/block-device acquire requires max_bytes (bounded lab sample; full-disk not auto)"
-                .to_string(),
         ));
     }
 

@@ -34,15 +34,13 @@ jobs:
             patchelf
       # GitHub-hosted macOS images preinstall third-party taps (e.g. aws/tap).
       # setup-rust-toolchain runs `brew install bash`, which then emits a Tap Trust
-      # warning annotation. We do not use those taps; untap before any brew call.
+      # warning annotation. Untap only unused taps (azure/bicep stays — bicep is installed).
       - name: Remove unused preinstalled Homebrew taps
         if: runner.os == 'macOS'
         run: |
-          for tap in aws/tap azure/bicep hashicorp/tap; do
-            if brew tap 2>/dev/null | grep -Fxq "$tap"; then
-              brew untap "$tap"
-            fi
-          done
+          if brew tap 2>/dev/null | grep -Fxq aws/tap; then
+            brew untap aws/tap
+          fi
       - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:

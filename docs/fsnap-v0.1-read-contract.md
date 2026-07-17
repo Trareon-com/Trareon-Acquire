@@ -1,11 +1,12 @@
-# `.fsnap` v0.1 Read Contract (Draft — Freeze Candidate)
+# `.fsnap` v0.1 Read Contract (Frozen for Analysis — Lab Use Only)
 
-Result class: **Engineering Alpha**. This is a **freeze candidate** draft
-contract for the `trareon-core::verify_fsnap` / `trareon-verifier` reader
-against the `.fsnap` v0.1 package layout produced by
-`trareon-core::create_fsnap`. It is not a final format specification and
-carries no production compatibility promise. See
-`docs/CAPABILITY-MATRIX-M0.md` for freeze blockers.
+Result class: **Production-Directed Engineering Alpha Candidate — Lab Use
+Only**. This contract is **frozen for Trareon Analysis** import against the
+file-backed, single-`evidence.raw` layout produced by
+`trareon-core::create_fsnap` and verified by `trareon-core::verify_fsnap` /
+`trareon-verifier`. It is **not** an Official Production format guarantee
+and does not cover split-RAW multi-segment packages or raw-device paths.
+See `docs/CAPABILITY-MATRIX-M0.md` and `docs/M0-MILESTONE-REVIEW.md`.
 
 ## Package layout
 
@@ -69,12 +70,13 @@ test suite) with:
 cargo test -p trareon-verifier --test generate_fixtures -- --ignored --nocapture
 ```
 
-## Non-goals of this draft
+## Non-goals of this Analysis freeze
 
+- No Official Production / court-admissibility / certification promise.
 - No forward/backward compatibility guarantee across `.fsnap` schema
   versions — `unsupported_version` is rejected outright, not migrated.
 - No partial-read API — the contract is all-or-nothing per package.
 - No support for reading a package while it is being written concurrently.
-- Split-RAW multi-segment evidence packaging is not yet part of this
-  contract; `create_fsnap`/`verify_fsnap` still assume a single
-  `evidence.raw` file (see `docs/WEEK-01-DISCREPANCY-REGISTER.md`).
+- Split-RAW multi-segment evidence packaging is **out of freeze scope**;
+  `create_fsnap`/`verify_fsnap` still assume a single `evidence.raw` file
+  (see `docs/WEEK-01-DISCREPANCY-REGISTER.md`).

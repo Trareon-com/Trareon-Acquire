@@ -1,26 +1,29 @@
 # Trareon Acquire — M0 Capability & Limitation Matrix
 
-Result class: **Engineering Alpha — Lab Use Only**.
+Result class: **Production-Directed Engineering Alpha Candidate — Lab Use Only**.
 
 This matrix consolidates evidence already present in the repository as of
-merge commit `9e24b15` (Day 26 / PR #43 on `main`). Capabilities without
-exact hardware or independent Codex review evidence are marked
-`NotValidated`. This document does **not** certify production readiness.
+`main` tip `6594840` (includes Day 23 / PR #47) plus Day 30 human
+classification. Capabilities without exact hardware or independent Codex
+review evidence remain `NotValidated`. This document does **not** certify
+Official Production readiness.
 
 Authoritative day tracking: [`docs/ai-operations/MASTER-CHECKLIST.md`](ai-operations/MASTER-CHECKLIST.md).  
 Known gaps: [`docs/WEEK-01-DISCREPANCY-REGISTER.md`](WEEK-01-DISCREPANCY-REGISTER.md).  
+Milestone: [`docs/M0-MILESTONE-REVIEW.md`](M0-MILESTONE-REVIEW.md).  
+Risks: [`docs/M0-RISK-REGISTER.md`](M0-RISK-REGISTER.md).  
 `.fsnap` reader contract: [`docs/fsnap-v0.1-read-contract.md`](fsnap-v0.1-read-contract.md).
 
 ## Platform evidence (hosted CI)
 
 | Platform | Compile + unit/integration tests | Security job | Raw-device acquire | Notes |
 |---|---|---|---|---|
-| ubuntu-latest | PASS (CI on merged foundation / Day 21–26 PRs) | PASS | `NotValidated` | Day 23 `MANUAL_START` |
+| ubuntu-latest | PASS | PASS | `NotValidated` (physical disk) | Day 23 Kali: loop/privilege probe only |
 | windows-latest | PASS | n/a (security job is Ubuntu) | `NotValidated` | Day 24 `MANUAL_START` |
 | macos-latest | PASS | n/a | `NotValidated` | Day 25 `MANUAL_START`; Homebrew `aws/tap` untapped in CI |
 
 Hosted CI is **portability evidence for the file-backed slice**, not proof of
-read-only raw-device acquisition.
+read-only raw-device acquisition on Windows/macOS.
 
 ## Capability matrix
 
@@ -31,37 +34,37 @@ read-only raw-device acquisition.
 | Append-only audit hash chain | Implemented | Audit tests + package verify | — |
 | Cooperative cancel (`cancel_flag`) | Implemented (core) | Acquisition / property / performance tests | **No UI path** to arm cancel |
 | Split-RAW segment writes | Implemented (core) | Acquisition split tests | **Not packaged** into `.fsnap` yet |
-| `.fsnap` v0.1 create/verify | Implemented | Package tests + 6 golden fixtures + CLI | Single `evidence.raw` only; draft contract |
+| `.fsnap` v0.1 create/verify | Implemented + **Analysis-frozen** | Package tests + 6 golden fixtures + CLI | Single `evidence.raw` only |
 | Independent verifier CLI | Implemented | `trareon-verifier` CLI tests | Exit 0 / 2 only; no repair |
 | Guided synthetic UI | Partial | App.svelte CoC card + a11y labels | No formal a11y audit; no cancel control |
 | Cross-OS CI matrix | Implemented | GitHub Actions `test` × 3 OS | See Day 20 recovery-cycle note |
 | DevSecOps gates | Implemented | `deny.toml`, CI `security` job, `SECURITY.md` | Unmaintained advisories explicitly ignored |
 | Bounded property tests | Implemented | `tests/properties.rs` + fuzz corpus docs | Full `cargo-fuzz` `NotValidated` |
 | Performance baseline (synthetic) | Implemented | `tests/performance.rs` + `docs/performance/` | Peak RSS `NotValidated`; no optimization |
-| Raw-device Linux/Windows/macOS | `NotValidated` | None | Days 23–25 require lab devices |
-| Signing / release / certification | Out of scope | — | Day 30 requires human gate |
+| Linux raw-device privilege probe | Feasibility spike | Day 23 / PR #47 + `platform.rs` | Physical disk attach/read `NotValidated`; Ubuntu LTS HW not separately recorded |
+| Raw-device Windows/macOS | `NotValidated` | None | Days 24–25 require lab devices |
+| Signing / release / certification | Out of scope | Day 30 human gate | Lab Use Only; no Official Production |
 
-## `.fsnap` v0.1 compatibility freeze candidate
+## `.fsnap` v0.1 Analysis freeze
 
-**Candidate status:** freeze candidate for Analysis readers of the
-**Engineering Alpha** file-backed layout, contingent on:
+**Status:** **frozen for Analysis** (Engineering Alpha / Lab Use Only) for the
+**file-backed, single-`evidence.raw`** layout, contingent on:
 
 1. Golden fixtures under `fixtures/fsnap-v0.1/` remaining byte-stable (`-text` in `.gitattributes`).
 2. `docs/fsnap-v0.1-read-contract.md` remaining the fail-closed reader contract.
 3. No silent-repair behavior in `verify_fsnap` / `trareon-verifier`.
 4. Explicit rejection of unsupported `manifest.schema` values.
 
-**Blocks a hard freeze claim (breaking ambiguities still open):**
+**Still out of freeze scope (not production format guarantees):**
 
-- Split-RAW multi-segment packaging not in the package layout.
-- Independent Codex review for Days 01–26 still `NOT_STARTED`.
-- Day 30 human EAC classification not performed.
-- Raw-device and elevated paths remain `NotValidated`.
-
-Until Day 30 human approval, treat `.fsnap` v0.1 as a **draft freeze
-candidate**, not a production format guarantee.
+- Split-RAW multi-segment packaging.
+- Independent Codex review for Days 01–29 still `NOT_STARTED`.
+- Raw-device and elevated Windows/macOS paths remain `NotValidated`.
+- Any court-admissibility or Official Production claim.
 
 ## Independent review status
 
-All Day 01–26 `Review` cells remain `NOT_STARTED`. Closing GitHub issues
+All Day 01–29 `Review` cells remain `NOT_STARTED`. Closing GitHub issues
 for implementation does **not** equal `EXPECTED_PASS` Codex review.
+Day 30 human classification is recorded in
+[`docs/ai-operations/DECISIONS/2026-07-17-day30-eac-human-approval.md`](ai-operations/DECISIONS/2026-07-17-day30-eac-human-approval.md).

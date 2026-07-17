@@ -53,6 +53,41 @@ pub mod linux {
     }
 }
 
+#[cfg(target_os = "windows")]
+pub mod windows {
+    use super::RawDeviceAccessCapability;
+    use std::os::windows::fs::OpenOptionsExt;
+    use std::path::Path;
+
+    const FILE_SHARE_READ: u32 = 0x0000_0001;
+    const FILE_SHARE_WRITE: u32 = 0x0000_0002;
+
+    /// Feasibility probe for opening `\\.\PhysicalDrive0` (the first
+    /// physical disk) with a read+write-capable handle and explicit share
+    /// flags. This mirrors the manual PowerShell probe run on real
+    /// hardware (`[System.IO.File]::Open(..., FileShare.ReadWrite)`),
+    /// which found: elevated (UAC-elevated) process as an Administrators-
+    /// group member -> succeeds; the *same account*, same machine, in a
+    /// non-elevated PowerShell -> `Access to the path ... is denied.`.
+    /// Never reads or writes through the handle once opened.
+    pub fn probe_physical_drive_zero() -> RawDeviceAccessCapability {
+        let mut options = std::fs::OpenOptions::new();
+        options
+            .read(true)
+            .write(true)
+            .share_mode(FILE_SHARE_READ | FILE_SHARE_WRITE);
+        match options.open(Path::new(r"\\.\PhysicalDrive0")) {
+            Ok(_) => RawDeviceAccessCapability::Available,
+            Err(error) if error.kind() == std::io::ErrorKind::PermissionDenied => {
+                RawDeviceAccessCapability::DeniedInsufficientPrivilege
+            }
+            Err(error) => RawDeviceAccessCapability::NotValidated {
+                reason: error.to_string(),
+            },
+        }
+    }
+}
+
 #[cfg(target_os = "macos")]
 pub mod macos {
     use super::{RawDeviceAccessCapability, probe_read_write_access};
@@ -107,6 +142,21 @@ mod tests {
         // asserted here; only that the probe classifies one of the three
         // known states instead of panicking.
         let result = linux::probe_loop_control();
+        assert!(matches!(
+            result,
+            RawDeviceAccessCapability::Available
+                | RawDeviceAccessCapability::DeniedInsufficientPrivilege
+                | RawDeviceAccessCapability::NotValidated { .. }
+        ));
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn windows_physical_drive_zero_probe_returns_without_panicking() {
+        // As on Linux, the actual result depends on the hosted runner's
+        // elevation state and isn't asserted to a fixed value — only that
+        // the probe classifies one of the three known states.
+        let result = windows::probe_physical_drive_zero();
         assert!(matches!(
             result,
             RawDeviceAccessCapability::Available

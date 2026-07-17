@@ -10,14 +10,18 @@ human allowlist approval.
 - [x] Analysis importer covers all six `.fsnap` v0.1 goldens
 - [x] Checkpoint/resume covers non-split and split-RAW file-backed paths
 - [x] Software lab-policy / plans / decision request authored (`docs/M2-SOFTWARE-PREP-STATUS.md`)
-- [ ] Allowlisted lab media + write-block process approved by human
-- [ ] Hardware inventory (OS, arch, controller, enclosure, media, privilege) recorded
+- [x] Operator designated removable media `/Volumes/tiny11 2311` → `/dev/disk10` (allowlist + file-backed smoke PASS)
+- [ ] Raw open of `disk10`/`rdisk10` Available under elevation (operator runbook §B)
+- [ ] Allowlisted lab media + write-block process approved for **additional** devices as needed
+- [ ] Hardware inventory (OS, arch, controller, enclosure, media, privilege) recorded for elevated run
+- [ ] GitHub Actions billing/spending limit restored so PR checks can run
 
 ## Software prep (landed)
 
 - Plans: `docs/platform/m2-p01-*.md` … `m2-p05-*.md`
 - Decision: `docs/ai-operations/DECISIONS/2026-07-17-m2-lab-allowlist-required.md`
 - Code: `lab_policy.rs` + `tests/fault_injection.rs`
+- Lab trial: `docs/platform/m2-lab-tiny11-2311-disk10.md` + runbook `m2-tiny11-disk10-operator-runbook.md`
 
 ## Prompt pack (copy into agent sessions)
 

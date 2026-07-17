@@ -28,7 +28,10 @@ fn main() {
     println!("allowlist_approved_by={}", allow.approved_by);
 
     match assert_source_permitted(&volume, Some(&allow)) {
-        Ok(id) => println!("volume_policy OK kind={:?} digest={}", id.kind, id.identity_digest),
+        Ok(id) => println!(
+            "volume_policy OK kind={:?} digest={}",
+            id.kind, id.identity_digest
+        ),
         Err(e) => println!("volume_policy_expected_non_file: {e}"),
     }
 

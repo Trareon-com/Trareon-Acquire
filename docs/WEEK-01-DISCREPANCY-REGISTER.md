@@ -56,7 +56,7 @@ trail. As of this register:
 | 27 | Capability matrix + fsnap freeze candidate | Implemented — `docs/CAPABILITY-MATRIX-M0.md`; later promoted to Analysis freeze at Day 30 | Split-RAW packaging and Official Production still out of scope |
 | 28 | User guide / About / legal draft | Implemented on `feat/m0-d28-docs` — USER-GUIDE, LEGAL-LIMITATIONS-DRAFT, About UI | Legal text remains draft; no certification claim |
 | 29 | Adversarial review | Implemented — `docs/ADVERSARIAL-REVIEW-M0.md`; no new P0/P1 | Residuals block Official Production; Lab-Use-Only EAC still allowed with human approval |
-| 30 | EAC / fsnap Analysis freeze | Implemented — milestone review, risk register, evidence index, human decision record | Classification Lab Use Only; Days 23–25 privilege probes landed after freeze text; Codex reviews still `NOT_STARTED` |
+| 30 | EAC / fsnap Analysis freeze | Complete redo after Days 23–25 — milestone/risk/evidence/decision supersede PR #48 | Classification Lab Use Only; Codex reviews still `NOT_STARTED`; raw acquire still `NotValidated` |
 
 ## P0/P1 status
 

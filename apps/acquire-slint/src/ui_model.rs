@@ -74,7 +74,7 @@ impl Default for UiSnapshot {
             source_path: String::new(),
             output_dir: String::new(),
             confirmed_synthetic: false,
-            status_line: "Ready — Lab Use Only (Engineering Alpha)".into(),
+            status_line: "Ready — Lab Use Only".into(),
             last_package: "(none)".into(),
             evidence_sha256: "(none)".into(),
             evidence_size: "(none)".into(),
@@ -148,7 +148,7 @@ impl UiSnapshot {
     }
 
     pub fn clear_results(&mut self) {
-        self.status_line = "Ready — Lab Use Only (Engineering Alpha)".into();
+        self.status_line = "Ready — Lab Use Only".into();
         self.last_package = "(none)".into();
         self.evidence_sha256 = "(none)".into();
         self.evidence_size = "(none)".into();

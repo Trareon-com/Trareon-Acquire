@@ -30,4 +30,4 @@ Generate detailed M2 prompts only after allowlisted hardware and the M1 exit bun
 
 **M1 exit prompts (draft):** `docs/ai-operations/ROLLING-WAVE/M2-FROM-M1.md` — hardware allowlist still required before destructive lab execution.
 
-**Software prep status:** `docs/M2-SOFTWARE-PREP-STATUS.md` — allowlist + 1 MiB/64 MiB `rdisk10` samples PASS; full-disk and Lab Beta exit still gated.
+**Software prep status:** `docs/M2-SOFTWARE-PREP-STATUS.md` — allowlist + bounded + full-disk `rdisk10` PASS on Untitled; Lab Beta exit still gated.

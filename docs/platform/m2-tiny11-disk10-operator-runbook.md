@@ -89,10 +89,10 @@ diskutil unmount "/Volumes/tiny11 2311"
 # then elevated open / bounded smoke against /dev/disk10s1
 ```
 
-## H. Full-disk acquire → `/Volumes/Untitled` (human-gated)
+## H. Full-disk acquire → `/Volumes/Untitled` (PASS)
 
 Decision: `docs/ai-operations/DECISIONS/2026-07-17-m2-fulldisk-rdisk10-to-untitled.md`  
-Declared size: `61524148224` bytes. Destination ExFAT USB (`disk11`), **not** internal Mac (~3.5 GiB free).
+Recorded: bytes=`61524148224`, SHA `23e039c2e71bfc8b90ce4d1e76c18a0edd3a1e7fac8f864dd4465a66751e1d6c`, verifier `VALID`.
 
 ```bash
 # Recommended: unmount the tiny11 volume first
@@ -106,12 +106,10 @@ sudo cargo run -p trareon-core --example lab_raw_full_disk -- \
   /Volumes/Untitled/trareon-lab \
   61524148224
 
-# After RAW_FULL_OK (may take a long time):
 cargo run -q -p trareon-verifier -- verify /Volumes/Untitled/trareon-lab/tiny11-rdisk10-full.fsnap
 ```
 
-Re-run the same command to **resume** if interrupted (checkpoint under the out dir).  
-Do **not** point destination at `/Volumes/tiny11 2311` or at Macintosh HD.
+Re-run the same command to **resume** if interrupted (checkpoint under the out dir).
 
 ## Still out of policy without a new explicit gate
 

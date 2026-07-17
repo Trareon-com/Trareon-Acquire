@@ -53,6 +53,8 @@ jobs:
         run: cargo test --workspace --locked
       - name: bounded property/fuzz smoke
         run: cargo test -p trareon-core --test properties --locked
+      - name: performance baseline smoke
+        run: cargo test -p trareon-core --test performance --locked
       - name: npm ci
         run: npm ci --prefix apps/trareon-acquire
       - name: npm run build

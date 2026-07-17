@@ -19,8 +19,8 @@ Risks: [`docs/M0-RISK-REGISTER.md`](M0-RISK-REGISTER.md).
 | Platform | Compile + unit/integration tests | Security job | Raw-device acquire | Notes |
 |---|---|---|---|---|
 | ubuntu-latest | PASS | PASS | `NotValidated` (physical disk) | Day 23 Kali: loop/privilege probe only |
-| windows-latest | PASS | n/a (security job is Ubuntu) | `NotValidated` | Day 24 `MANUAL_START` |
-| macos-latest | PASS | n/a | `NotValidated` | Day 25 `MANUAL_START`; Homebrew `aws/tap` untapped in CI |
+| windows-latest | PASS | n/a (security job is Ubuntu) | Privilege probe only | Day 24 Win10: UAC elevation gates `PhysicalDrive0` open |
+| macos-latest | PASS | n/a | Privilege probe only | Day 25 M4 Pro: open `/dev/rdisk0` denied; physical acquire still `NotValidated` |
 
 Hosted CI is **portability evidence for the file-backed slice**, not proof of
 read-only raw-device acquisition on Windows/macOS.
@@ -42,7 +42,8 @@ read-only raw-device acquisition on Windows/macOS.
 | Bounded property tests | Implemented | `tests/properties.rs` + fuzz corpus docs | Full `cargo-fuzz` `NotValidated` |
 | Performance baseline (synthetic) | Implemented | `tests/performance.rs` + `docs/performance/` | Peak RSS `NotValidated`; no optimization |
 | Linux raw-device privilege probe | Feasibility spike | Day 23 / PR #47 + `platform.rs` | Physical disk attach/read `NotValidated`; Ubuntu LTS HW not separately recorded |
-| Raw-device Windows/macOS | `NotValidated` | None | Days 24–25 require lab devices |
+| macOS raw-device privilege probe | Feasibility spike | Day 25 + `platform::macos::probe_rdisk0` | Open denied without `operator`/helper; Intel Mac `NotValidated`; synthetic `hdiutil` attach `NotValidated` |
+| Windows raw-device UAC probe | Feasibility spike | Day 24 / PR #49 + `windows::probe_physical_drive_zero` | Non-elevated denied; physical content read `NotValidated`; X270 `NotValidated` |
 | Signing / release / certification | Out of scope | Day 30 human gate | Lab Use Only; no Official Production |
 
 ## `.fsnap` v0.1 Analysis freeze
@@ -59,7 +60,7 @@ read-only raw-device acquisition on Windows/macOS.
 
 - Split-RAW multi-segment packaging.
 - Independent Codex review for Days 01–29 still `NOT_STARTED`.
-- Raw-device and elevated Windows/macOS paths remain `NotValidated`.
+- Raw-device and elevated Windows paths remain `NotValidated`; macOS physical acquire remains `NotValidated` (privilege probe only).
 - Any court-admissibility or Official Production claim.
 
 ## Independent review status

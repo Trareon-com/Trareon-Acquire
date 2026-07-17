@@ -13,7 +13,7 @@
     },
     {
       "source_identity": "/dev/disk10s1",
-      "notes": "Mounted partition; Mount Point /Volumes/tiny11 2311"
+      "notes": "Partition node for tiny11 2311; prefer unmounted before open/sample"
     },
     {
       "source_identity": "/Volumes/tiny11 2311",

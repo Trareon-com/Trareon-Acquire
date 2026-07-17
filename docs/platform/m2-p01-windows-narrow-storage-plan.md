@@ -34,8 +34,14 @@ stable source identity, RAW/split-RAW, SHA-256, audit, `.fsnap`, and independent
 7. `trareon-verifier verify`; optional `trareon-analysis` import outside package.
 8. Update capability matrix with exact Windows evidence only.
 
-## Still missing (implementation)
+## Software added since this plan
 
-- Windows-oriented lab example (parity with `lab_raw_bounded_smoke` / `lab_raw_full_disk`)
-- Real UAC elevation helper (M2-P04)
+- Windows-oriented lab example: `crates/trareon-core/examples/lab_windows_bounded_smoke.rs`
+- Inventory + decision request: `docs/platform/windows-lab-inventory.md`,
+  `docs/ai-operations/DECISIONS/2026-07-17-windows-lab-media-decision-request.md`
+
+## Still missing
+
+- Real UAC elevation helper (M2-P04; until then operator elevated terminal)
 - ThinkPad X270 / alternate hardware evidence (Day 24 noted `NotValidated`)
+- Media-specific Windows allowlist with `human_approved: true` + bounded PASS

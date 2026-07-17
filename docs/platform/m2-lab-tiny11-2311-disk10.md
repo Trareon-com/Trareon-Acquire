@@ -46,6 +46,12 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
    - Package: `/Volumes/Untitled/trareon-lab/tiny11-rdisk10-full.fsnap` (not committed)
    - Independent verify: `trareon-verifier verify` → `VALID` same SHA/size (~19 min)
 
+9. **2026-07-17 readiness recheck (agent, no elevate):**
+   - `/dev/disk10s1` present; `Mounted: No`; tiny11 not under `/Volumes`
+   - Unelevated open of `disk10` / `disk10s1` / `rdisk10` → `EACCES`
+   - `sudo -n` unavailable (password required) — elevated smoke still operator-only
+   - Operator helper: `scripts/operator-disk10s1-smoke.sh`
+
 ## Capability claims
 
 | Capability | Status |
@@ -53,7 +59,8 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
 | Lab allowlist for this removable media | Implemented (policy) |
 | File-backed acquire of a file *on* the volume | PASS |
 | Elevated open of `disk10` / `rdisk10` | PASS |
-| Elevated open of mounted `disk10s1` | Busy while mounted |
+| Elevated open of mounted `disk10s1` | Busy while mounted (historical) |
+| Elevated open of **unmounted** `disk10s1` | Ready — Mounted=No as of 2026-07-17 recheck; needs operator sudo |
 | Bounded raw content sample (1 MiB of `rdisk10`) | **PASS** (lab smoke) |
 | Bounded raw content sample (64 MiB of `rdisk10`) | **PASS** (lab smoke) |
 | Full-disk raw acquire of `rdisk10` → Untitled | **PASS** (lab; not Lab Beta exit) |
@@ -71,5 +78,7 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
 
 ## Next
 
-- Optional: unmount volume then probe `/dev/disk10s1`
-- Restore GitHub Actions billing for normal CI
+- Operator: run `./scripts/operator-disk10s1-smoke.sh` (interactive sudo) while
+  `disk10s1` remains unmounted; paste `RAW_BOUNDED_OK` + verifier `VALID` here.
+- Windows: fill `docs/platform/windows-lab-inventory.md` then accept the Windows
+  media decision request (Hari 8–9).

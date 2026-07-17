@@ -90,9 +90,17 @@ Unmount so `disk10s1` is not busy:
 diskutil unmount "/Volumes/tiny11 2311"
 ```
 
-Bounded smoke on partition node (1 MiB):
+Bounded smoke on partition node (1 MiB) — prefer **unmounted** `disk10s1`:
 
 ```bash
+cd "/Users/user/Projects/Trareon/Trareon Acquire"
+./scripts/operator-disk10s1-smoke.sh
+```
+
+Or:
+
+```bash
+diskutil unmount "/Volumes/tiny11 2311"   # only if mounted
 cd "/Users/user/Projects/Trareon/Trareon Acquire"
 sudo cargo run -p trareon-core --example lab_raw_bounded_smoke -- \
   /dev/disk10s1 fixtures/lab-allowlists/tiny11-2311-disk10.json 1048576
@@ -103,7 +111,9 @@ Record SHA in `docs/platform/m2-lab-tiny11-2311-disk10.md` and `docs/COMMERCIAL-
 
 ## Windows lab (Hari 8+)
 
-See `docs/COMMERCIAL-V1-GAP-AUDIT.md` and example `lab_windows_bounded_smoke`.
+Inventory scaffold: `docs/platform/windows-lab-inventory.md`
+Decision request: `docs/ai-operations/DECISIONS/2026-07-17-windows-lab-media-decision-request.md`
+Example: `lab_windows_bounded_smoke` (elevated; never `PhysicalDrive0`).
 
 ## H. Full-disk acquire → `/Volumes/Untitled` (PASS)
 

@@ -15,13 +15,13 @@ Raw evidence berada di `.ai-evidence/` dan tidak di-commit. Tabel ini hanya meny
 | 27 | Capability matrix | ff5933353b1d3414ee74c3f1cdf0460b22ec5af6 | ff5933353b1d3414ee74c3f1cdf0460b22ec5af6 | PR-44 | PASS_3OS (merge train) | Docs | NOT_APPLICABLE | docs/CAPABILITY-MATRIX-M0.md | IMPLEMENTED_UNREVIEWED | Codex review NOT_STARTED |
 | 28 | Docs / About / legal | f861379abfc1f48c46fbc584fd371c40b6cf9974 | f861379abfc1f48c46fbc584fd371c40b6cf9974 | PR-45 | PASS_3OS (merge train) | Docs + UI | NOT_APPLICABLE | docs/USER-GUIDE.md | IMPLEMENTED_UNREVIEWED | LEGAL_DRAFT_ONLY |
 | 29 | Adversarial review | f346430457587901d74370df5e87c1c20a05fc32 | f346430457587901d74370df5e87c1c20a05fc32 | PR-46 | PASS_3OS | Local + CI | NOT_APPLICABLE | docs/ADVERSARIAL-REVIEW-M0.md | IMPLEMENTED_UNREVIEWED | No new P0/P1 |
-| 30 | EAC + Analysis freeze | bb59f2cf9730f78cf981a40ef055855f815f4273 | bb59f2cf9730f78cf981a40ef055855f815f4273 | NOT_STARTED | NOT_STARTED | Local Day 30 author pass | NOT_APPLICABLE | docs/M0-MILESTONE-REVIEW.md | HUMAN_CLASSIFIED | Human (operator) |
+| 30 | EAC + Analysis freeze | bb59f2cf9730f78cf981a40ef055855f815f4273 | bb59f2cf9730f78cf981a40ef055855f815f4273 | PR-48 | NOT_STARTED | Local Day 30 author pass | NOT_APPLICABLE | docs/M0-MILESTONE-REVIEW.md | HUMAN_CLASSIFIED | Human (operator) |
 
 Day 30 classification: **Production-Directed Engineering Alpha Candidate — Lab Use Only**.
 `.fsnap` v0.1: **frozen for Analysis** (single-`evidence.raw` layout only).
 Decision record: [`DECISIONS/2026-07-17-day30-eac-human-approval.md`](DECISIONS/2026-07-17-day30-eac-human-approval.md).
 Milestone review: [`docs/M0-MILESTONE-REVIEW.md`](../M0-MILESTONE-REVIEW.md).
 
-After the Day 30 PR number and hosted CI SHA are known, update the Day 30 PR/CI SHA cells to those exact values.
+After hosted CI for PR #48 is green, update the Day 30 CI SHA cell to the exact CI head SHA.
 
 Jangan mencatat credential, token, serial sensitif tanpa redaksi, data pribadi, barang bukti, atau signing material.

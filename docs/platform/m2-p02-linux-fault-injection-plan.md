@@ -18,14 +18,23 @@ Implemented in `crates/trareon-core/tests/fault_injection.rs`:
 | Destination full | Parent path is a file |
 | Empty source | Reject before acquire |
 | Unsigned allowlist | Block-device suspect denied |
+| Broker system disk | `assert_broker_source_identity` hard-deny |
+| Broker block w/o allowlist | Denied |
 
-## Lab-only (human + root, allowlisted media)
+## Lab-only script outline (human + root, allowlisted loop)
 
-1. Create synthetic backing file; `losetup -r` attach (Day 23).
-2. Allowlist the loop path with human approval.
-3. Faults: detach mid-read, fill destination FS, inject EIO via device-mapper if available.
-4. Never use `nvme0n1` / root FS disk.
+```bash
+# Do NOT use nvme0n1 / system disk
+IMG=/var/tmp/trareon-lab-loop.img
+dd if=/dev/zero of="$IMG" bs=1M count=64 status=none
+LOOP=$(sudo losetup -f --show -r "$IMG")   # read-only loop
+# author allowlist entry for $LOOP, human_approved=true, decision file
+# bounded acquire with max_bytes; then:
+#   sudo losetup -d "$LOOP"   # mid-read disconnect case
+# destination-full: fill a small tmpfs and point output there
+# never claim Linux raw-acquire PASS from probes alone
+```
 
 ## Non-goals
 
-Claiming Linux raw-acquire PASS from probes alone.
+Claiming Linux raw-acquire PASS from probes alone; using the host system disk.

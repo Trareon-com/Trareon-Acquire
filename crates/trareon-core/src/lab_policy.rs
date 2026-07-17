@@ -63,7 +63,7 @@ fn path_looks_like_block_device(path: &Path) -> bool {
 }
 
 /// Hard-denied system-disk identity substrings. Removable lab media must not match these.
-fn is_hard_denied_system_disk(path: &Path) -> bool {
+pub(crate) fn is_hard_denied_system_disk(path: &Path) -> bool {
     let raw = path.to_string_lossy().to_ascii_lowercase();
     // Whole-disk 0 / system primary candidates — never allowlisted by default.
     raw.contains(r"\\.\physicaldrive0")
@@ -72,6 +72,46 @@ fn is_hard_denied_system_disk(path: &Path) -> bool {
         || raw.starts_with("/dev/nvme0n1")
         || raw == "/dev/sda"
         || raw.starts_with("/dev/sda")
+}
+
+/// Broker-facing identity gate: string match only (no open / no metadata).
+///
+/// Block-device-like identities require a human-approved allowlist entry.
+/// System-disk-like identities are always denied. Non-device lab tokens
+/// (e.g. `lab:…`) remain structurally acceptable for the protocol spike.
+pub fn assert_broker_source_identity(
+    source_identity: &str,
+    allowlist: Option<&LabAllowlist>,
+) -> Result<(), CoreError> {
+    let path = Path::new(source_identity);
+    if is_hard_denied_system_disk(path) {
+        return Err(CoreError::Verification(
+            "system-disk-like source is hard-denied (not lab media)".to_string(),
+        ));
+    }
+    if !path_looks_like_block_device(path) {
+        return Ok(());
+    }
+    let Some(list) = allowlist else {
+        return Err(CoreError::Verification(
+            "block-device broker source requires a human-approved lab allowlist".to_string(),
+        ));
+    };
+    if !list.human_approved || list.approved_by.trim().is_empty() {
+        return Err(CoreError::Verification(
+            "lab allowlist is not human-approved".to_string(),
+        ));
+    }
+    let permitted = list
+        .entries
+        .iter()
+        .any(|entry| entry.source_identity == source_identity);
+    if !permitted {
+        return Err(CoreError::Verification(
+            "block-device broker source is not on the lab allowlist".to_string(),
+        ));
+    }
+    Ok(())
 }
 
 pub fn classify_source_path(path: &Path) -> SourceKind {

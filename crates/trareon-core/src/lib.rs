@@ -13,7 +13,7 @@ pub use acquisition::{AcquireRequest, AcquisitionSummary, SegmentInfo, acquire_f
 pub use audit::{AuditEvent, AuditJournal};
 pub use broker::{
     BrokerOperation, BrokerRequest, BrokerResponse, ElevationHelper, StubElevationHelper,
-    evaluate_broker_request, plan_digest,
+    evaluate_broker_request, evaluate_broker_request_with_allowlist, plan_digest,
 };
 pub use checkpoint::{
     AcquisitionCheckpoint, clear_checkpoint, default_checkpoint_path, load_checkpoint,
@@ -21,8 +21,9 @@ pub use checkpoint::{
 };
 pub use domain::{AcquisitionId, AcquisitionState, CaseId, CoreError};
 pub use lab_policy::{
-    LabAllowlist, LabAllowlistEntry, SourceIdentity, SourceKind, assert_source_permitted,
-    classify_source_path, load_lab_allowlist, source_identity_for, write_allowlist_template,
+    LabAllowlist, LabAllowlistEntry, SourceIdentity, SourceKind, assert_broker_source_identity,
+    assert_source_permitted, classify_source_path, load_lab_allowlist, source_identity_for,
+    write_allowlist_template,
 };
 pub use package::{
     EvidenceSegmentV1, FsnapManifestV1, create_fsnap, create_fsnap_from_segments, verify_fsnap,

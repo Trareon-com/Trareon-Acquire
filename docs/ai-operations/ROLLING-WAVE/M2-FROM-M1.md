@@ -12,9 +12,9 @@ human allowlist approval.
 - [x] Software lab-policy / plans / decision request authored (`docs/M2-SOFTWARE-PREP-STATUS.md`)
 - [x] Operator designated removable media `/Volumes/tiny11 2311` → `/dev/disk10` (allowlist + file-backed smoke PASS)
 - [x] Raw open of `disk10`/`rdisk10` Available under elevation (operator sudo probe 2026-07-17)
-- [ ] Bounded raw content sample (`lab_raw_bounded_smoke`, 1 MiB) under sudo
+- [x] Bounded raw content sample (`lab_raw_bounded_smoke`, 1 MiB) under sudo — SHA `41fb8d9…` PASS + independent verify
 - [ ] Allowlisted lab media + write-block process approved for **additional** devices as needed
-- [ ] Hardware inventory (OS, arch, controller, enclosure, media, privilege) recorded for elevated run
+- [ ] Full-disk acquire of allowlisted media (explicit new gate only)
 - [ ] GitHub Actions billing/spending limit restored so PR checks can run
 
 ## Software prep (landed)

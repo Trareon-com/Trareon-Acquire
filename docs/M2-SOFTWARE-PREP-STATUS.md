@@ -29,4 +29,5 @@ Branch tip: in progress (broker allowlist binding + plan depth)
 - Linux physical loop fault session (M2-P02)
 - Writable staging on NTFS volume (RO mount)
 - Lab Beta exit / Windows RC entry
-- GitHub Actions billing restore for normal PR checks
+- GitHub Actions CI green on public repo (`main` post PR #65/#66) — **PASS**
+- Commercial v1 week-1 docs + Windows smoke example (branch `feat/commercial-v1-day1-7`, Hari 7 merge pending)

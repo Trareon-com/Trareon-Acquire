@@ -262,6 +262,16 @@ mod tests {
     }
 
     #[test]
+    fn windows_physical_drive_zero_broker_source_is_denied() {
+        let mut request = valid_request();
+        request.source_identity = r"\\.\PhysicalDrive0".to_string();
+        let response = evaluate_broker_request(&request).unwrap();
+        assert!(
+            matches!(response, BrokerResponse::Denied { reason, .. } if reason.contains("hard-denied"))
+        );
+    }
+
+    #[test]
     fn block_device_without_allowlist_is_denied() {
         let mut request = valid_request();
         request.source_identity = "/dev/rdisk10".to_string();

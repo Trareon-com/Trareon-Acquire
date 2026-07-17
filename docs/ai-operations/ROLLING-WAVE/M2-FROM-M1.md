@@ -11,7 +11,8 @@ human allowlist approval.
 - [x] Checkpoint/resume covers non-split and split-RAW file-backed paths
 - [x] Software lab-policy / plans / decision request authored (`docs/M2-SOFTWARE-PREP-STATUS.md`)
 - [x] Operator designated removable media `/Volumes/tiny11 2311` → `/dev/disk10` (allowlist + file-backed smoke PASS)
-- [ ] Raw open of `disk10`/`rdisk10` Available under elevation (operator runbook §B)
+- [x] Raw open of `disk10`/`rdisk10` Available under elevation (operator sudo probe 2026-07-17)
+- [ ] Bounded raw content sample (`lab_raw_bounded_smoke`, 1 MiB) under sudo
 - [ ] Allowlisted lab media + write-block process approved for **additional** devices as needed
 - [ ] Hardware inventory (OS, arch, controller, enclosure, media, privilege) recorded for elevated run
 - [ ] GitHub Actions billing/spending limit restored so PR checks can run

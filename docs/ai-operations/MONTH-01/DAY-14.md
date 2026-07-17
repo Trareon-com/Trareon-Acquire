@@ -2,7 +2,7 @@
 
 ## Outcome
 
-Buat traeron-verifier tanpa dependency pada writer crate/Tauri; verifikasi schema, files, sizes, hashes, audit continuity, coverage, dan terminal result.
+Buat trareon-verifier tanpa dependency pada writer crate/Tauri; verifikasi schema, files, sizes, hashes, audit continuity, coverage, dan terminal result.
 
 ## Entry Gate
 
@@ -34,11 +34,11 @@ Buat traeron-verifier tanpa dependency pada writer crate/Tauri; verifikasi schem
 ```text
 Anda adalah author untuk M0-D14 Trareon Acquire.
 
-Outcome: Buat traeron-verifier tanpa dependency pada writer crate/Tauri; verifikasi schema, files, sizes, hashes, audit continuity, coverage, dan terminal result.
-Scope file/interface: crates/traeron-verifier/Cargo.toml; crates/traeron-verifier/src/main.rs; crates/traeron-verifier/tests/cli.rs; Cargo.toml.
+Outcome: Buat trareon-verifier tanpa dependency pada writer crate/Tauri; verifikasi schema, files, sizes, hashes, audit continuity, coverage, dan terminal result.
+Scope file/interface: crates/trareon-verifier/Cargo.toml; crates/trareon-verifier/src/main.rs; crates/trareon-verifier/tests/cli.rs; Cargo.toml.
 Branch wajib: feat/m0-d14-verifier. Baca authority files dan existing code sebelum perubahan. Gunakan TDD: tulis test yang gagal dengan alasan yang diharapkan, jalankan dan catat exit code, implementasikan perubahan minimum, lalu jalankan verification lengkap.
 
-Verification wajib: cargo tree -p traeron-verifier; cargo test -p traeron-verifier; cargo test --workspace --all-targets.
+Verification wajib: cargo tree -p trareon-verifier; cargo test -p trareon-verifier; cargo test --workspace --all-targets.
 Acceptance focus: independensi nyata, exit code berbeda untuk valid/invalid/unsupported, tidak memperbaiki package.
 
 Jangan memperluas scope, melemahkan assertion, skip test, menghapus perubahan pengguna, memakai real evidence, mengakses raw disk/elevated privilege, menambah dependency tanpa review, merge, release, atau signing. Simpan semua status sebagai core-owned typed result. Capability tanpa evidence adalah NotValidated.
@@ -78,14 +78,14 @@ human_approval_required:
 
 ## Expected Change Map
 
-- Expected files/interfaces: crates/traeron-verifier/Cargo.toml; crates/traeron-verifier/src/main.rs; crates/traeron-verifier/tests/cli.rs; Cargo.toml.
-- Expected behavior: Buat traeron-verifier tanpa dependency pada writer crate/Tauri; verifikasi schema, files, sizes, hashes, audit continuity, coverage, dan terminal result.
+- Expected files/interfaces: crates/trareon-verifier/Cargo.toml; crates/trareon-verifier/src/main.rs; crates/trareon-verifier/tests/cli.rs; Cargo.toml.
+- Expected behavior: Buat trareon-verifier tanpa dependency pada writer crate/Tauri; verifikasi schema, files, sizes, hashes, audit continuity, coverage, dan terminal result.
 - Explicit non-goals: fitur setelah Day 14, production claim, raw/elevated operation tanpa gate, refactor di luar scope, dan perubahan RFC.
 - Diff di luar map menjadi `FIX + SCOPE-DRIFT` sampai dijelaskan dan disetujui.
 
 ## Expected Result
 
-- Verification: `cargo tree -p traeron-verifier; cargo test -p traeron-verifier; cargo test --workspace --all-targets`.
+- Verification: `cargo tree -p trareon-verifier; cargo test -p trareon-verifier; cargo test --workspace --all-targets`.
 - Expected: command relevan exit 0 setelah TDD cycle; targeted dan regression tests lulus.
 - Required evidence: failing-test proof bila berlaku, commands/exit codes, files changed, exact commit, platforms tested, NotValidated list, dan remaining risks.
 - Performance-sensitive change wajib menjaga byte/hash/coverage/audit/cancel/tamper equivalence.
@@ -97,7 +97,7 @@ Anda adalah independent reviewer Claude Code untuk M0-D14. Jangan menulis pada w
 
 Verifikasi sendiri scope, correctness, negative paths, false-complete resistance, forensic validity, security, dependency boundary, deterministic behavior, performance equivalence, documentation, dan test oracle. Fokus khusus: independensi nyata, exit code berbeda untuk valid/invalid/unsupported, tidak memperbaiki package.
 
-Jalankan command aman yang relevan: cargo tree -p traeron-verifier; cargo test -p traeron-verifier; cargo test --workspace --all-targets. Bandingkan exact local/remote/PR/CI SHA bila remote evidence tersedia. SHA mismatch adalah BLOCKED + REMOTE-STATE-DIVERGENCE. Hasil tanpa reproducible evidence adalah UNVERIFIED.
+Jalankan command aman yang relevan: cargo tree -p trareon-verifier; cargo test -p trareon-verifier; cargo test --workspace --all-targets. Bandingkan exact local/remote/PR/CI SHA bila remote evidence tersedia. SHA mismatch adalah BLOCKED + REMOTE-STATE-DIVERGENCE. Hasil tanpa reproducible evidence adalah UNVERIFIED.
 
 Jangan memperbaiki branch author, merge, release, sign, mengakses real evidence/raw disk, atau menyetujui scope expansion. Kembalikan finding ke author dan akhiri dengan TaskResult.v1 lengkap.
 schema: TaskResult.v1

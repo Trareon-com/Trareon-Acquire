@@ -4,7 +4,7 @@
 
 **Goal:** Build a seven-day engineering foundation that acquires a synthetic/file-backed source into RAW, records a hash-chained audit, creates a minimal `.fsnap` directory package, verifies it independently, and exposes the workflow through a minimal Tauri desktop shell.
 
-**Architecture:** `traeron-core` owns every state transition, byte read/write, hash, manifest, and verification decision. `traeron-verifier` is an independent CLI consumer of the package. Tauri/Svelte is an untrusted presentation adapter that invokes typed Rust commands and never determines final acquisition status.
+**Architecture:** `trareon-core` owns every state transition, byte read/write, hash, manifest, and verification decision. `trareon-verifier` is an independent CLI consumer of the package. Tauri/Svelte is an untrusted presentation adapter that invokes typed Rust commands and never determines final acquisition status.
 
 **Tech Stack:** Rust 1.95.0 edition 2024, Tauri 2.11.5, Svelte 5.56.5, TypeScript 7.0.2, Vite 8.1.5, Node 22.22.3, npm 10.9.8, GitHub Actions, SHA-256, JSON/JSONL.
 
@@ -28,7 +28,7 @@
 Cargo.toml                         Rust workspace and shared dependency pins
 rust-toolchain.toml                Exact Rust toolchain
 package.json                       Root frontend scripts and Node engine
-crates/traeron-core/               Forensic domain and byte-processing core
+crates/trareon-core/               Forensic domain and byte-processing core
   Cargo.toml
   src/lib.rs
   src/domain.rs
@@ -36,10 +36,10 @@ crates/traeron-core/               Forensic domain and byte-processing core
   src/acquisition.rs
   src/package.rs
   tests/foundation.rs
-crates/traeron-verifier/           Independent verification CLI
+crates/trareon-verifier/           Independent verification CLI
   Cargo.toml
   src/main.rs
-apps/traeron-acquire/              Svelte presentation layer
+apps/trareon-acquire/              Svelte presentation layer
   package.json
   index.html
   src/main.ts
@@ -65,13 +65,13 @@ docs/FOUNDATION-DEMO.md
 - Create: `rust-toolchain.toml`
 - Create: `package.json`
 - Create: `.gitignore`
-- Create: `crates/traeron-core/Cargo.toml`
-- Create: `crates/traeron-core/src/lib.rs`
-- Test: `crates/traeron-core/tests/foundation.rs`
+- Create: `crates/trareon-core/Cargo.toml`
+- Create: `crates/trareon-core/src/lib.rs`
+- Test: `crates/trareon-core/tests/foundation.rs`
 
 **Interfaces:**
 - Consumes: RFC v1.0 toolchain and architecture decisions.
-- Produces: Rust workspace, `traeron_core::build_identity() -> &'static str`, and locked tool versions used by every later task.
+- Produces: Rust workspace, `trareon_core::build_identity() -> &'static str`, and locked tool versions used by every later task.
 
 - [ ] **Step 1: Initialize repository metadata**
 
@@ -80,19 +80,19 @@ Run:
 ```bash
 git init
 git branch -M main
-mkdir -p crates/traeron-core/src crates/traeron-core/tests
+mkdir -p crates/trareon-core/src crates/trareon-core/tests
 ```
 
 Expected: an empty Git repository on branch `main` and the two core directories.
 
 - [ ] **Step 2: Write a failing public-boundary test**
 
-Create `crates/traeron-core/tests/foundation.rs`:
+Create `crates/trareon-core/tests/foundation.rs`:
 
 ```rust
 #[test]
 fn build_identity_is_stable() {
-    assert_eq!(traeron_core::build_identity(), "traeron-acquire-foundation-v1");
+    assert_eq!(trareon_core::build_identity(), "trareon-acquire-foundation-v1");
 }
 ```
 
@@ -111,7 +111,7 @@ Create root `Cargo.toml`:
 
 ```toml
 [workspace]
-members = ["crates/traeron-core"]
+members = ["crates/trareon-core"]
 resolver = "2"
 
 [workspace.package]
@@ -131,11 +131,11 @@ thiserror = "=2.0.18"
 uuid = { version = "=1.24.0", features = ["serde", "v4"] }
 ```
 
-Create `crates/traeron-core/Cargo.toml`:
+Create `crates/trareon-core/Cargo.toml`:
 
 ```toml
 [package]
-name = "traeron-core"
+name = "trareon-core"
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
@@ -155,13 +155,13 @@ uuid.workspace = true
 tempfile.workspace = true
 ```
 
-Create `crates/traeron-core/src/lib.rs`:
+Create `crates/trareon-core/src/lib.rs`:
 
 ```rust
 #![forbid(unsafe_code)]
 
 pub const fn build_identity() -> &'static str {
-    "traeron-acquire-foundation-v1"
+    "trareon-acquire-foundation-v1"
 }
 ```
 
@@ -169,7 +169,7 @@ Create root `package.json`:
 
 ```json
 {
-  "name": "traeron-acquire-workspace",
+  "name": "trareon-acquire-workspace",
   "private": true,
   "engines": {
     "node": "22.22.3",
@@ -188,8 +188,8 @@ Create `.gitignore`:
 ```gitignore
 /target/
 /node_modules/
-/apps/traeron-acquire/dist/
-/apps/traeron-acquire/src-tauri/target/
+/apps/trareon-acquire/dist/
+/apps/trareon-acquire/src-tauri/target/
 *.fsnap/
 .DS_Store
 ```
@@ -199,7 +199,7 @@ Create `.gitignore`:
 Run:
 
 ```bash
-cargo test -p traeron-core --test foundation --locked
+cargo test -p trareon-core --test foundation --locked
 ```
 
 Expected: one passing test named `build_identity_is_stable` and a generated `Cargo.lock`.
@@ -207,27 +207,27 @@ Expected: one passing test named `build_identity_is_stable` and a generated `Car
 - [ ] **Step 5: Commit the workspace boundary**
 
 ```bash
-git add Cargo.toml Cargo.lock rust-toolchain.toml package.json .gitignore crates/traeron-core
+git add Cargo.toml Cargo.lock rust-toolchain.toml package.json .gitignore crates/trareon-core
 git commit -m "build: establish reproducible core workspace"
 ```
 
 ## Task 2: Domain state machine and invariants
 
 **Files:**
-- Create: `crates/traeron-core/src/domain.rs`
-- Modify: `crates/traeron-core/src/lib.rs`
-- Test: `crates/traeron-core/tests/domain.rs`
+- Create: `crates/trareon-core/src/domain.rs`
+- Modify: `crates/trareon-core/src/lib.rs`
+- Test: `crates/trareon-core/tests/domain.rs`
 
 **Interfaces:**
-- Consumes: `traeron-core` workspace boundary.
+- Consumes: `trareon-core` workspace boundary.
 - Produces: `CaseId`, `AcquisitionId`, `AcquisitionState`, and `AcquisitionState::transition(self, next)` used by audit, acquisition, package, and UI tasks.
 
 - [ ] **Step 1: Write failing state-transition tests**
 
-Create `crates/traeron-core/tests/domain.rs`:
+Create `crates/trareon-core/tests/domain.rs`:
 
 ```rust
-use traeron_core::{AcquisitionState, CoreError};
+use trareon_core::{AcquisitionState, CoreError};
 
 #[test]
 fn verified_complete_requires_verifying_state() {
@@ -251,14 +251,14 @@ fn planned_cannot_skip_to_verified_complete() {
 Run:
 
 ```bash
-cargo test -p traeron-core --test domain --locked
+cargo test -p trareon-core --test domain --locked
 ```
 
 Expected: compile failure because `AcquisitionState` and `CoreError` are not exported.
 
 - [ ] **Step 3: Implement exact state transitions**
 
-Create `crates/traeron-core/src/domain.rs`:
+Create `crates/trareon-core/src/domain.rs`:
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -325,7 +325,7 @@ impl AcquisitionState {
 }
 ```
 
-Replace `crates/traeron-core/src/lib.rs` with:
+Replace `crates/trareon-core/src/lib.rs` with:
 
 ```rust
 #![forbid(unsafe_code)]
@@ -335,7 +335,7 @@ mod domain;
 pub use domain::{AcquisitionId, AcquisitionState, CaseId, CoreError};
 
 pub const fn build_identity() -> &'static str {
-    "traeron-acquire-foundation-v1"
+    "trareon-acquire-foundation-v1"
 }
 ```
 
@@ -344,7 +344,7 @@ pub const fn build_identity() -> &'static str {
 Run:
 
 ```bash
-cargo test -p traeron-core --test domain --locked
+cargo test -p trareon-core --test domain --locked
 cargo test --workspace --locked
 ```
 
@@ -353,16 +353,16 @@ Expected: two domain tests and the foundation test pass.
 - [ ] **Step 5: Commit the invariant**
 
 ```bash
-git add crates/traeron-core/src crates/traeron-core/tests/domain.rs
+git add crates/trareon-core/src crates/trareon-core/tests/domain.rs
 git commit -m "feat(core): add acquisition state invariants"
 ```
 
 ## Task 3: Hash-chained audit journal
 
 **Files:**
-- Create: `crates/traeron-core/src/audit.rs`
-- Modify: `crates/traeron-core/src/lib.rs`
-- Test: `crates/traeron-core/tests/audit.rs`
+- Create: `crates/trareon-core/src/audit.rs`
+- Modify: `crates/trareon-core/src/lib.rs`
+- Test: `crates/trareon-core/tests/audit.rs`
 
 **Interfaces:**
 - Consumes: `AcquisitionId`, `AcquisitionState`, `CoreError`.
@@ -370,11 +370,11 @@ git commit -m "feat(core): add acquisition state invariants"
 
 - [ ] **Step 1: Write tamper-detection tests**
 
-Create `crates/traeron-core/tests/audit.rs`:
+Create `crates/trareon-core/tests/audit.rs`:
 
 ```rust
 use chrono::Utc;
-use traeron_core::{AcquisitionId, AcquisitionState, AuditJournal};
+use trareon_core::{AcquisitionId, AcquisitionState, AuditJournal};
 use uuid::Uuid;
 
 #[test]
@@ -392,13 +392,13 @@ fn audit_chain_detects_modified_event() {
 
 - [ ] **Step 2: Run the test and observe the missing API**
 
-Run: `cargo test -p traeron-core --test audit --locked`
+Run: `cargo test -p trareon-core --test audit --locked`
 
 Expected: compile failure because `AuditJournal` is not exported.
 
 - [ ] **Step 3: Implement deterministic event hashing**
 
-Create `crates/traeron-core/src/audit.rs` with `AuditEvent` fields in this order: `sequence`, `acquisition_id`, `timestamp_utc`, `state`, `action`, `previous_hash`, `event_hash`. Implement `hash_payload` by serializing a private payload struct that excludes `event_hash`, prefixing the previous hash bytes, and hashing with `Sha256`. `append` must set sequence to the current length, use 64 zeroes for the genesis previous hash, and reject an empty action. `verify` must recompute every event, verify sequence continuity and previous-hash linkage, and return `CoreError::Verification` on the first mismatch. `write_jsonl` must write one compact JSON object plus `\n` per event and call `sync_all()` before success.
+Create `crates/trareon-core/src/audit.rs` with `AuditEvent` fields in this order: `sequence`, `acquisition_id`, `timestamp_utc`, `state`, `action`, `previous_hash`, `event_hash`. Implement `hash_payload` by serializing a private payload struct that excludes `event_hash`, prefixing the previous hash bytes, and hashing with `Sha256`. `append` must set sequence to the current length, use 64 zeroes for the genesis previous hash, and reject an empty action. `verify` must recompute every event, verify sequence continuity and previous-hash linkage, and return `CoreError::Verification` on the first mismatch. `write_jsonl` must write one compact JSON object plus `\n` per event and call `sync_all()` before success.
 
 Expose the following exact signatures:
 
@@ -427,7 +427,7 @@ Add `mod audit;` and `pub use audit::{AuditEvent, AuditJournal};` to `lib.rs`.
 Run:
 
 ```bash
-cargo test -p traeron-core --test audit --locked
+cargo test -p trareon-core --test audit --locked
 cargo fmt --all --check
 ```
 
@@ -436,16 +436,16 @@ Expected: tampering is rejected and formatting passes.
 - [ ] **Step 5: Commit the audit chain**
 
 ```bash
-git add crates/traeron-core/src/audit.rs crates/traeron-core/src/lib.rs crates/traeron-core/tests/audit.rs
+git add crates/trareon-core/src/audit.rs crates/trareon-core/src/lib.rs crates/trareon-core/tests/audit.rs
 git commit -m "feat(core): add hash-chained audit journal"
 ```
 
 ## Task 4: File-backed streaming acquisition
 
 **Files:**
-- Create: `crates/traeron-core/src/acquisition.rs`
-- Modify: `crates/traeron-core/src/lib.rs`
-- Test: `crates/traeron-core/tests/acquisition.rs`
+- Create: `crates/trareon-core/src/acquisition.rs`
+- Modify: `crates/trareon-core/src/lib.rs`
+- Test: `crates/trareon-core/tests/acquisition.rs`
 
 **Interfaces:**
 - Consumes: domain state and audit journal.
@@ -453,12 +453,12 @@ git commit -m "feat(core): add hash-chained audit journal"
 
 - [ ] **Step 1: Write byte-for-byte and source/destination tests**
 
-Create `crates/traeron-core/tests/acquisition.rs`:
+Create `crates/trareon-core/tests/acquisition.rs`:
 
 ```rust
 use std::fs;
 use tempfile::tempdir;
-use traeron_core::{acquire_file, AcquireRequest, AcquisitionState, CoreError};
+use trareon_core::{acquire_file, AcquireRequest, AcquisitionState, CoreError};
 
 #[test]
 fn acquisition_copies_every_byte_and_hashes_output() {
@@ -488,7 +488,7 @@ fn acquisition_rejects_same_source_and_destination() {
 
 - [ ] **Step 2: Verify the acquisition test fails**
 
-Run: `cargo test -p traeron-core --test acquisition --locked`
+Run: `cargo test -p trareon-core --test acquisition --locked`
 
 Expected: compile failure because acquisition API does not exist.
 
@@ -537,8 +537,8 @@ Export the module API from `lib.rs`.
 Run:
 
 ```bash
-cargo test -p traeron-core --test acquisition --locked
-cargo clippy -p traeron-core --all-targets -- -D warnings
+cargo test -p trareon-core --test acquisition --locked
+cargo clippy -p trareon-core --all-targets -- -D warnings
 ```
 
 Expected: both acquisition tests pass and Clippy reports no warning.
@@ -546,17 +546,17 @@ Expected: both acquisition tests pass and Clippy reports no warning.
 - [ ] **Step 5: Commit the byte pipeline**
 
 ```bash
-git add crates/traeron-core/src/acquisition.rs crates/traeron-core/src/lib.rs crates/traeron-core/tests/acquisition.rs
+git add crates/trareon-core/src/acquisition.rs crates/trareon-core/src/lib.rs crates/trareon-core/tests/acquisition.rs
 git commit -m "feat(core): stream file-backed acquisition with sha256"
 ```
 
 ## Task 5: Minimal `.fsnap` package and independent verification API
 
 **Files:**
-- Create: `crates/traeron-core/src/package.rs`
+- Create: `crates/trareon-core/src/package.rs`
 - Create: `schemas/fsnap-manifest-v1.schema.json`
-- Modify: `crates/traeron-core/src/lib.rs`
-- Test: `crates/traeron-core/tests/package.rs`
+- Modify: `crates/trareon-core/src/lib.rs`
+- Test: `crates/trareon-core/tests/package.rs`
 
 **Interfaces:**
 - Consumes: `AcquisitionSummary` and acquired RAW path.
@@ -564,12 +564,12 @@ git commit -m "feat(core): stream file-backed acquisition with sha256"
 
 - [ ] **Step 1: Write package tamper tests**
 
-Create `crates/traeron-core/tests/package.rs`:
+Create `crates/trareon-core/tests/package.rs`:
 
 ```rust
 use std::fs;
 use tempfile::tempdir;
-use traeron_core::{create_fsnap, verify_fsnap};
+use trareon_core::{create_fsnap, verify_fsnap};
 
 #[test]
 fn package_verifier_rejects_modified_evidence() {
@@ -578,7 +578,7 @@ fn package_verifier_rejects_modified_evidence() {
     let raw = dir.path().join("evidence.raw");
     let package = dir.path().join("case.fsnap");
     fs::write(&source, b"known forensic fixture").unwrap();
-    let summary = traeron_core::acquire_file(&traeron_core::AcquireRequest::new(&source, &raw)).unwrap();
+    let summary = trareon_core::acquire_file(&trareon_core::AcquireRequest::new(&source, &raw)).unwrap();
     create_fsnap(&raw, &summary.audit_path, &package).unwrap();
     assert!(verify_fsnap(&package).is_ok());
 
@@ -589,7 +589,7 @@ fn package_verifier_rejects_modified_evidence() {
 
 - [ ] **Step 2: Confirm the package test fails**
 
-Run: `cargo test -p traeron-core --test package --locked`
+Run: `cargo test -p trareon-core --test package --locked`
 
 Expected: compile failure because package functions do not exist.
 
@@ -627,7 +627,7 @@ Create `schemas/fsnap-manifest-v1.schema.json`:
   "required": ["schema", "build_identity", "evidence_relative_path", "evidence_size", "evidence_sha256", "audit_relative_path", "audit_sha256", "audit_root"],
   "properties": {
     "schema": { "const": "trareon.fsnap.manifest/1" },
-    "build_identity": { "const": "traeron-acquire-foundation-v1" },
+    "build_identity": { "const": "trareon-acquire-foundation-v1" },
     "evidence_relative_path": { "const": "acquisitions/0001/evidence.raw" },
     "evidence_size": { "type": "integer", "minimum": 1 },
     "evidence_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
@@ -645,8 +645,8 @@ Export `create_fsnap`, `verify_fsnap`, and `FsnapManifestV1` from `lib.rs`.
 Run:
 
 ```bash
-cargo test -p traeron-core --test package --locked
-cargo test -p traeron-core --locked
+cargo test -p trareon-core --test package --locked
+cargo test -p trareon-core --locked
 ```
 
 Expected: tampering is rejected and all earlier tests remain green.
@@ -654,32 +654,32 @@ Expected: tampering is rejected and all earlier tests remain green.
 - [ ] **Step 5: Commit the package boundary**
 
 ```bash
-git add crates/traeron-core/src/package.rs crates/traeron-core/src/lib.rs crates/traeron-core/tests/package.rs schemas
+git add crates/trareon-core/src/package.rs crates/trareon-core/src/lib.rs crates/trareon-core/tests/package.rs schemas
 git commit -m "feat(fsnap): add minimal independently verifiable package"
 ```
 
 ## Task 6: Independent verifier CLI
 
 **Files:**
-- Create: `crates/traeron-verifier/Cargo.toml`
-- Create: `crates/traeron-verifier/src/main.rs`
+- Create: `crates/trareon-verifier/Cargo.toml`
+- Create: `crates/trareon-verifier/src/main.rs`
 - Modify: `Cargo.toml`
-- Test: `crates/traeron-verifier/tests/cli.rs`
+- Test: `crates/trareon-verifier/tests/cli.rs`
 
 **Interfaces:**
-- Consumes: `traeron_core::verify_fsnap` only; no UI or workspace database.
-- Produces: `traeron-verifier verify PATH` with stable exit codes 0 valid, 2 invalid package, 64 usage error.
+- Consumes: `trareon_core::verify_fsnap` only; no UI or workspace database.
+- Produces: `trareon-verifier verify PATH` with stable exit codes 0 valid, 2 invalid package, 64 usage error.
 
 - [ ] **Step 1: Write a failing CLI usage test**
 
-Create `crates/traeron-verifier/tests/cli.rs`:
+Create `crates/trareon-verifier/tests/cli.rs`:
 
 ```rust
 use std::process::Command;
 
 #[test]
 fn no_arguments_returns_usage_error() {
-    let output = Command::new(env!("CARGO_BIN_EXE_traeron-verifier"))
+    let output = Command::new(env!("CARGO_BIN_EXE_trareon-verifier"))
         .output()
         .unwrap();
     assert_eq!(output.status.code(), Some(64));
@@ -689,11 +689,11 @@ fn no_arguments_returns_usage_error() {
 
 - [ ] **Step 2: Create the CLI crate**
 
-Create `crates/traeron-verifier/Cargo.toml`:
+Create `crates/trareon-verifier/Cargo.toml`:
 
 ```toml
 [package]
-name = "traeron-verifier"
+name = "trareon-verifier"
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
@@ -702,10 +702,10 @@ authors.workspace = true
 
 [dependencies]
 serde_json.workspace = true
-traeron-core = { path = "../traeron-core" }
+trareon-core = { path = "../trareon-core" }
 ```
 
-Add `"crates/traeron-verifier"` to the root workspace `members` array before running Cargo.
+Add `"crates/trareon-verifier"` to the root workspace `members` array before running Cargo.
 
 Create `src/main.rs`:
 
@@ -715,11 +715,11 @@ use std::{env, path::Path, process::ExitCode};
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
     if args.len() != 3 || args[1] != "verify" {
-        eprintln!("usage: traeron-verifier verify PATH");
+        eprintln!("usage: trareon-verifier verify PATH");
         return ExitCode::from(64);
     }
 
-    match traeron_core::verify_fsnap(Path::new(&args[2])) {
+    match trareon_core::verify_fsnap(Path::new(&args[2])) {
         Ok(manifest) => {
             println!("VALID {} {}", manifest.evidence_sha256, manifest.evidence_size);
             ExitCode::SUCCESS
@@ -737,8 +737,8 @@ fn main() -> ExitCode {
 Run:
 
 ```bash
-cargo test -p traeron-verifier --locked
-cargo run -p traeron-verifier --locked -- verify /path/that/does/not/exist
+cargo test -p trareon-verifier --locked
+cargo run -p trareon-verifier --locked -- verify /path/that/does/not/exist
 ```
 
 Expected: the usage test passes; the second command exits 2 and prints `INVALID` without panic.
@@ -746,26 +746,26 @@ Expected: the usage test passes; the second command exits 2 and prints `INVALID`
 - [ ] **Step 4: Commit the independent verifier**
 
 ```bash
-git add crates/traeron-verifier Cargo.toml Cargo.lock
+git add crates/trareon-verifier Cargo.toml Cargo.lock
 git commit -m "feat(verifier): add independent fsnap verification cli"
 ```
 
 ## Task 7: Minimal Tauri/Svelte presentation adapter
 
 **Files:**
-- Create: `apps/traeron-acquire/package.json`
-- Create: `apps/traeron-acquire/index.html`
-- Create: `apps/traeron-acquire/src/main.ts`
-- Create: `apps/traeron-acquire/src/App.svelte`
-- Create: `apps/traeron-acquire/src/lib/api.ts`
-- Create: `apps/traeron-acquire/src-tauri/Cargo.toml`
-- Create: `apps/traeron-acquire/src-tauri/build.rs`
-- Create: `apps/traeron-acquire/src-tauri/src/main.rs`
-- Create: `apps/traeron-acquire/src-tauri/src/lib.rs`
-- Create: `apps/traeron-acquire/src-tauri/tauri.conf.json`
-- Create: `apps/traeron-acquire/src-tauri/capabilities/default.json`
+- Create: `apps/trareon-acquire/package.json`
+- Create: `apps/trareon-acquire/index.html`
+- Create: `apps/trareon-acquire/src/main.ts`
+- Create: `apps/trareon-acquire/src/App.svelte`
+- Create: `apps/trareon-acquire/src/lib/api.ts`
+- Create: `apps/trareon-acquire/src-tauri/Cargo.toml`
+- Create: `apps/trareon-acquire/src-tauri/build.rs`
+- Create: `apps/trareon-acquire/src-tauri/src/main.rs`
+- Create: `apps/trareon-acquire/src-tauri/src/lib.rs`
+- Create: `apps/trareon-acquire/src-tauri/tauri.conf.json`
+- Create: `apps/trareon-acquire/src-tauri/capabilities/default.json`
 - Modify: `Cargo.toml`
-- Test: `apps/traeron-acquire/src-tauri/tests/ipc.rs`
+- Test: `apps/trareon-acquire/src-tauri/tests/ipc.rs`
 
 **Interfaces:**
 - Consumes: `acquire_file`, `create_fsnap`, `verify_fsnap`.
@@ -773,15 +773,15 @@ git commit -m "feat(verifier): add independent fsnap verification cli"
 
 - [ ] **Step 1: Write Rust command test before registering Tauri**
 
-Create `apps/traeron-acquire/src-tauri/tests/ipc.rs` that creates a temporary source, calls a plain Rust `run_foundation_demo_inner`, and asserts the returned package verifies and its status is `verified_complete`. Keep the inner function independent of `tauri::AppHandle` so it can be unit tested without a WebView.
+Create `apps/trareon-acquire/src-tauri/tests/ipc.rs` that creates a temporary source, calls a plain Rust `run_foundation_demo_inner`, and asserts the returned package verifies and its status is `verified_complete`. Keep the inner function independent of `tauri::AppHandle` so it can be unit tested without a WebView.
 
 - [ ] **Step 2: Create exact frontend dependency pins**
 
-Create `apps/traeron-acquire/package.json`:
+Create `apps/trareon-acquire/package.json`:
 
 ```json
 {
-  "name": "traeron-acquire",
+  "name": "trareon-acquire",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -803,7 +803,7 @@ Create `apps/traeron-acquire/package.json`:
 }
 ```
 
-Run `npm install --package-lock-only` from `apps/traeron-acquire`, then use `npm ci` for every build.
+Run `npm install --package-lock-only` from `apps/trareon-acquire`, then use `npm ci` for every build.
 
 - [ ] **Step 3: Implement the command boundary**
 
@@ -822,7 +822,7 @@ pub struct FoundationDemoResult {
 
 Register only `run_foundation_demo`. Do not initialize shell or filesystem plugins. Set CSP to `default-src 'self'; connect-src 'self' ipc:; img-src 'self' data:; style-src 'self' 'unsafe-inline'` and give the main window only `core:default` capability.
 
-Add `"apps/traeron-acquire/src-tauri"` to the root workspace `members` array before running Cargo. Pass the acquisition summary's `audit_path` into `create_fsnap`; do not synthesize an audit after acquisition.
+Add `"apps/trareon-acquire/src-tauri"` to the root workspace `members` array before running Cargo. Pass the acquisition summary's `audit_path` into `create_fsnap`; do not synthesize an audit after acquisition.
 
 - [ ] **Step 4: Implement the minimal UI**
 
@@ -833,17 +833,17 @@ Add `"apps/traeron-acquire/src-tauri"` to the root workspace `members` array bef
 Run:
 
 ```bash
-cargo test --manifest-path apps/traeron-acquire/src-tauri/Cargo.toml --locked
-npm ci --prefix apps/traeron-acquire
-npm run build --prefix apps/traeron-acquire
+cargo test --manifest-path apps/trareon-acquire/src-tauri/Cargo.toml --locked
+npm ci --prefix apps/trareon-acquire
+npm run build --prefix apps/trareon-acquire
 ```
 
-Expected: IPC test passes and Vite creates `apps/traeron-acquire/dist` without TypeScript/Svelte errors.
+Expected: IPC test passes and Vite creates `apps/trareon-acquire/dist` without TypeScript/Svelte errors.
 
 - [ ] **Step 6: Commit the presentation adapter**
 
 ```bash
-git add apps/traeron-acquire Cargo.toml Cargo.lock
+git add apps/trareon-acquire Cargo.toml Cargo.lock
 git commit -m "feat(ui): expose verified foundation demo through tauri"
 ```
 
@@ -871,7 +871,7 @@ actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
 actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26
 ```
 
-`ci.yml` runs on pull requests and main pushes with top-level `permissions: contents: read`. Matrix targets `ubuntu-latest`, `windows-latest`, and `macos-latest`; every job runs `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --all-features -- -D warnings`, `cargo test --workspace --locked`, `npm ci --prefix apps/traeron-acquire`, and `npm run build --prefix apps/traeron-acquire`. No step uses `continue-on-error` or `|| true`.
+`ci.yml` runs on pull requests and main pushes with top-level `permissions: contents: read`. Matrix targets `ubuntu-latest`, `windows-latest`, and `macos-latest`; every job runs `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --all-features -- -D warnings`, `cargo test --workspace --locked`, `npm ci --prefix apps/trareon-acquire`, and `npm run build --prefix apps/trareon-acquire`. No step uses `continue-on-error` or `|| true`.
 
 - [ ] **Step 2: Add manual community build workflow**
 
@@ -882,11 +882,11 @@ actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26
 Create `fixtures/README.md` explaining that fixtures are generated, contain no real evidence, and are not accepted as validation data. Create `docs/FOUNDATION-DEMO.md` with commands:
 
 ```bash
-dd if=/dev/zero of=/tmp/traeron-source.img bs=1M count=8
+dd if=/dev/zero of=/tmp/trareon-source.img bs=1M count=8
 cargo test --workspace --locked
-npm ci --prefix apps/traeron-acquire
-npm run tauri --prefix apps/traeron-acquire -- dev
-cargo run -p traeron-verifier --locked -- verify /tmp/traeron-output/foundation.fsnap
+npm ci --prefix apps/trareon-acquire
+npm run tauri --prefix apps/trareon-acquire -- dev
+cargo run -p trareon-verifier --locked -- verify /tmp/trareon-output/foundation.fsnap
 ```
 
 The guide must label the result `Engineering Alpha` and describe a tamper demonstration that modifies a copy of `evidence.raw` and expects verifier exit code 2.
@@ -899,8 +899,8 @@ Run:
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --locked
-npm ci --prefix apps/traeron-acquire
-npm run build --prefix apps/traeron-acquire
+npm ci --prefix apps/trareon-acquire
+npm run build --prefix apps/trareon-acquire
 ```
 
 Expected: every command exits 0. Any unavailable platform-specific Tauri system library is recorded as an environment blocker; the core and verifier gates must still pass and no supported-platform claim is added.

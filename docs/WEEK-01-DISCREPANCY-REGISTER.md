@@ -18,13 +18,13 @@ every test binary — no flaky or order-dependent tests were observed.
 ## Dependency boundary
 
 ```
-cargo tree -p traeron-core --locked | grep -i tauri     # no match
-cargo tree -p traeron-verifier --locked | grep -i tauri # no match
+cargo tree -p trareon-core --locked | grep -i tauri     # no match
+cargo tree -p trareon-verifier --locked | grep -i tauri # no match
 ```
 
-`traeron-core` and `traeron-verifier` do not depend on Tauri, `wry`, or any
-frontend/UI crate. Only `apps/traeron-acquire/src-tauri` depends on `tauri`
-and, transitively, on `traeron-core`. The dependency direction is one-way:
+`trareon-core` and `trareon-verifier` do not depend on Tauri, `wry`, or any
+frontend/UI crate. Only `apps/trareon-acquire/src-tauri` depends on `tauri`
+and, transitively, on `trareon-core`. The dependency direction is one-way:
 UI depends on core, core never depends on UI. This matches the RFC/roadmap
 requirement that core and verifier compile without Tauri.
 

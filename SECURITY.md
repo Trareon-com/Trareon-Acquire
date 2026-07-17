@@ -18,8 +18,8 @@ disclosure timing before any public fix or advisory is published.
 
 ## What's in scope
 
-- The Rust core (`crates/traeron-core`, `crates/traeron-verifier`)
-- The Tauri/Svelte application (`apps/traeron-acquire`)
+- The Rust core (`crates/trareon-core`, `crates/trareon-verifier`)
+- The Tauri/Svelte application (`apps/trareon-acquire`)
 - CI/CD workflows (`.github/workflows/`)
 
 ## Automated checks

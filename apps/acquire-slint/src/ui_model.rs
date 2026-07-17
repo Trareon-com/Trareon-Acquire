@@ -192,9 +192,7 @@ impl UiSnapshot {
 
     pub fn msg_need_confirm_paths(&self) -> &'static str {
         match self.locale {
-            UiLocale::Id => {
-                "Konfirmasi sumber sintetis dan isi jalur sumber + keluaran."
-            }
+            UiLocale::Id => "Konfirmasi sumber sintetis dan isi jalur sumber + keluaran.",
             UiLocale::En => "Confirm synthetic source and set source + output paths.",
         }
     }
@@ -294,22 +292,22 @@ fn ready_status(locale: UiLocale) -> &'static str {
 fn guidance(mode: UiMode, locale: UiLocale) -> &'static str {
     match (mode, locale) {
         (UiMode::Guided, UiLocale::En) => {
-            "Guided: Fill demo → confirm synthetic source → Acquire. Cancel anytime. No raw disks."
+            "Confirm the checkbox, then Start acquire. Cancel anytime. No raw disks."
         }
         (UiMode::Guided, UiLocale::Id) => {
-            "Terpandu: Isi demo → konfirmasi sumber sintetis → Akuisisi. Batal kapan saja. Tanpa disk raw."
+            "Centang konfirmasi, lalu Mulai akuisisi. Batal kapan saja. Tanpa disk raw."
         }
         (UiMode::Standard, UiLocale::En) => {
-            "Standard: set file source + output (or Browse). Removable USB raw acquire is lab-gated separately."
+            "Browse source + output, confirm training use, then Start acquire."
         }
         (UiMode::Standard, UiLocale::Id) => {
-            "Standar: isi sumber + keluaran berkas (atau Jelajah). Akuisisi raw USB lab-gated terpisah."
+            "Jelajah sumber + keluaran, konfirmasi pelatihan, lalu Mulai akuisisi."
         }
         (UiMode::Expert, UiLocale::En) => {
-            "Expert: raw/block paths need human-approved allowlist + elevation. System disks are hard-denied. Foundation Acquire remains file-backed."
+            "Raw paths need an approved allowlist + elevation. System disks are denied. This demo stays file-backed."
         }
         (UiMode::Expert, UiLocale::Id) => {
-            "Ahli: jalur raw/blok butuh allowlist + elevasi yang disetujui manusia. Disk sistem ditolak. Akuisisi fondasi tetap berbasis berkas."
+            "Jalur raw butuh allowlist + elevasi yang disetujui. Disk sistem ditolak. Demo ini tetap berbasis berkas."
         }
     }
 }
@@ -452,7 +450,7 @@ mod tests {
     fn indonesian_guidance_and_preflight() {
         let mut snap = UiSnapshot::default();
         snap.set_locale("id");
-        assert!(snap.guidance().contains("Terpandu"));
+        assert!(snap.guidance().contains("konfirmasi") || snap.guidance().contains("Centang"));
         snap.mode = UiMode::Expert;
         assert!(snap.preflight_hint().contains("AHLI"));
         snap.source_path = "/dev/disk10".into();

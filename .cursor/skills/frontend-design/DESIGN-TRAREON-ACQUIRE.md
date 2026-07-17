@@ -40,16 +40,22 @@ Quiet density. No cards-for-decoration. No cream paper. No Optima brochure look.
 - Body: native UI sans
 - Utility (hash, sizes, paths): **Menlo** — cryptographic instrument face
 
-### Layout
+### Layout (operator workflow)
+Real job: **Prepare → Acquire → Seal**. UI mirrors that sequence — not a settings form.
+
 ```
-┌──────────┬─────────────────────────────────────┐
-│ TRAREON  │  Acquire              Lab · Alpha   │
-│ custody  │  pipeline: Capture · Hash · Verify  │
-│ rail     │  case / paths / confirm / actions   │
-│ modes    │  ═════════════════════════════════  │
-│          │  SEAL WELL — grouped SHA readout    │
-└──────────┴─────────────────────────────────────┘
+┌──────────┬──────────────────────────────────────┐
+│ Mode rail│  Status · EN|ID · Dark|Light         │
+│ Guided   │  Steps: 1 Prepare · 2 Acquire · 3 Seal│
+│ Standard │  ┌─ Prepare (demo CTA or paths) ───┐ │
+│ Expert   │  ├─ Acquire (one primary CTA) ─────┤ │
+│          │  └─ Seal (empty invite / hash hero)┘ │
+└──────────┴──────────────────────────────────────┘
 ```
+
+- Guided: **Load synthetic demo** is the primary until ready; then **Start acquire**.
+- Seal empty state explains the next outcome — no giant `(none)` hash.
+- Prefs chips stay quiet; copper fill reserved for the primary action.
 
 ### Theme + language (runtime)
 - Header segmented toggles: **Dark | Light** and **EN | ID**

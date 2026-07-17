@@ -15,7 +15,7 @@ fn imports_valid_golden_outside_package() {
     let index_dir = dir.path().join("index");
     let package = fixtures_root().join("valid");
     let (manifest, index_path) = import_fsnap_readonly(&package, &index_dir).unwrap();
-    assert_eq!(manifest.evidence_size > 0, true);
+    assert!(manifest.evidence_size > 0);
     assert!(index_path.starts_with(&index_dir));
     assert!(!index_path.starts_with(&package));
     let body = std::fs::read_to_string(&index_path).unwrap();

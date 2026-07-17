@@ -48,6 +48,8 @@ Update: M1 Engineering Alpha slice — UI cancel → core `cancel_flag`, file-ba
 
 Update: M1 **exit bundle** — split-RAW resume, Analysis suite for all six goldens + package immutability, `docs/M1-FAILURE-MATRIX.md`, manual a11y checklist PASS, `docs/M1-MILESTONE-REVIEW.md`, and M2 rolling-wave prompts (`ROLLING-WAVE/M2-FROM-M1.md`). File-backed Engineering Alpha exit satisfied; raw-device Lab Beta not claimed. Branch `feat/m1-exit-complete`.
 
+Update: M2 **software prep** (no raw I/O) — `lab_policy` allowlist + system-disk hard-deny, portable fault suite, plans P01–P05, decision request `DECISIONS/2026-07-17-m2-lab-allowlist-required.md`. Gate status **HUMAN_APPROVAL_REQUIRED** before any lab media acquire. See `docs/M2-SOFTWARE-PREP-STATUS.md`.
+
 | Day | Task | Author | Reviewer | Risk | Autonomy | Branch | Frozen SHA | Implementation | Review | CI | Platform | Incident | Recovery | Human Gate | Evidence | Next |
 |---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 01 | Baseline and monitoring | Claude | Codex | Medium | AUTO_WITH_REVIEW | feat/m0-d01-baseline | bad982f5218df5e5a7b39bc4f47d7b2a24a5827f | IMPLEMENTED_UNREVIEWED | EXPECTED_PASS | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-33 | 02 |

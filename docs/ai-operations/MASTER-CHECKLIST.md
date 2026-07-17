@@ -22,7 +22,9 @@ Update: PR #35 (`fix/rename-traeron-to-trareon`) sudah di-merge ke `main` (merge
 
 Update: Day 22 (property/fuzz baseline) diimplementasikan tanpa dependency produk baru — suite `crates/trareon-core/tests/properties.rs`, corpus sintetis `fixtures/fuzz-corpus/v0/`, docs bound di `docs/fuzz/README.md`, dan step CI `bounded property/fuzz smoke`. Full `cargo-fuzz`/libFuzzer tetap `NotValidated` (butuh review dependency/toolchain). Entry gate "independent review Day 21 EXPECTED_PASS" belum terpenuhi formal (Review Day 21 masih `NOT_STARTED`); dilanjutkan dengan pola yang sama seperti Day 21 yang juga mulai tanpa Codex review Day 20, dan dicatat jujur di sini.
 
-Day 23-30 tetap `NOT_STARTED` — feasibility perangkat (23-25 `MANUAL_START`), performance baseline, capability matrix, docs, adversarial review, dan freeze gate belum disentuh. Independent review Codex untuk Day 01-22 juga masih `NOT_STARTED` (hosted CI hijau bukan pengganti).
+Update: Day 26 (performance baseline) diukur tanpa dependency baru dan tanpa optimasi — harness `crates/trareon-core/tests/performance.rs`, laporan `docs/performance/m0-day26-baseline.md`, dan step CI `performance baseline smoke`. Peak RSS tetap `NotValidated` (tidak ada sampler portabel). Entry gate Day 25 `EXPECTED_PASS` belum terpenuhi (Day 23–25 masih `MANUAL_START`/`NOT_STARTED`); dilanjutkan hanya untuk jalur file-backed sintetis, dicatat jujur di sini.
+
+Day 23-25 dan Day 27-30 tetap `NOT_STARTED` — feasibility perangkat (23-25 `MANUAL_START`), capability matrix, docs, adversarial review, dan freeze gate belum disentuh. Independent review Codex untuk Day 01-26 juga masih `NOT_STARTED` (hosted CI hijau bukan pengganti).
 
 | Day | Task | Author | Reviewer | Risk | Autonomy | Branch | Frozen SHA | Implementation | Review | CI | Platform | Incident | Recovery | Human Gate | Evidence | Next |
 |---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -51,7 +53,7 @@ Day 23-30 tetap `NOT_STARTED` — feasibility perangkat (23-25 `MANUAL_START`), 
 | 23 | Linux feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d23-linux | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 24 |
 | 24 | Windows feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d24-windows | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 25 |
 | 25 | macOS feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d25-macos | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 26 |
-| 26 | Performance baseline | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d26-performance | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | NOT_STARTED | 27 |
+| 26 | Performance baseline | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d26-performance | 4008934abccd5a339c97bd58e5ab233693af8581 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-43 | 27 |
 | 27 | Capability matrix and freeze | Codex | Claude | High | AUTO_WITH_REVIEW | feat/m0-d27-matrix | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | NOT_STARTED | 28 |
 | 28 | Docs About and limitations | Claude | Codex | Medium | AUTO_WITH_REVIEW | feat/m0-d28-docs | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | LEGAL_DRAFT_ONLY | NOT_STARTED | 29 |
 | 29 | Adversarial review | Codex | Claude | High | AUTO_WITH_REVIEW | feat/m0-d29-adversarial | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | NOT_STARTED | 30 |

@@ -9,8 +9,15 @@ human allowlist approval.
 - [x] M1 file-backed false-complete matrix exists
 - [x] Analysis importer covers all six `.fsnap` v0.1 goldens
 - [x] Checkpoint/resume covers non-split and split-RAW file-backed paths
+- [x] Software lab-policy / plans / decision request authored (`docs/M2-SOFTWARE-PREP-STATUS.md`)
 - [ ] Allowlisted lab media + write-block process approved by human
 - [ ] Hardware inventory (OS, arch, controller, enclosure, media, privilege) recorded
+
+## Software prep (landed)
+
+- Plans: `docs/platform/m2-p01-*.md` … `m2-p05-*.md`
+- Decision: `docs/ai-operations/DECISIONS/2026-07-17-m2-lab-allowlist-required.md`
+- Code: `lab_policy.rs` + `tests/fault_injection.rs`
 
 ## Prompt pack (copy into agent sessions)
 

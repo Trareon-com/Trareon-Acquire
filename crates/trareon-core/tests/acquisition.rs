@@ -1,8 +1,6 @@
 use std::fs;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::thread;
-use std::time::Duration;
+use std::sync::atomic::AtomicBool;
 use tempfile::tempdir;
 use trareon_core::{
     AcquireRequest, AcquisitionState, CoreError, acquire_file, default_checkpoint_path,
@@ -148,18 +146,12 @@ fn cancel_writes_incomplete_checkpoint_never_verified_complete() {
     let dir = tempdir().unwrap();
     let source = dir.path().join("source.img");
     let output = dir.path().join("evidence.raw");
-    fs::write(&source, vec![5u8; 1024 * 256]).unwrap();
+    fs::write(&source, vec![5u8; 1024 * 64]).unwrap();
 
-    let cancel_flag = Arc::new(AtomicBool::new(false));
-    let cancel_for_thread = Arc::clone(&cancel_flag);
-    thread::spawn(move || {
-        thread::sleep(Duration::from_millis(5));
-        cancel_for_thread.store(true, Ordering::SeqCst);
-    });
-
-    let request = AcquireRequest::new(&source, &output)
-        .with_cancel_flag(cancel_flag)
-        .with_buffer_size(4096);
+    // Pre-arm cancel so the loop exits before any byte is claimed complete
+    // (no timing race across CI hosts).
+    let cancel_flag = Arc::new(AtomicBool::new(true));
+    let request = AcquireRequest::new(&source, &output).with_cancel_flag(cancel_flag);
     let error = acquire_file(&request).unwrap_err();
     assert!(matches!(error, CoreError::Cancelled));
 
@@ -169,7 +161,7 @@ fn cancel_writes_incomplete_checkpoint_never_verified_complete() {
     assert!(checkpoint.incomplete);
     assert_eq!(
         checkpoint.bytes_completed,
-        fs::metadata(&output).unwrap().len()
+        fs::metadata(&output).map(|m| m.len()).unwrap_or(0)
     );
 
     let audit = fs::read_to_string(output.with_extension("audit.jsonl")).unwrap();

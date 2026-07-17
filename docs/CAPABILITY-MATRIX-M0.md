@@ -32,11 +32,13 @@ validate privilege boundaries only — not production raw-device adapters.
 | File-backed streaming acquire | Implemented | `trareon-core` acquisition tests; foundation demo | Synthetic/file sources only |
 | SHA-256 of acquired bytes | Implemented | Acquisition summary + independent re-hash in verify | — |
 | Append-only audit hash chain | Implemented | Audit tests + package verify | — |
-| Cooperative cancel (`cancel_flag`) | Implemented (core) | Acquisition / property / performance tests | **No UI path** to arm cancel |
+| Cooperative cancel (`cancel_flag`) | Implemented (core + UI) | Acquisition / property / Tauri cancel tests | Resume of cancelled file-backed acquire is M1 (non-split) |
+| Checkpoint / resume (file-backed) | Implemented (non-split) | `checkpoint.rs` + acquisition resume tests | Split-RAW resume not supported; never false-complete |
 | Split-RAW segment writes | Implemented (core + package) | Acquisition + `create_fsnap_from_segments` | Optional `evidence_segments`; single-file Analysis goldens unchanged |
 | `.fsnap` v0.1 create/verify | Implemented + **Analysis-frozen** | Package tests + 6 golden fixtures + CLI | Single `evidence.raw` only |
 | Independent verifier CLI | Implemented | `trareon-verifier` CLI tests | Exit 0 / 2 only; no repair |
-| Guided synthetic UI | Partial | App.svelte CoC card + a11y labels | No formal a11y audit; no cancel control |
+| Analysis read-only importer | Implemented (M1) | `trareon-analysis` + golden import tests | Indexes outside package; no repair/upgrade |
+| Guided synthetic UI | Partial | App.svelte CoC card + Cancel + a11y labels | No formal a11y audit |
 | Cross-OS CI matrix | Implemented | GitHub Actions `test` × 3 OS | See Day 20 recovery-cycle note |
 | DevSecOps gates | Implemented | `deny.toml`, CI `security` job, `SECURITY.md` | Unmaintained advisories explicitly ignored |
 | Bounded property tests | Implemented | `tests/properties.rs` + fuzz corpus docs | Full `cargo-fuzz` `NotValidated` |
@@ -44,7 +46,7 @@ validate privilege boundaries only — not production raw-device adapters.
 | Linux raw-device privilege probe | Feasibility spike | Day 23 / PR #47 + `platform::linux` | Physical disk attach/read `NotValidated`; Ubuntu LTS HW not separately recorded |
 | Windows raw-device UAC probe | Feasibility spike | Day 24 / PR #49 + `platform::windows` | Non-elevated denied; content read `NotValidated`; X270 `NotValidated` |
 | macOS raw-device privilege probe | Feasibility spike | Day 25 / PR #50 + `platform::macos` | Open denied without `operator`/helper; Intel/`hdiutil`/`FDA` `NotValidated` |
-| Privileged broker protocol | Spike only | `broker.rs` + `docs/platform/privileged-broker-protocol-spike.md` | No elevation helper; execute returns `NotImplemented` |
+| Privileged broker protocol | Spike only | `broker.rs` + `StubElevationHelper` | Helper trait exists; OS elevation still `NotImplemented` |
 | Signing / release / certification | Out of scope | Day 30 human gate | Lab Use Only; no Official Production |
 
 ## `.fsnap` v0.1 Analysis freeze

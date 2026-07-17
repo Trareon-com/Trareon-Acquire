@@ -2,7 +2,10 @@ use std::fs;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use tempfile::tempdir;
-use trareon_core::{AcquireRequest, AcquisitionState, CoreError, acquire_file};
+use trareon_core::{
+    AcquireRequest, AcquisitionState, CoreError, acquire_file, default_checkpoint_path,
+    load_checkpoint,
+};
 
 #[test]
 fn acquisition_copies_every_byte_and_hashes_output() {
@@ -136,4 +139,100 @@ fn destination_write_failure_produces_no_false_complete() {
     let error = acquire_file(&AcquireRequest::new(&source, &output));
     assert!(error.is_err());
     assert!(!output.exists());
+}
+
+#[test]
+fn cancel_writes_incomplete_checkpoint_never_verified_complete() {
+    let dir = tempdir().unwrap();
+    let source = dir.path().join("source.img");
+    let output = dir.path().join("evidence.raw");
+    fs::write(&source, vec![5u8; 1024 * 64]).unwrap();
+
+    // Pre-arm cancel so the loop exits before any byte is claimed complete
+    // (no timing race across CI hosts).
+    let cancel_flag = Arc::new(AtomicBool::new(true));
+    let request = AcquireRequest::new(&source, &output).with_cancel_flag(cancel_flag);
+    let error = acquire_file(&request).unwrap_err();
+    assert!(matches!(error, CoreError::Cancelled));
+
+    let checkpoint_path = default_checkpoint_path(&output);
+    assert!(checkpoint_path.exists(), "cancel must leave a checkpoint");
+    let checkpoint = load_checkpoint(&checkpoint_path).unwrap();
+    assert!(checkpoint.incomplete);
+    assert_eq!(
+        checkpoint.bytes_completed,
+        fs::metadata(&output).map(|m| m.len()).unwrap_or(0)
+    );
+
+    let audit = fs::read_to_string(output.with_extension("audit.jsonl")).unwrap();
+    assert!(audit.contains("cancelled"));
+    assert!(!audit.contains("verified_complete"));
+    assert!(!audit.contains("\"state\":\"VerifiedComplete\""));
+}
+
+#[test]
+fn resume_after_cancel_matches_full_hash_and_clears_checkpoint() {
+    let dir = tempdir().unwrap();
+    let source = dir.path().join("source.img");
+    let output = dir.path().join("evidence.raw");
+    let bytes: Vec<u8> = (0..=255).cycle().take(200_000).collect();
+    fs::write(&source, &bytes).unwrap();
+
+    let full = acquire_file(&AcquireRequest::new(&source, dir.path().join("full.raw"))).unwrap();
+
+    // Seed a mid-file cancel by writing a prefix + checkpoint, then resume.
+    let prefix = &bytes[..50_000];
+    fs::write(&output, prefix).unwrap();
+    let checkpoint_path = default_checkpoint_path(&output);
+    let cp = trareon_core::AcquisitionCheckpoint::new(&source, &output, prefix.len() as u64);
+    trareon_core::write_checkpoint(&checkpoint_path, &cp).unwrap();
+
+    let resumed = acquire_file(
+        &AcquireRequest::new(&source, &output)
+            .with_resume(true)
+            .with_checkpoint_path(&checkpoint_path),
+    )
+    .unwrap();
+
+    assert_eq!(resumed.sha256, full.sha256);
+    assert_eq!(fs::read(&output).unwrap(), bytes);
+    assert_eq!(resumed.state, AcquisitionState::AcquiredUnverified);
+    assert!(
+        !checkpoint_path.exists(),
+        "successful resume must clear checkpoint"
+    );
+}
+
+#[test]
+fn checkpoint_claiming_complete_is_rejected() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("bad.checkpoint.json");
+    fs::write(
+        &path,
+        r#"{
+  "schema": "trareon.checkpoint/1",
+  "source": "/tmp/a",
+  "output": "/tmp/b",
+  "bytes_completed": 10,
+  "incomplete": false
+}"#,
+    )
+    .unwrap();
+    let err = load_checkpoint(&path).unwrap_err();
+    assert!(matches!(err, CoreError::Verification(_)));
+}
+
+#[test]
+fn resume_with_split_is_rejected() {
+    let dir = tempdir().unwrap();
+    let source = dir.path().join("source.img");
+    let output = dir.path().join("evidence.raw");
+    fs::write(&source, b"abc").unwrap();
+    let err = acquire_file(
+        &AcquireRequest::new(&source, &output)
+            .with_resume(true)
+            .with_split_segment_bytes(1),
+    )
+    .unwrap_err();
+    assert!(matches!(err, CoreError::Verification(_)));
 }

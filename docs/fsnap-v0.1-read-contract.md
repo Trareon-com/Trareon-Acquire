@@ -1,9 +1,11 @@
-# `.fsnap` v0.1 Read Contract (Draft)
+# `.fsnap` v0.1 Read Contract (Draft — Freeze Candidate)
 
-Result class: **Engineering Alpha**. This is a draft contract for the
-`trareon-core::verify_fsnap` / `trareon-verifier` reader against the `.fsnap`
-v0.1 package layout produced by `trareon-core::create_fsnap`. It is not a
-final format specification and carries no production compatibility promise.
+Result class: **Engineering Alpha**. This is a **freeze candidate** draft
+contract for the `trareon-core::verify_fsnap` / `trareon-verifier` reader
+against the `.fsnap` v0.1 package layout produced by
+`trareon-core::create_fsnap`. It is not a final format specification and
+carries no production compatibility promise. See
+`docs/CAPABILITY-MATRIX-M0.md` for freeze blockers.
 
 ## Package layout
 

@@ -27,7 +27,8 @@ Milestone review: [`docs/M0-MILESTONE-REVIEW.md`](docs/M0-MILESTONE-REVIEW.md).
 | Capability / limitation matrix | See [`docs/CAPABILITY-MATRIX-M0.md`](docs/CAPABILITY-MATRIX-M0.md) |
 | `.fsnap` v0.1 Analysis freeze | Frozen for Analysis (single-`evidence.raw`); see read contract |
 | Linux raw-device privilege probe | Feasibility spike (Day 23 / Kali); physical disk still `NotValidated` |
-| Raw-device adapters (Windows / macOS) | **Not started** — needs lab hardware (`MANUAL_START`) |
+| macOS raw-device privilege probe | Feasibility spike (Day 25 / M4 Pro); open `/dev/rdisk0` denied without elevation |
+| Raw-device adapters (Windows) | **Not started** — needs lab hardware (`MANUAL_START`) |
 | Production release / signing / certification | **Out of scope** — Lab Use Only EAC only |
 
 Authoritative status tracking: [`docs/ai-operations/MASTER-CHECKLIST.md`](docs/ai-operations/MASTER-CHECKLIST.md).

@@ -22,7 +22,9 @@ Update: PR #35 (`fix/rename-traeron-to-trareon`) sudah di-merge ke `main` (merge
 
 Update: Day 22 (property/fuzz baseline) diimplementasikan tanpa dependency produk baru — suite `crates/trareon-core/tests/properties.rs`, corpus sintetis `fixtures/fuzz-corpus/v0/`, docs bound di `docs/fuzz/README.md`, dan step CI `bounded property/fuzz smoke`. Full `cargo-fuzz`/libFuzzer tetap `NotValidated` (butuh review dependency/toolchain). Entry gate "independent review Day 21 EXPECTED_PASS" belum terpenuhi formal (Review Day 21 masih `NOT_STARTED`); dilanjutkan dengan pola yang sama seperti Day 21 yang juga mulai tanpa Codex review Day 20, dan dicatat jujur di sini.
 
-Day 23-30 tetap `NOT_STARTED` — feasibility perangkat (23-25 `MANUAL_START`), performance baseline, capability matrix, docs, adversarial review, dan freeze gate belum disentuh. Independent review Codex untuk Day 01-22 juga masih `NOT_STARTED` (hosted CI hijau bukan pengganti).
+Update: Day 26 (performance baseline) diukur tanpa dependency baru dan tanpa optimasi — harness `crates/trareon-core/tests/performance.rs`, laporan `docs/performance/m0-day26-baseline.md`, dan step CI `performance baseline smoke`. Peak RSS tetap `NotValidated` (tidak ada sampler portabel). Entry gate Day 25 `EXPECTED_PASS` belum terpenuhi (Day 23–25 masih `MANUAL_START`/`NOT_STARTED`); dilanjutkan hanya untuk jalur file-backed sintetis, dicatat jujur di sini.
+
+Day 23-25 dan Day 27-30 tetap `NOT_STARTED` — feasibility perangkat (23-25 `MANUAL_START`), capability matrix, docs, adversarial review, dan freeze gate belum disentuh. Independent review Codex untuk Day 01-26 juga masih `NOT_STARTED` (hosted CI hijau bukan pengganti).
 
 | Day | Task | Author | Reviewer | Risk | Autonomy | Branch | Frozen SHA | Implementation | Review | CI | Platform | Incident | Recovery | Human Gate | Evidence | Next |
 |---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|

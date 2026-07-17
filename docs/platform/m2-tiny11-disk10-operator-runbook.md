@@ -89,8 +89,32 @@ diskutil unmount "/Volumes/tiny11 2311"
 # then elevated open / bounded smoke against /dev/disk10s1
 ```
 
+## H. Full-disk acquire → `/Volumes/Untitled` (human-gated)
+
+Decision: `docs/ai-operations/DECISIONS/2026-07-17-m2-fulldisk-rdisk10-to-untitled.md`  
+Declared size: `61524148224` bytes. Destination ExFAT USB (`disk11`), **not** internal Mac (~3.5 GiB free).
+
+```bash
+# Recommended: unmount the tiny11 volume first
+diskutil unmount "/Volumes/tiny11 2311"
+
+cd "/Users/user/Projects/Trareon/Trareon Acquire"
+sudo cargo run -p trareon-core --example lab_raw_full_disk -- \
+  --i-approve-full-disk \
+  /dev/rdisk10 \
+  fixtures/lab-allowlists/tiny11-2311-disk10.json \
+  /Volumes/Untitled/trareon-lab \
+  61524148224
+
+# After RAW_FULL_OK (may take a long time):
+cargo run -q -p trareon-verifier -- verify /Volumes/Untitled/trareon-lab/tiny11-rdisk10-full.fsnap
+```
+
+Re-run the same command to **resume** if interrupted (checkpoint under the out dir).  
+Do **not** point destination at `/Volumes/tiny11 2311` or at Macintosh HD.
+
 ## Still out of policy without a new explicit gate
 
-- Imaging entire `/dev/rdisk10` (~57 GiB)
+- Imaging entire `/dev/rdisk10` to any path **other than** the approved Untitled lab folder without a new decision
 - Claiming Storage Lab Beta exit / Official Production
 - Touching `/dev/disk0` / system disk

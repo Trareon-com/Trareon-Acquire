@@ -16,6 +16,7 @@ human allowlist approval.
 - [x] Optional larger bound (64 MiB) on same allowlist — SHA `a0ff343…` PASS + independent verify (still not full disk)
 - [ ] Allowlisted lab media + write-block process approved for **additional** devices as needed
 - [ ] Full-disk acquire of allowlisted media (explicit new gate only)
+- [x] Full-disk gate recorded: `rdisk10` → `/Volumes/Untitled/trareon-lab` (decision 2026-07-17; run pending operator sudo)
 - [ ] GitHub Actions billing/spending limit restored so PR checks can run
 
 ## Software prep (landed)

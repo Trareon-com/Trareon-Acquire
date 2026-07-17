@@ -24,6 +24,9 @@ pub struct AcquisitionCheckpoint {
     pub bytes_completed: u64,
     /// Always true while the checkpoint file exists — completion deletes it.
     pub incomplete: bool,
+    /// When set, resume continues a split-RAW acquisition with this segment size.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub split_segment_bytes: Option<u64>,
 }
 
 impl AcquisitionCheckpoint {
@@ -34,7 +37,13 @@ impl AcquisitionCheckpoint {
             output: output.to_string_lossy().to_string(),
             bytes_completed,
             incomplete: true,
+            split_segment_bytes: None,
         }
+    }
+
+    pub fn with_split(mut self, segment_bytes: u64) -> Self {
+        self.split_segment_bytes = Some(segment_bytes);
+        self
     }
 }
 
@@ -108,6 +117,111 @@ pub fn hash_prefix(path: &Path, bytes: u64) -> Result<Sha256, CoreError> {
         }
         hasher.update(&buffer[..read]);
         remaining -= read as u64;
+    }
+    Ok(hasher)
+}
+
+/// Progress reconstructed from on-disk split segments (fail-closed vs checkpoint).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SplitProgress {
+    pub bytes_completed: u64,
+    /// 1-based index of the segment to continue writing.
+    pub segment_index: usize,
+    /// Bytes already present in that segment (0 means create/open empty next segment).
+    pub bytes_in_current_segment: u64,
+    pub completed_full_segments: Vec<(PathBuf, u64)>,
+    pub current_segment_path: PathBuf,
+}
+
+pub fn measure_split_progress(
+    output: &Path,
+    segment_limit: u64,
+    segment_path_fn: &dyn Fn(&Path, usize) -> PathBuf,
+) -> Result<SplitProgress, CoreError> {
+    if segment_limit == 0 {
+        return Err(CoreError::Verification(
+            "split segment size must be greater than zero".to_string(),
+        ));
+    }
+
+    let mut completed_full_segments = Vec::new();
+    let mut bytes_completed = 0u64;
+    let mut segment_index = 1usize;
+
+    loop {
+        let path = segment_path_fn(output, segment_index);
+        if !path.exists() {
+            break;
+        }
+        let len = fs::metadata(&path)
+            .map_err(|error| CoreError::Io(error.to_string()))?
+            .len();
+        if len > segment_limit {
+            return Err(CoreError::Verification(
+                "split segment exceeds configured limit".to_string(),
+            ));
+        }
+        bytes_completed += len;
+        if len < segment_limit {
+            return Ok(SplitProgress {
+                bytes_completed,
+                segment_index,
+                bytes_in_current_segment: len,
+                completed_full_segments,
+                current_segment_path: path,
+            });
+        }
+        completed_full_segments.push((path, len));
+        segment_index += 1;
+    }
+
+    Ok(SplitProgress {
+        bytes_completed,
+        segment_index,
+        bytes_in_current_segment: 0,
+        completed_full_segments,
+        current_segment_path: segment_path_fn(output, segment_index),
+    })
+}
+
+/// Hash completed full segments plus any partial prefix on the current segment.
+pub fn hash_split_progress(progress: &SplitProgress) -> Result<Sha256, CoreError> {
+    let mut hasher = Sha256::new();
+    let mut buffer = [0u8; 64 * 1024];
+    for (path, size) in &progress.completed_full_segments {
+        let mut file = File::open(path).map_err(|error| CoreError::Io(error.to_string()))?;
+        let mut remaining = *size;
+        while remaining > 0 {
+            let want = remaining.min(buffer.len() as u64) as usize;
+            let read = file
+                .read(&mut buffer[..want])
+                .map_err(|error| CoreError::Io(error.to_string()))?;
+            if read == 0 {
+                return Err(CoreError::Verification(
+                    "split segment shorter than measured size".to_string(),
+                ));
+            }
+            hasher.update(&buffer[..read]);
+            remaining -= read as u64;
+        }
+    }
+    if progress.bytes_in_current_segment > 0 {
+        let mut file = File::open(&progress.current_segment_path)
+            .map_err(|error| CoreError::Io(error.to_string()))?;
+        let mut remaining = progress.bytes_in_current_segment;
+        while remaining > 0 {
+            let want = remaining.min(buffer.len() as u64) as usize;
+            let read = file
+                .read(&mut buffer[..want])
+                .map_err(|error| CoreError::Io(error.to_string()))?;
+            if read == 0 {
+                return Err(CoreError::Verification(
+                    "current split segment shorter than measured size".to_string(),
+                ));
+            }
+            hasher.update(&buffer[..read]);
+            remaining -= read as u64;
+        }
     }
     Ok(hasher)
 }

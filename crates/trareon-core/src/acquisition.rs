@@ -21,7 +21,7 @@ pub struct AcquireRequest {
     pub buffer_size: usize,
     pub cancel_flag: Option<Arc<AtomicBool>>,
     pub split_segment_bytes: Option<u64>,
-    /// When true, resume from `checkpoint_path` if present (non-split only).
+    /// When true, resume from `checkpoint_path` if present (file-backed, including split-RAW).
     pub resume: bool,
     pub checkpoint_path: Option<PathBuf>,
 }
@@ -63,7 +63,7 @@ impl AcquireRequest {
         self
     }
 
-    /// Resume a previously cancelled/incomplete non-split acquisition using its checkpoint.
+    /// Resume a previously cancelled/incomplete file-backed acquisition using its checkpoint.
     pub fn with_resume(mut self, resume: bool) -> Self {
         self.resume = resume;
         self
@@ -175,25 +175,34 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
 
         let checkpoint_file = request.checkpoint_file();
         let mut resume_bytes: u64 = 0;
-        if request.resume {
-            if request.split_segment_bytes.is_some() {
+        let mut split_progress: Option<checkpoint::SplitProgress> = None;
+        if request.resume && checkpoint_file.exists() {
+            let loaded = checkpoint::load_checkpoint(&checkpoint_file)?;
+            if loaded.source != request.source.to_string_lossy() {
                 return Err(CoreError::Verification(
-                    "resume is not supported with split-RAW segments yet".to_string(),
+                    "checkpoint source does not match request".to_string(),
                 ));
             }
-            if checkpoint_file.exists() {
-                let loaded = checkpoint::load_checkpoint(&checkpoint_file)?;
-                if loaded.source != request.source.to_string_lossy() {
+            if loaded.output != request.output.to_string_lossy() {
+                return Err(CoreError::Verification(
+                    "checkpoint output does not match request".to_string(),
+                ));
+            }
+            if loaded.split_segment_bytes != request.split_segment_bytes {
+                return Err(CoreError::Verification(
+                    "checkpoint split settings do not match request".to_string(),
+                ));
+            }
+            resume_bytes = loaded.bytes_completed;
+            if let Some(limit) = request.split_segment_bytes {
+                let measured =
+                    checkpoint::measure_split_progress(&request.output, limit, &segment_path)?;
+                if measured.bytes_completed != resume_bytes {
                     return Err(CoreError::Verification(
-                        "checkpoint source does not match request".to_string(),
+                        "checkpoint bytes do not match on-disk split segments".to_string(),
                     ));
                 }
-                if loaded.output != request.output.to_string_lossy() {
-                    return Err(CoreError::Verification(
-                        "checkpoint output does not match request".to_string(),
-                    ));
-                }
-                resume_bytes = loaded.bytes_completed;
+                split_progress = Some(measured);
             }
         }
 
@@ -210,9 +219,43 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
             Some(_) => segment_path(&request.output, segment_index),
             None => request.output.clone(),
         };
+        let mut current_segment_bytes: u64 = 0;
+        let mut segments: Vec<SegmentInfo> = Vec::new();
+
+        if let Some(progress) = &split_progress {
+            segment_index = progress.segment_index;
+            current_segment_path = progress.current_segment_path.clone();
+            current_segment_bytes = progress.bytes_in_current_segment;
+            for (path, size) in &progress.completed_full_segments {
+                segments.push(SegmentInfo {
+                    path: path.clone(),
+                    size: *size,
+                });
+            }
+        }
+
         // Resume may leave a zero-length or partial output from a prior cancel.
         // Never invent completion: only append when checkpoint bytes > 0.
-        let mut current_file = if resume_bytes > 0 {
+        let mut current_file = if let Some(progress) = &split_progress {
+            if progress.bytes_in_current_segment > 0 {
+                File::options()
+                    .append(true)
+                    .open(&current_segment_path)
+                    .map_err(|error| CoreError::Io(error.to_string()))?
+            } else if current_segment_path.exists() {
+                File::options()
+                    .write(true)
+                    .truncate(true)
+                    .open(&current_segment_path)
+                    .map_err(|error| CoreError::Io(error.to_string()))?
+            } else {
+                File::options()
+                    .write(true)
+                    .create_new(true)
+                    .open(&current_segment_path)
+                    .map_err(|error| CoreError::Io(error.to_string()))?
+            }
+        } else if resume_bytes > 0 {
             File::options()
                 .append(true)
                 .open(&current_segment_path)
@@ -230,11 +273,11 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
                 .open(&current_segment_path)
                 .map_err(|error| CoreError::Io(error.to_string()))?
         };
-        let mut current_segment_bytes: u64 = resume_bytes;
-        let mut segments: Vec<SegmentInfo> = Vec::new();
 
         let mut buffer = vec![0u8; request.buffer_size];
-        let mut hasher = if resume_bytes > 0 {
+        let mut hasher = if let Some(progress) = &split_progress {
+            checkpoint::hash_split_progress(progress)?
+        } else if resume_bytes > 0 {
             checkpoint::hash_prefix(&current_segment_path, resume_bytes)?
         } else {
             Sha256::new()
@@ -357,14 +400,30 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
                     ))
                 })?;
             }
-            // Persist resumable checkpoint for non-split acquisitions only.
-            if request.split_segment_bytes.is_none() {
+            // Persist resumable checkpoint for file-backed acquires (including split-RAW).
+            let cp = if let Some(limit) = request.split_segment_bytes {
+                let measured =
+                    checkpoint::measure_split_progress(&request.output, limit, &segment_path)
+                        .unwrap_or(checkpoint::SplitProgress {
+                            bytes_completed: 0,
+                            segment_index: 1,
+                            bytes_in_current_segment: 0,
+                            completed_full_segments: Vec::new(),
+                            current_segment_path: segment_path(&request.output, 1),
+                        });
+                AcquisitionCheckpoint::new(
+                    &request.source,
+                    &request.output,
+                    measured.bytes_completed,
+                )
+                .with_split(limit)
+            } else {
                 let completed = fs::metadata(&request.output)
                     .map(|meta| meta.len())
                     .unwrap_or(0);
-                let cp = AcquisitionCheckpoint::new(&request.source, &request.output, completed);
-                let _ = checkpoint::write_checkpoint(&request.checkpoint_file(), &cp);
-            }
+                AcquisitionCheckpoint::new(&request.source, &request.output, completed)
+            };
+            let _ = checkpoint::write_checkpoint(&request.checkpoint_file(), &cp);
             Err(CoreError::Cancelled)
         }
         Err(error) => {

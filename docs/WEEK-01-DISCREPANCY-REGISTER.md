@@ -62,7 +62,8 @@ trail. As of this register:
 | post-M0 | Privileged broker protocol spike | `broker.rs` typed allowlist + deny shell; returns `NotImplemented` | `StubElevationHelper` trait added in M1; still no OS elevate |
 | post-M0 | Cursor independent review Days 01–29 | `docs/INDEPENDENT-REVIEW-M0-CURSOR.md` | Codex review still not performed; substitute documented |
 | M1 | UI cancel + checkpoint/resume + Analysis importer | PR #53 merged | Initial slice; split resume + exit bundle follow on `feat/m1-exit-complete` |
-| M1 exit | Failure matrix, split resume, 6-golden Analysis, a11y checklist, M2 prompts | `feat/m1-exit-complete` | File-backed Engineering Alpha exit; raw acquire still NotValidated |
+| M1 exit | Failure matrix, split resume, 6-golden Analysis, a11y checklist, M2 prompts | PR #54 | File-backed Engineering Alpha exit; raw acquire still NotValidated |
+| M2 prep | Lab allowlist policy + plans P01–P05 + decision request | `feat/m2-software-prep` | HUMAN_APPROVAL_REQUIRED before raw/loop content acquire |
 
 ## P0/P1 status
 

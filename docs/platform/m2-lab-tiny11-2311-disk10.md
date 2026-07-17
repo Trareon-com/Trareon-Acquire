@@ -37,3 +37,9 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
 - No full-disk image of the USB
 - No commit of acquired evidence bytes
 - No Official Production / Lab Beta exit claim
+
+## Next
+
+Operator runbook: [`m2-tiny11-disk10-operator-runbook.md`](m2-tiny11-disk10-operator-runbook.md)
+(elevated open-only probe, optional `operator` membership, NTFS write options).
+PR: https://github.com/Trareon-com/Trareon-Acquire/pull/56

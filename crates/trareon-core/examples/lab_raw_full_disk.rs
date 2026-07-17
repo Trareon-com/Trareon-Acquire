@@ -16,9 +16,7 @@
 //! ```
 
 use std::{env, fs, path::PathBuf, process, time::Instant};
-use trareon_core::{
-    AcquireRequest, acquire_file, create_fsnap, load_lab_allowlist, verify_fsnap,
-};
+use trareon_core::{AcquireRequest, acquire_file, create_fsnap, load_lab_allowlist, verify_fsnap};
 
 fn usage() -> ! {
     eprintln!(
@@ -75,7 +73,10 @@ fn main() {
         process::exit(3);
     }
     if resume {
-        eprintln!("RAW_FULL_RESUME existing evidence/checkpoint under {}", out_dir.display());
+        eprintln!(
+            "RAW_FULL_RESUME existing evidence/checkpoint under {}",
+            out_dir.display()
+        );
     }
 
     eprintln!(

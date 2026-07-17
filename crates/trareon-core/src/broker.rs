@@ -181,7 +181,7 @@ impl ElevationHelper for StubElevationHelper {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lab_policy::{LabAllowlist, LabAllowlistEntry, LAB_ALLOWLIST_SCHEMA};
+    use crate::lab_policy::{LAB_ALLOWLIST_SCHEMA, LabAllowlist, LabAllowlistEntry};
 
     fn valid_request() -> BrokerRequest {
         BrokerRequest {
@@ -256,7 +256,9 @@ mod tests {
         let mut request = valid_request();
         request.source_identity = "/dev/rdisk0".to_string();
         let response = evaluate_broker_request(&request).unwrap();
-        assert!(matches!(response, BrokerResponse::Denied { reason, .. } if reason.contains("hard-denied")));
+        assert!(
+            matches!(response, BrokerResponse::Denied { reason, .. } if reason.contains("hard-denied"))
+        );
     }
 
     #[test]

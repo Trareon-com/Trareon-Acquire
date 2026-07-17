@@ -1,0 +1,17 @@
+# Absolute paths
+/etc/passwd
+/tmp/escape.raw
+C:/Windows/System32/config
+
+# Parent traversal
+../escape.raw
+acquisitions/../escape.raw
+acquisitions/0001/../../escape.raw
+..\\escape.raw
+
+# Null / separator abuse (NUL is injected in-test; backslash rejected here)
+acquisitions\\0001\\evidence.raw
+
+# Absolute-looking relative tricks
+//evil.raw
+\\evil.raw

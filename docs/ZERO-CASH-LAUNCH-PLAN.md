@@ -175,7 +175,8 @@ Pengeluaran pertama hanya dilakukan setelah cleared project cash melebihi seluru
 
 - Release gate RFC lulus.
 - Binary, SBOM, provenance, documentation, support window, refund terms, dan capability matrix tersedia.
-- Purchase tidak memerlukan online activation.
+- Purchase tidak memerlukan online activation / license key di aplikasi.
+- Binary berbayar dikirim privat (Lynk.id / Gumroad); bukan artifact GitHub Release.
 - Critical security fix tidak ditahan untuk memaksa major upgrade.
 
 ## Conversion funnel tanpa iklan

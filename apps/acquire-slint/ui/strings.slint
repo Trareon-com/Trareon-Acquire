@@ -1,0 +1,74 @@
+// Chrome copy for EN / ID — operator-facing workflow language.
+
+export global Strings {
+    in-out property <string> locale: "en";
+    out property <bool> is-id: locale == "id";
+
+    out property <string> brand-product: "Acquire";
+    out property <string> evidence-station: is-id ? "Meja akuisisi" : "Acquisition bench";
+    out property <string> operator-mode: is-id ? "MODE" : "MODE";
+    out property <string> mode-guided: is-id ? "Terpandu" : "Guided";
+    out property <string> mode-standard: is-id ? "Standar" : "Standard";
+    out property <string> mode-expert: is-id ? "Ahli" : "Expert";
+    out property <string> hint-guided: is-id ? "Demo cepat" : "Quick demo";
+    out property <string> hint-standard: is-id ? "Pilih berkas" : "Pick files";
+    out property <string> hint-expert: is-id ? "Raw / allowlist" : "Raw / allowlist";
+    out property <string> lab-only: is-id ? "HANYA LAB" : "LAB USE ONLY";
+    out property <string> alpha-line: is-id ? "Alpha v0.1 · GPLv3" : "Alpha v0.1 · GPLv3";
+    out property <string> founder-badge: "UNSIGNED";
+
+    out property <string> step-prepare: is-id ? "1 · Siapkan" : "1 · Prepare";
+    out property <string> step-run: is-id ? "2 · Akuisisi" : "2 · Acquire";
+    out property <string> step-seal: is-id ? "3 · Segel" : "3 · Seal";
+
+    out property <string> prepare-guided-title: is-id ? "Siapkan sumber demo" : "Prepare a demo source";
+    out property <string> prepare-guided-body: is-id
+        ? "Isi jalur sintetis, konfirmasi, lalu akuisisi. Tidak menyentuh disk raw."
+        : "Load synthetic paths, confirm, then acquire. Never touches raw disks.";
+    out property <string> prepare-paths-title: is-id ? "Tetapkan sumber dan keluaran" : "Set source and output";
+    out property <string> prepare-paths-body: is-id
+        ? "Pilih berkas sumber dan folder paket. Konfirmasi bahwa ini pelatihan, bukan bukti nyata."
+        : "Choose a source file and package folder. Confirm this is training, not real evidence.";
+
+    out property <string> case-note: is-id ? "Catatan kasus (opsional)" : "Case note (optional)";
+    out property <string> case-placeholder: is-id ? "Mis. TRN-2026-0001 — tidak masuk audit kriptografis" : "e.g. TRN-2026-0001 — outside the cryptographic audit";
+    out property <string> paths: is-id ? "Jalur" : "Paths";
+    out property <string> source: is-id ? "Sumber" : "Source";
+    out property <string> output: is-id ? "Keluaran" : "Output";
+    out property <string> source-placeholder: is-id ? "Berkas sumber sintetis" : "Synthetic source file";
+    out property <string> output-placeholder: is-id ? "Direktori keluaran" : "Output directory";
+    out property <string> browse: is-id ? "Jelajah" : "Browse";
+    out property <string> confirm-synthetic: is-id ? "Saya konfirmasi: sumber sintetis / pelatihan — bukan bukti nyata." : "I confirm: synthetic / training source — not real evidence.";
+
+    out property <string> acquire: is-id ? "Mulai akuisisi" : "Start acquire";
+    out property <string> working: is-id ? "Mengakuisisi…" : "Acquiring…";
+    out property <string> cancel: is-id ? "Batalkan" : "Cancel";
+    out property <string> fill-demo: is-id ? "Isi demo sintetis" : "Load synthetic demo";
+    out property <string> export-coc: is-id ? "Ekspor ringkasan CoC" : "Export CoC summary";
+    out property <string> clear: is-id ? "Reset hasil" : "Reset results";
+    out property <string> ready-hint: is-id ? "Siap diakuisisi" : "Ready to acquire";
+    out property <string> need-confirm: is-id ? "Konfirmasi sumber dulu" : "Confirm the source first";
+
+    out property <string> evidence-seal: is-id ? "SEGEL BUKTI" : "EVIDENCE SEAL";
+    out property <string> verified: is-id ? "TERVERIFIKASI" : "VERIFIED";
+    out property <string> awaiting: is-id ? "BELUM ADA" : "NO SEAL YET";
+    out property <string> seal-empty-title: is-id ? "Belum ada segel" : "No seal yet";
+    out property <string> seal-empty-body: is-id
+        ? "Setelah akuisisi berhasil, SHA-256 dan paket .fsnap muncul di sini."
+        : "After a successful acquire, the SHA-256 and .fsnap package appear here.";
+    out property <string> sha-label: "SHA-256";
+    out property <string> status: is-id ? "Status" : "Status";
+    out property <string> size: is-id ? "Ukuran" : "Size";
+    out property <string> package: is-id ? "Paket" : "Package";
+    out property <string> none-label: is-id ? "—" : "—";
+    out property <string> footer: is-id
+        ? "Verifikasi independen wajib · batal menghentikan akuisisi · belum divalidasi untuk bukti produksi"
+        : "Independent verify required · cancel stops in-flight acquire · not validated for production evidence";
+    out property <string> theme-dark: is-id ? "Gelap" : "Dark";
+    out property <string> theme-light: is-id ? "Terang" : "Light";
+    out property <string> lang-en: "EN";
+    out property <string> lang-id: "ID";
+    out property <string> state-standby: is-id ? "Siaga" : "Standby";
+    out property <string> state-running: is-id ? "Berjalan" : "Running";
+    out property <string> state-sealed: is-id ? "Tersegel" : "Sealed";
+}

@@ -1,9 +1,214 @@
-import { Button, VerticalBox, HorizontalBox, LineEdit, CheckBox } from "std-widgets.slint";
+// Trareon Acquire — Acquisition Bench
+// Operator job: Prepare → Acquire → Seal. One primary CTA at a time.
+// Design: .cursor/skills/frontend-design/DESIGN-TRAREON-ACQUIRE.md
+
+import { LineEdit, CheckBox, Palette } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { Strings } from "strings.slint";
+
+component Hairline inherits Rectangle {
+    height: 1px;
+    background: Theme.hairline;
+    horizontal-stretch: 1;
+}
+
+component Eyebrow inherits Text {
+    in property <string> label;
+    text: root.label;
+    color: Theme.faint;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    font-family: "Avenir Next";
+}
+
+// Quiet prefs chip — filled copper reserved for primary actions only
+component PrefChip inherits Rectangle {
+    callback clicked;
+    in property <string> label;
+    in property <bool> active;
+    height: 26px;
+    min-width: 40px;
+    background: root.active ? Theme.raised : transparent;
+    border-radius: 4px;
+    border-width: root.active ? 1px : 0px;
+    border-color: Theme.copper-dim;
+
+    HorizontalLayout {
+        padding-left: 9px;
+        padding-right: 9px;
+        alignment: center;
+        Text {
+            text: root.label;
+            color: root.active ? Theme.readout : Theme.faint;
+            font-size: 11px;
+            font-weight: root.active ? 700 : 500;
+            font-family: "Avenir Next";
+            vertical-alignment: center;
+        }
+    }
+    TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+component StepBadge inherits Rectangle {
+    in property <string> label;
+    in property <bool> active;
+    in property <bool> done;
+    height: 28px;
+    border-radius: 4px;
+    background: root.done ? Theme.ok-mist : root.active ? Theme.raised : transparent;
+    border-width: 1px;
+    border-color: root.done ? Theme.ok-glow : root.active ? Theme.copper-dim : Theme.hairline;
+
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+        alignment: center;
+        Text {
+            text: root.label;
+            color: root.done ? Theme.ok-glow : root.active ? Theme.readout : Theme.faint;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: "Avenir Next";
+            vertical-alignment: center;
+        }
+    }
+}
+
+component ModeRailItem inherits Rectangle {
+    callback clicked;
+    in property <string> label;
+    in property <string> hint;
+    in property <bool> active;
+    in property <bool> enabled: true;
+    height: 50px;
+    background: root.active ? Theme.rail-active : transparent;
+
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 10px;
+        spacing: 10px;
+        alignment: center;
+        Rectangle {
+            width: 3px;
+            height: 26px;
+            border-radius: 1.5px;
+            background: root.active ? Theme.copper : transparent;
+            vertical-stretch: 0;
+        }
+        VerticalLayout {
+            spacing: 2px;
+            alignment: center;
+            Text {
+                text: root.label;
+                color: root.active ? Theme.readout : Theme.mute;
+                font-size: 13px;
+                font-weight: root.active ? 600 : 500;
+                font-family: "Avenir Next";
+            }
+            Text {
+                text: root.hint;
+                color: root.active ? Theme.copper-dim : Theme.faint;
+                font-size: 11px;
+                font-family: "Avenir Next";
+            }
+        }
+    }
+    TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+component FieldShell inherits Rectangle {
+    in-out property <string> text;
+    in property <string> placeholder;
+    in property <bool> enabled: true;
+    height: 40px;
+    background: Theme.raised;
+    border-radius: 5px;
+    border-width: 1px;
+    border-color: Theme.hairline;
+
+    VerticalLayout {
+        padding-left: 11px;
+        padding-right: 11px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        LineEdit {
+            horizontal-stretch: 1;
+            text <=> root.text;
+            placeholder-text: root.placeholder;
+            enabled: root.enabled;
+        }
+    }
+}
+
+component ActionButton inherits Rectangle {
+    callback clicked;
+    in property <string> label;
+    in property <bool> enabled: true;
+    in property <bool> primary: false;
+    in property <bool> danger: false;
+    in property <bool> ghost: false;
+    height: 42px;
+    min-width: 108px;
+    border-radius: 5px;
+    background: root.primary && root.enabled ? Theme.copper
+        : root.primary && !root.enabled ? Theme.primary-disabled
+        : root.ghost ? transparent
+        : Theme.raised;
+    border-width: root.primary && root.enabled ? 0px
+        : root.ghost ? 0px
+        : 1px;
+    border-color: root.primary ? Theme.copper-dim
+        : root.danger && root.enabled ? Theme.deny
+        : Theme.hairline;
+    opacity: root.enabled || root.primary ? 1.0 : 0.4;
+
+    HorizontalLayout {
+        padding-left: 16px;
+        padding-right: 16px;
+        alignment: center;
+        Text {
+            text: root.label;
+            color: root.primary && root.enabled ? Theme.on-copper
+                : root.primary && !root.enabled ? Theme.copper-dim
+                : root.danger && root.enabled ? Theme.deny
+                : !root.enabled ? Theme.faint
+                : Theme.readout;
+            font-size: 13px;
+            font-weight: root.primary ? 700 : 500;
+            font-family: "Avenir Next";
+            vertical-alignment: center;
+        }
+    }
+    TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+component Panel inherits Rectangle {
+    background: Theme.seal-well;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: Theme.hairline;
+    @children
+}
 
 export component AppWindow inherits Window {
     title: "Trareon Acquire";
-    preferred-width: 780px;
-    preferred-height: 640px;
+    preferred-width: 1100px;
+    preferred-height: 760px;
+    min-width: 780px;
+    min-height: 620px;
+    background: Theme.void;
 
     in-out property <int> mode-index: 0;
     in-out property <string> mode-guidance: "";
@@ -12,13 +217,27 @@ export component AppWindow inherits Window {
     in-out property <string> source-path: "";
     in-out property <string> output-dir: "";
     in-out property <bool> confirmed-synthetic: false;
-    in-out property <string> status-line: "Ready — Lab Use Only (Engineering Alpha)";
+    in-out property <string> status-line: "";
     in-out property <string> last-package: "(none)";
     in-out property <string> evidence-sha256: "(none)";
     in-out property <string> evidence-size: "(none)";
     in-out property <string> preflight-hint: "";
+    in-out property <bool> preflight-is-deny: false;
     in-out property <bool> busy: false;
+    in-out property <bool> dark-mode: true;
+    in-out property <string> locale: "en";
+
     property <bool> can-run: root.confirmed-synthetic && root.source-path != "" && root.output-dir != "" && !root.busy;
+    property <bool> has-package: root.last-package != "(none)";
+    property <bool> has-hash: root.evidence-sha256 != "(none)";
+    property <bool> prepared: root.source-path != "" && root.output-dir != "" && root.confirmed-synthetic;
+    property <bool> guided: root.mode-index == 0;
+    // In Guided with nothing ready, "Load demo" is the one primary action.
+    property <bool> demo-is-primary: root.guided && !root.can-run && !root.busy;
+    property <string> display-package: root.has-package ? root.last-package : Strings.none-label;
+    property <string> display-hash: root.has-hash ? root.evidence-sha256 : Strings.none-label;
+    property <string> display-size: root.evidence-size == "(none)" ? "—" : root.evidence-size + " B";
+    property <string> session-state: root.busy ? Strings.state-running : root.has-hash ? Strings.state-sealed : Strings.state-standby;
 
     callback browse-source-clicked();
     callback browse-output-clicked();
@@ -28,162 +247,546 @@ export component AppWindow inherits Window {
     callback fill-synthetic-clicked();
     callback export-coc-clicked();
     callback mode-changed(int);
+    callback theme-toggled(bool);
+    callback locale-toggled(string);
 
-    VerticalBox {
-        padding: 16px;
-        spacing: 10px;
+    init => {
+        Theme.apply(root.dark-mode);
+        Strings.locale = root.locale;
+        Palette.color-scheme = root.dark-mode ? ColorScheme.dark : ColorScheme.light;
+    }
+    changed dark-mode => {
+        Theme.apply(root.dark-mode);
+        Palette.color-scheme = root.dark-mode ? ColorScheme.dark : ColorScheme.light;
+    }
+    changed locale => { Strings.locale = root.locale; }
 
-        Text {
-            text: "Trareon Acquire — Foundation Demo";
-            font-size: 22px;
-            font-weight: 700;
-        }
+    HorizontalLayout {
+        spacing: 0;
 
-        Text {
-            text: "Engineering Alpha — Lab Use Only. Not validated for production evidence.";
-            font-size: 13px;
-            wrap: word-wrap;
-        }
+        // Mode rail — pick once, then work
+        Rectangle {
+            width: 168px;
+            background: Theme.ink;
+            VerticalLayout {
+                padding-top: 22px;
+                padding-bottom: 16px;
+                spacing: 0;
 
-        Text { text: "Mode"; font-size: 12px; }
-        HorizontalBox {
-            spacing: 8px;
-            Button {
-                text: "Guided";
-                enabled: !root.busy;
-                primary: root.mode-index == 0;
-                clicked => { root.mode-changed(0); }
-            }
-            Button {
-                text: "Standard";
-                enabled: !root.busy;
-                primary: root.mode-index == 1;
-                clicked => { root.mode-changed(1); }
-            }
-            Button {
-                text: "Expert";
-                enabled: !root.busy;
-                primary: root.mode-index == 2;
-                clicked => { root.mode-changed(2); }
-            }
-        }
-        Text {
-            text: root.mode-guidance;
-            font-size: 12px;
-            wrap: word-wrap;
-        }
-
-        Text {
-            text: "Case identity (operator note only — not in audit/verify)";
-            font-size: 12px;
-        }
-        LineEdit {
-            text <=> root.case-identity;
-            enabled: !root.busy;
-            placeholder-text: "e.g. TRN-2026-0001";
-        }
-
-        if root.show-path-editors: VerticalBox {
-            spacing: 10px;
-            Text { text: "Source path"; font-size: 12px; }
-            HorizontalBox {
-                spacing: 8px;
-                LineEdit {
-                    horizontal-stretch: 1;
-                    text <=> root.source-path;
-                    enabled: !root.busy;
-                    placeholder-text: "/path/to/synthetic-source.img";
+                VerticalLayout {
+                    padding-left: 14px;
+                    padding-right: 10px;
+                    spacing: 4px;
+                    Text {
+                        text: "TRAREON";
+                        color: Theme.readout;
+                        font-family: "Avenir Next";
+                        font-size: 10px;
+                        font-weight: 700;
+                        letter-spacing: 2.8px;
+                    }
+                    Text {
+                        text: Strings.brand-product;
+                        color: Theme.copper;
+                        font-family: "Avenir Next";
+                        font-size: 22px;
+                        font-weight: 600;
+                    }
+                    Text {
+                        text: Strings.evidence-station;
+                        color: Theme.faint;
+                        font-size: 11px;
+                        font-family: "Avenir Next";
+                    }
                 }
-                Button {
-                    text: "Browse…";
+
+                Rectangle { height: 18px; background: transparent; }
+                VerticalLayout {
+                    padding-left: 14px;
+                    Eyebrow { label: Strings.operator-mode; }
+                }
+                Rectangle { height: 6px; background: transparent; }
+
+                ModeRailItem {
+                    label: Strings.mode-guided;
+                    hint: Strings.hint-guided;
+                    active: root.mode-index == 0;
                     enabled: !root.busy;
-                    clicked => { root.browse-source-clicked(); }
+                    clicked => { root.mode-changed(0); }
+                }
+                ModeRailItem {
+                    label: Strings.mode-standard;
+                    hint: Strings.hint-standard;
+                    active: root.mode-index == 1;
+                    enabled: !root.busy;
+                    clicked => { root.mode-changed(1); }
+                }
+                ModeRailItem {
+                    label: Strings.mode-expert;
+                    hint: Strings.hint-expert;
+                    active: root.mode-index == 2;
+                    enabled: !root.busy;
+                    clicked => { root.mode-changed(2); }
+                }
+
+                Rectangle { vertical-stretch: 1; background: transparent; }
+
+                VerticalLayout {
+                    padding-left: 14px;
+                    padding-right: 10px;
+                    spacing: 6px;
+                    Hairline {}
+                    Text {
+                        text: Strings.lab-only;
+                        color: Theme.copper-dim;
+                        font-size: 10px;
+                        font-weight: 700;
+                        letter-spacing: 1.2px;
+                        font-family: "Avenir Next";
+                    }
+                    Text {
+                        text: Strings.alpha-line;
+                        color: Theme.faint;
+                        font-size: 11px;
+                        font-family: "Avenir Next";
+                    }
                 }
             }
-            Text { text: "Output directory"; font-size: 12px; }
-            HorizontalBox {
-                spacing: 8px;
-                LineEdit {
-                    horizontal-stretch: 1;
-                    text <=> root.output-dir;
-                    enabled: !root.busy;
-                    placeholder-text: "/path/to/output";
+        }
+
+        Rectangle { width: 1px; background: Theme.hairline; }
+
+        // Bench
+        Rectangle {
+            background: Theme.panel;
+            horizontal-stretch: 1;
+            VerticalLayout {
+                spacing: 0;
+
+                // Thin chrome: status + quiet prefs
+                Rectangle {
+                    background: Theme.panel;
+                    VerticalLayout {
+                        padding-left: 24px;
+                        padding-right: 24px;
+                        padding-top: 14px;
+                        padding-bottom: 12px;
+                        spacing: 12px;
+
+                        HorizontalLayout {
+                            spacing: 10px;
+                            alignment: center;
+                            Text {
+                                text: root.session-state;
+                                color: root.busy ? Theme.copper-hot : root.has-hash ? Theme.ok-glow : Theme.mute;
+                                font-size: 12px;
+                                font-weight: 700;
+                                font-family: "Avenir Next";
+                                letter-spacing: 0.8px;
+                                vertical-alignment: center;
+                            }
+                            Text {
+                                text: "·";
+                                color: Theme.faint;
+                                font-size: 12px;
+                                vertical-alignment: center;
+                            }
+                            Text {
+                                text: root.status-line;
+                                color: Theme.mute;
+                                font-size: 12px;
+                                font-family: "Avenir Next";
+                                vertical-alignment: center;
+                                wrap: word-wrap;
+                                horizontal-stretch: 1;
+                            }
+                            Rectangle {
+                                background: Theme.badge-bg;
+                                border-radius: 3px;
+                                border-width: 1px;
+                                border-color: Theme.hairline;
+                                HorizontalLayout {
+                                    padding-left: 8px;
+                                    padding-right: 8px;
+                                    padding-top: 4px;
+                                    padding-bottom: 4px;
+                                    Text {
+                                        text: Strings.founder-badge;
+                                        color: Theme.faint;
+                                        font-size: 10px;
+                                        font-weight: 700;
+                                        letter-spacing: 1px;
+                                        font-family: "Avenir Next";
+                                    }
+                                }
+                            }
+                            Rectangle {
+                                background: Theme.raised;
+                                border-radius: 5px;
+                                border-width: 1px;
+                                border-color: Theme.hairline;
+                                HorizontalLayout {
+                                    padding: 2px;
+                                    PrefChip {
+                                        label: Strings.lang-en;
+                                        active: root.locale == "en";
+                                        clicked => { root.locale-toggled("en"); }
+                                    }
+                                    PrefChip {
+                                        label: Strings.lang-id;
+                                        active: root.locale == "id";
+                                        clicked => { root.locale-toggled("id"); }
+                                    }
+                                }
+                            }
+                            Rectangle {
+                                background: Theme.raised;
+                                border-radius: 5px;
+                                border-width: 1px;
+                                border-color: Theme.hairline;
+                                HorizontalLayout {
+                                    padding: 2px;
+                                    PrefChip {
+                                        label: Strings.theme-dark;
+                                        active: root.dark-mode;
+                                        clicked => { root.theme-toggled(true); }
+                                    }
+                                    PrefChip {
+                                        label: Strings.theme-light;
+                                        active: !root.dark-mode;
+                                        clicked => { root.theme-toggled(false); }
+                                    }
+                                }
+                            }
+                        }
+
+                        HorizontalLayout {
+                            spacing: 8px;
+                            StepBadge {
+                                label: Strings.step-prepare;
+                                active: !root.prepared && !root.has-hash;
+                                done: root.prepared || root.has-hash;
+                            }
+                            StepBadge {
+                                label: Strings.step-run;
+                                active: root.can-run || root.busy;
+                                done: root.has-hash;
+                            }
+                            StepBadge {
+                                label: Strings.step-seal;
+                                active: root.has-hash;
+                                done: root.has-hash;
+                            }
+                            Rectangle { horizontal-stretch: 1; background: transparent; }
+                        }
+                    }
                 }
-                Button {
-                    text: "Browse…";
-                    enabled: !root.busy;
-                    clicked => { root.browse-output-clicked(); }
+
+                Hairline {}
+
+                Flickable {
+                    vertical-stretch: 1;
+                    viewport-width: parent.width;
+                    VerticalLayout {
+                        padding-left: 24px;
+                        padding-right: 24px;
+                        padding-top: 18px;
+                        padding-bottom: 18px;
+                        spacing: 14px;
+
+                        // STEP 1 — Prepare
+                        Panel {
+                            VerticalLayout {
+                                padding: 18px;
+                                spacing: 14px;
+
+                                HorizontalLayout {
+                                    Text {
+                                        text: Strings.step-prepare;
+                                        color: Theme.copper;
+                                        font-size: 11px;
+                                        font-weight: 700;
+                                        letter-spacing: 1.2px;
+                                        font-family: "Avenir Next";
+                                        vertical-alignment: center;
+                                    }
+                                    Rectangle { horizontal-stretch: 1; background: transparent; }
+                                    Text {
+                                        text: root.prepared ? Strings.ready-hint : Strings.need-confirm;
+                                        color: root.prepared ? Theme.ok-glow : Theme.faint;
+                                        font-size: 11px;
+                                        font-weight: 600;
+                                        font-family: "Avenir Next";
+                                        vertical-alignment: center;
+                                    }
+                                }
+
+                                Text {
+                                    text: root.show-path-editors ? Strings.prepare-paths-title : Strings.prepare-guided-title;
+                                    color: Theme.readout;
+                                    font-size: 16px;
+                                    font-weight: 600;
+                                    font-family: "Avenir Next";
+                                }
+                                Text {
+                                    text: root.show-path-editors ? Strings.prepare-paths-body : Strings.prepare-guided-body;
+                                    color: Theme.mute;
+                                    font-size: 12px;
+                                    font-family: "Avenir Next";
+                                    wrap: word-wrap;
+                                }
+
+                                if root.guided: ActionButton {
+                                    label: Strings.fill-demo;
+                                    primary: root.demo-is-primary;
+                                    enabled: !root.busy;
+                                    clicked => { root.fill-synthetic-clicked(); }
+                                }
+
+                                if root.show-path-editors: VerticalLayout {
+                                    spacing: 10px;
+                                    VerticalLayout {
+                                        spacing: 5px;
+                                        Text { text: Strings.source; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; }
+                                        HorizontalLayout {
+                                            spacing: 8px;
+                                            FieldShell {
+                                                horizontal-stretch: 1;
+                                                text <=> root.source-path;
+                                                placeholder: Strings.source-placeholder;
+                                                enabled: !root.busy;
+                                            }
+                                            ActionButton {
+                                                label: Strings.browse;
+                                                enabled: !root.busy;
+                                                clicked => { root.browse-source-clicked(); }
+                                            }
+                                        }
+                                    }
+                                    VerticalLayout {
+                                        spacing: 5px;
+                                        Text { text: Strings.output; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; }
+                                        HorizontalLayout {
+                                            spacing: 8px;
+                                            FieldShell {
+                                                horizontal-stretch: 1;
+                                                text <=> root.output-dir;
+                                                placeholder: Strings.output-placeholder;
+                                                enabled: !root.busy;
+                                            }
+                                            ActionButton {
+                                                label: Strings.browse;
+                                                enabled: !root.busy;
+                                                clicked => { root.browse-output-clicked(); }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                VerticalLayout {
+                                    spacing: 6px;
+                                    Eyebrow { label: Strings.case-note; }
+                                    FieldShell {
+                                        text <=> root.case-identity;
+                                        placeholder: Strings.case-placeholder;
+                                        enabled: !root.busy;
+                                    }
+                                }
+
+                                CheckBox {
+                                    text: Strings.confirm-synthetic;
+                                    checked <=> root.confirmed-synthetic;
+                                    enabled: !root.busy;
+                                }
+                                if root.preflight-hint != "": Text {
+                                    text: root.preflight-hint;
+                                    color: root.preflight-is-deny ? Theme.deny : Theme.copper;
+                                    font-size: 12px;
+                                    font-weight: 500;
+                                    font-family: "Avenir Next";
+                                    wrap: word-wrap;
+                                }
+                            }
+                        }
+
+                        // STEP 2 — Acquire
+                        Panel {
+                            VerticalLayout {
+                                padding: 18px;
+                                spacing: 12px;
+                                Text {
+                                    text: Strings.step-run;
+                                    color: Theme.copper;
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    letter-spacing: 1.2px;
+                                    font-family: "Avenir Next";
+                                }
+                                Text {
+                                    text: root.mode-guidance;
+                                    color: Theme.mute;
+                                    font-size: 12px;
+                                    font-family: "Avenir Next";
+                                    wrap: word-wrap;
+                                }
+                                HorizontalLayout {
+                                    spacing: 8px;
+                                    ActionButton {
+                                        label: root.busy ? Strings.working : Strings.acquire;
+                                        primary: !root.demo-is-primary;
+                                        enabled: root.can-run;
+                                        clicked => { root.run-clicked(); }
+                                    }
+                                    ActionButton {
+                                        label: Strings.cancel;
+                                        danger: true;
+                                        enabled: root.busy;
+                                        clicked => { root.cancel-clicked(); }
+                                    }
+                                    if !root.guided: ActionButton {
+                                        label: Strings.fill-demo;
+                                        enabled: !root.busy;
+                                        clicked => { root.fill-synthetic-clicked(); }
+                                    }
+                                    Rectangle { horizontal-stretch: 1; background: transparent; }
+                                    ActionButton {
+                                        label: Strings.export-coc;
+                                        enabled: !root.busy && root.has-package;
+                                        clicked => { root.export-coc-clicked(); }
+                                    }
+                                    ActionButton {
+                                        label: Strings.clear;
+                                        ghost: true;
+                                        enabled: !root.busy && (root.has-hash || root.status-line != "");
+                                        clicked => { root.clear-clicked(); }
+                                    }
+                                }
+                            }
+                        }
+
+                        // STEP 3 — Seal (result product)
+                        Rectangle {
+                            background: root.has-hash ? Theme.seal-ok : Theme.seal-well;
+                            border-radius: 6px;
+                            border-width: 1px;
+                            border-color: root.has-hash ? Theme.ok-mist : Theme.hairline;
+                            min-height: root.has-hash ? 168px : 120px;
+
+                            if root.has-hash: Rectangle {
+                                height: 2px;
+                                width: parent.width;
+                                background: Theme.ok-glow;
+                                border-top-left-radius: 6px;
+                                border-top-right-radius: 6px;
+                            }
+
+                            VerticalLayout {
+                                padding: 18px;
+                                spacing: 10px;
+
+                                HorizontalLayout {
+                                    Text {
+                                        text: Strings.evidence-seal;
+                                        color: Theme.copper;
+                                        font-size: 11px;
+                                        font-weight: 700;
+                                        letter-spacing: 1.6px;
+                                        font-family: "Avenir Next";
+                                        vertical-alignment: center;
+                                    }
+                                    Rectangle { horizontal-stretch: 1; background: transparent; }
+                                    Rectangle {
+                                        background: root.has-hash ? Theme.ok-mist : Theme.raised;
+                                        border-radius: 3px;
+                                        border-width: 1px;
+                                        border-color: root.has-hash ? Theme.ok-mist : Theme.hairline;
+                                        HorizontalLayout {
+                                            padding-left: 8px;
+                                            padding-right: 8px;
+                                            padding-top: 3px;
+                                            padding-bottom: 3px;
+                                            Text {
+                                                text: root.has-hash ? Strings.verified : Strings.awaiting;
+                                                color: root.has-hash ? Theme.ok-glow : Theme.faint;
+                                                font-size: 10px;
+                                                font-weight: 700;
+                                                letter-spacing: 1px;
+                                                font-family: "Avenir Next";
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if !root.has-hash: VerticalLayout {
+                                    spacing: 4px;
+                                    Text {
+                                        text: Strings.seal-empty-title;
+                                        color: Theme.readout;
+                                        font-size: 15px;
+                                        font-weight: 600;
+                                        font-family: "Avenir Next";
+                                    }
+                                    Text {
+                                        text: Strings.seal-empty-body;
+                                        color: Theme.mute;
+                                        font-size: 12px;
+                                        font-family: "Avenir Next";
+                                        wrap: word-wrap;
+                                    }
+                                }
+
+                                if root.has-hash: VerticalLayout {
+                                    spacing: 8px;
+                                    Text {
+                                        text: Strings.sha-label;
+                                        color: Theme.faint;
+                                        font-size: 10px;
+                                        font-weight: 600;
+                                        letter-spacing: 1.2px;
+                                        font-family: "Avenir Next";
+                                    }
+                                    Text {
+                                        text: root.display-hash;
+                                        color: Theme.readout;
+                                        font-family: "Menlo";
+                                        font-size: 15px;
+                                        font-weight: 500;
+                                        wrap: word-wrap;
+                                    }
+                                    Hairline { background: Theme.ok-mist; }
+                                    HorizontalLayout {
+                                        spacing: 24px;
+                                        VerticalLayout {
+                                            spacing: 3px;
+                                            Text { text: Strings.status; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                            Text { text: root.status-line; color: Theme.readout; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
+                                        }
+                                        VerticalLayout {
+                                            spacing: 3px;
+                                            Text { text: Strings.size; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                            Text { text: root.display-size; color: Theme.readout; font-family: "Menlo"; font-size: 12px; }
+                                        }
+                                        VerticalLayout {
+                                            horizontal-stretch: 1;
+                                            spacing: 3px;
+                                            Text { text: Strings.package; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                            Text { text: root.display-package; color: Theme.mute; font-family: "Menlo"; font-size: 11px; wrap: word-wrap; }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: Strings.footer;
+                            color: Theme.faint;
+                            font-size: 10px;
+                            font-family: "Avenir Next";
+                            wrap: word-wrap;
+                        }
+                    }
                 }
             }
-        }
-
-        CheckBox {
-            text: "I confirm the source is a synthetic or training file, not real evidence.";
-            checked <=> root.confirmed-synthetic;
-            enabled: !root.busy;
-        }
-
-        Text {
-            text: root.preflight-hint;
-            font-size: 12px;
-            wrap: word-wrap;
-            visible: root.preflight-hint != "";
-        }
-
-        HorizontalBox {
-            spacing: 8px;
-            Button {
-                text: root.busy ? "Running…" : "Run";
-                primary: true;
-                enabled: root.can-run;
-                clicked => { root.run-clicked(); }
-            }
-            Button {
-                text: "Cancel";
-                enabled: root.busy;
-                clicked => { root.cancel-clicked(); }
-            }
-            Button {
-                text: "Fill synthetic demo paths";
-                enabled: !root.busy;
-                clicked => { root.fill-synthetic-clicked(); }
-            }
-            Button {
-                text: "Export CoC JSON";
-                enabled: !root.busy && root.last-package != "(none)";
-                clicked => { root.export-coc-clicked(); }
-            }
-            Button {
-                text: "Clear";
-                enabled: !root.busy;
-                clicked => { root.clear-clicked(); }
-            }
-        }
-
-        Text {
-            text: "Status: " + root.status-line;
-            font-size: 14px;
-            wrap: word-wrap;
-        }
-        Text {
-            text: "Package: " + root.last-package;
-            font-size: 12px;
-            wrap: word-wrap;
-        }
-        Text {
-            text: "SHA-256: " + root.evidence-sha256;
-            font-size: 12px;
-            wrap: word-wrap;
-        }
-        Text {
-            text: "Size: " + root.evidence-size + " bytes";
-            font-size: 12px;
-        }
-
-        Text {
-            text: "About: Trareon Acquire — Engineering Alpha / Lab Use Only. GPLv3. Unsigned Founder builds until Gate 3. Not court-admissible. UI cancel arms core cancel_flag; success only after independent verify.";
-            font-size: 11px;
-            wrap: word-wrap;
         }
     }
 }

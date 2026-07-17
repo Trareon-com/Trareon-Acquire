@@ -2,7 +2,7 @@
 
 pub mod ui_model;
 
-pub use ui_model::{UiMode, UiSnapshot};
+pub use ui_model::{NONE_SENTINEL, UiLocale, UiMode, UiSnapshot};
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;

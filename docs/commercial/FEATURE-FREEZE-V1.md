@@ -11,6 +11,8 @@ Status: **SOFTWARE FREEZE CANDIDATE** (not a release gate)
 - Lab allowlist + system-disk hard-deny
 - Community Build It For Me + `scripts/founder-build.sh` / `self-test.sh`
 - Install + commercial drafts under `docs/install/` and `docs/commercial/`
+- Offline Founder fulfillment (`scripts/founder-build.sh` → `dist/`, gitignored)
+- **No** in-app license manager (payment lives on Lynk.id/Gumroad)
 
 ## Explicitly not frozen / still open
 

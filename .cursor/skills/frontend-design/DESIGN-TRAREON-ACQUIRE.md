@@ -1,0 +1,73 @@
+# Design plan — Trareon Acquire shell (frontend-design skill)
+
+## Subject
+Desktop **evidence acquisition** station for DFIR lab operators.
+Audience: examiners comparing Trareon to Magnet AXIOM Process / Belkasoft X acquire /
+Cellebrite collection workflows — people who buy tools that look like instruments, not demos.
+Single job: choose mode → confirm synthetic source → acquire → leave with a verified seal.
+
+## Competitive read (2026)
+- Magnet AXIOM / Belkasoft X: dark themes for long shifts, task-oriented panes, hairline
+  structure over decoration, hash/status as first-class readouts.
+- Cellebrite Inseyets: simplified guided workflows with clear primary action.
+- Avoid cloning neon “cyber HUD” landing-page templates (cyan glow + void black).
+
+## Aesthetic
+**Evidence Control Room** — cool deep slate instrument panel, one copper signal for primary
+action and verified state (lab brass, not acid green), asymmetric custody rail + work surface.
+Quiet density. No cards-for-decoration. No cream paper. No Optima brochure look.
+
+## Token system
+
+### Color
+| Name | Hex | Role |
+|------|-----|------|
+| void | `#0B1014` | Window chrome |
+| ink | `#101820` | Left custody rail |
+| panel | `#151E27` | Main work surface |
+| raised | `#1B2632` | Inputs / seal well |
+| hairline | `#2C3A48` | 1px structure |
+| copper | `#C4845A` | Primary CTA + verified |
+| copper-dim | `#8A5E42` | Idle signal / rail accent |
+| readout | `#E6EDF3` | Primary text |
+| mute | `#8B9AAB` | Secondary |
+| faint | `#5C6B7A` | Eyebrows / chrome |
+| deny | `#D16B6B` | Preflight hard-deny |
+| ok-mist | `#3D5A4C` | Soft verified well tint |
+
+### Type
+- Brand / display: **Avenir Next** — tracked wordmark, restrained display weight
+- Body: native UI sans
+- Utility (hash, sizes, paths): **Menlo** — cryptographic instrument face
+
+### Layout (operator workflow)
+Real job: **Prepare → Acquire → Seal**. UI mirrors that sequence — not a settings form.
+
+```
+┌──────────┬──────────────────────────────────────┐
+│ Mode rail│  Status · EN|ID · Dark|Light         │
+│ Guided   │  Steps: 1 Prepare · 2 Acquire · 3 Seal│
+│ Standard │  ┌─ Prepare (demo CTA or paths) ───┐ │
+│ Expert   │  ├─ Acquire (one primary CTA) ─────┤ │
+│          │  └─ Seal (empty invite / hash hero)┘ │
+└──────────┴──────────────────────────────────────┘
+```
+
+- Guided: **Load synthetic demo** is the primary until ready; then **Start acquire**.
+- Seal empty state explains the next outcome — no giant `(none)` hash.
+- Prefs chips stay quiet; copper fill reserved for the primary action.
+
+### Theme + language (runtime)
+- Header segmented toggles: **Dark | Light** and **EN | ID**
+- Tokens live in `ui/theme.slint`; chrome copy in `ui/strings.slint`
+- Rust `UiSnapshot.dark_mode` / `locale` drive prefs; guidance/status/preflight localize with locale
+- Responsive: rail + padding compress below ~980px; body scrolls via `Flickable`; action row scrolls horizontally when tight
+- Min window ~760×600; preferred 1080×740
+
+
+## Critique vs AI defaults
+- Rejected warm cream + serif + terracotta (prior seal pass drifted here)
+- Rejected near-black + acid green / electric cyan HUD
+- Rejected broadsheet dense columns
+- Dark slate retained because it matches real DFIR workstation norms (AXIOM/Belkasoft),
+  not as a generic “dark mode SaaS” skin — copper replaces neon as the single accent

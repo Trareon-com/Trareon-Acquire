@@ -1,0 +1,75 @@
+// Evidence Control Room tokens — dark default, light first-class alternate.
+
+export global Theme {
+    in-out property <bool> dark: true;
+    in-out property <color> void: #080C10;
+    in-out property <color> ink: #0C1218;
+    in-out property <color> panel: #121A22;
+    in-out property <color> raised: #1A2430;
+    in-out property <color> hairline: #2A3848;
+    in-out property <color> copper: #D09262;
+    in-out property <color> copper-dim: #8F6145;
+    in-out property <color> copper-hot: #E8B089;
+    in-out property <color> readout: #EEF3F7;
+    in-out property <color> mute: #93A3B4;
+    in-out property <color> faint: #5A6A7A;
+    in-out property <color> deny: #D16B6B;
+    in-out property <color> ok-mist: #2E4A3C;
+    in-out property <color> ok-glow: #B7D4BE;
+    in-out property <color> on-copper: #140E0A;
+    in-out property <color> seal-well: #0E151C;
+    in-out property <color> seal-ok: #101C18;
+    in-out property <color> rail-active: #15202B;
+    in-out property <color> pipeline-bg: #0E151C;
+    in-out property <color> badge-bg: #18232E;
+    in-out property <color> primary-disabled: #2A221C;
+
+    public function apply(is-dark: bool) {
+        dark = is-dark;
+        if is-dark {
+            void = #080C10;
+            ink = #0C1218;
+            panel = #121A22;
+            raised = #1A2430;
+            hairline = #2A3848;
+            copper = #D09262;
+            copper-dim = #8F6145;
+            copper-hot = #E8B089;
+            readout = #EEF3F7;
+            mute = #93A3B4;
+            faint = #5A6A7A;
+            deny = #D16B6B;
+            ok-mist = #2E4A3C;
+            ok-glow = #B7D4BE;
+            on-copper = #140E0A;
+            seal-well = #0E151C;
+            seal-ok = #101C18;
+            rail-active = #15202B;
+            pipeline-bg = #0E151C;
+            badge-bg = #18232E;
+            primary-disabled = #2A221C;
+        } else {
+            void = #E8EDF2;
+            ink = #F7F9FB;
+            panel = #FFFFFF;
+            raised = #F0F3F7;
+            hairline = #D0D8E0;
+            copper = #A86B3E;
+            copper-dim = #8A5734;
+            copper-hot = #C4845A;
+            readout = #121820;
+            mute = #5A6A7A;
+            faint = #8494A4;
+            deny = #B04040;
+            ok-mist = #C5D9CC;
+            ok-glow = #2F6B4A;
+            on-copper = #FFFFFF;
+            seal-well = #F4F7FA;
+            seal-ok = #E8F2EC;
+            rail-active = #EAF0F5;
+            pipeline-bg = #F4F7FA;
+            badge-bg = #EEF2F6;
+            primary-disabled = #E8DCD2;
+        }
+    }
+}

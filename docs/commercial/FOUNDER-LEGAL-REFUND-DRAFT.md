@@ -7,9 +7,11 @@ contract until a human publishes a dated Founder offer page.
 
 - **Tier:** Founder Individual
 - **Price target:** Rp199.000 (once)
-- **Deliverable:** Unsigned ready-to-run build for OS rows that pass the published
-  capability matrix at delivery time + install guide + Version 1 security updates
-  during the stated support window
+- **Checkout:** Lynk.id / Gumroad (or equivalent) — not GitHub Releases
+- **Deliverable:** Full unsigned ready-to-run binary for OS rows that pass the
+  published capability matrix at delivery time + install guide + Version 1
+  security updates during the stated support window
+- **Activation:** none — no license key / online unlock in the app
 - **License:** GPLv3 — corresponding source available at the recorded commit
 
 ## Explicit limitations (must appear before payment)

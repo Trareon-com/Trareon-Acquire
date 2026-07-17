@@ -9,7 +9,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
     fn apply(ui: &AppWindow, snap: &UiSnapshot) {
         ui.set_mode_index(snap.mode.index());
-        ui.set_mode_guidance(snap.mode.guidance().into());
+        ui.set_mode_guidance(snap.guidance().into());
         ui.set_show_path_editors(snap.show_path_editors());
         ui.set_case_identity(snap.case_identity.clone().into());
         ui.set_source_path(snap.source_path.clone().into());
@@ -19,8 +19,12 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.set_last_package(snap.last_package.clone().into());
         ui.set_evidence_sha256(snap.evidence_sha256.clone().into());
         ui.set_evidence_size(snap.evidence_size.clone().into());
-        ui.set_preflight_hint(snap.preflight_hint().into());
+        let hint = snap.preflight_hint();
+        ui.set_preflight_hint(hint.clone().into());
+        ui.set_preflight_is_deny(hint.contains("DENY") || hint.contains("TOLAK"));
         ui.set_busy(snap.busy);
+        ui.set_dark_mode(snap.dark_mode);
+        ui.set_locale(snap.locale.as_str().into());
     }
 
     fn sync_fields_from_ui(ui: &AppWindow, snap: &mut UiSnapshot) {
@@ -51,15 +55,11 @@ fn main() -> Result<(), slint::PlatformError> {
     {
         let ui_weak = ui.as_weak();
         let snap = Arc::clone(&snapshot);
-        ui.on_browse_source_clicked(move || {
-            if let Some(ui) = ui_weak.upgrade()
-                && let Some(path) = rfd::FileDialog::new()
-                    .set_title("Select synthetic source file")
-                    .pick_file()
-            {
+        ui.on_theme_toggled(move |dark| {
+            if let Some(ui) = ui_weak.upgrade() {
                 let mut s = snap.lock().expect("snapshot lock");
                 sync_fields_from_ui(&ui, &mut s);
-                s.source_path = path.display().to_string();
+                s.set_dark_mode(dark);
                 apply(&ui, &s);
             }
         });
@@ -68,16 +68,50 @@ fn main() -> Result<(), slint::PlatformError> {
     {
         let ui_weak = ui.as_weak();
         let snap = Arc::clone(&snapshot);
-        ui.on_browse_output_clicked(move || {
-            if let Some(ui) = ui_weak.upgrade()
-                && let Some(path) = rfd::FileDialog::new()
-                    .set_title("Select output directory")
-                    .pick_folder()
-            {
+        ui.on_locale_toggled(move |loc| {
+            if let Some(ui) = ui_weak.upgrade() {
                 let mut s = snap.lock().expect("snapshot lock");
                 sync_fields_from_ui(&ui, &mut s);
-                s.output_dir = path.display().to_string();
+                s.set_locale(loc.as_str());
                 apply(&ui, &s);
+            }
+        });
+    }
+
+    {
+        let ui_weak = ui.as_weak();
+        let snap = Arc::clone(&snapshot);
+        ui.on_browse_source_clicked(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                let title = {
+                    let s = snap.lock().expect("snapshot lock");
+                    s.dialog_source_title().to_string()
+                };
+                if let Some(path) = rfd::FileDialog::new().set_title(&title).pick_file() {
+                    let mut s = snap.lock().expect("snapshot lock");
+                    sync_fields_from_ui(&ui, &mut s);
+                    s.source_path = path.display().to_string();
+                    apply(&ui, &s);
+                }
+            }
+        });
+    }
+
+    {
+        let ui_weak = ui.as_weak();
+        let snap = Arc::clone(&snapshot);
+        ui.on_browse_output_clicked(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                let title = {
+                    let s = snap.lock().expect("snapshot lock");
+                    s.dialog_output_title().to_string()
+                };
+                if let Some(path) = rfd::FileDialog::new().set_title(&title).pick_folder() {
+                    let mut s = snap.lock().expect("snapshot lock");
+                    sync_fields_from_ui(&ui, &mut s);
+                    s.output_dir = path.display().to_string();
+                    apply(&ui, &s);
+                }
             }
         });
     }
@@ -115,19 +149,20 @@ fn main() -> Result<(), slint::PlatformError> {
                 let mut s = snap.lock().expect("snapshot lock");
                 sync_fields_from_ui(&ui, &mut s);
                 if !s.can_run() {
-                    s.set_err("Confirm synthetic source and set source + output paths.");
+                    let msg = s.msg_need_confirm_paths().to_string();
+                    s.set_err(msg);
                     apply(&ui, &s);
                     return;
                 }
                 let preflight = s.preflight_hint();
-                if preflight.contains("DENY") {
+                if preflight.contains("DENY") || preflight.contains("TOLAK") {
                     s.set_err(preflight);
                     apply(&ui, &s);
                     return;
                 }
                 cancel.store(false, Ordering::SeqCst);
                 s.set_busy(true);
-                s.status_line = "Running foundation demo…".into();
+                s.status_line = s.msg_running().into();
                 apply(&ui, &s);
             }
 
@@ -144,19 +179,22 @@ fn main() -> Result<(), slint::PlatformError> {
                         let mut s = snap_done.lock().expect("snapshot lock");
                         match result {
                             Ok(demo) => {
+                                let ok = s.msg_verified().to_string();
                                 s.set_ok(
                                     demo.package_path,
                                     demo.evidence_sha256,
                                     demo.evidence_size,
-                                    "Verified Complete",
+                                    ok,
                                 );
                             }
                             Err(err) => {
                                 let lower = err.to_lowercase();
                                 if lower.contains("cancel") {
-                                    s.set_err(format!("Cancelled: {err}"));
+                                    let msg = s.msg_cancelled(&err);
+                                    s.set_err(msg);
                                 } else {
-                                    s.set_err(format!("Failed: {err}"));
+                                    let msg = s.msg_failed(&err);
+                                    s.set_err(msg);
                                 }
                             }
                         }
@@ -176,7 +214,7 @@ fn main() -> Result<(), slint::PlatformError> {
             if let Some(ui) = ui_weak.upgrade() {
                 let mut s = snap.lock().expect("snapshot lock");
                 if s.busy {
-                    s.status_line = "Cancelling…".into();
+                    s.status_line = s.msg_cancelling().into();
                     apply(&ui, &s);
                 }
             }
@@ -190,17 +228,21 @@ fn main() -> Result<(), slint::PlatformError> {
             if let Some(ui) = ui_weak.upgrade() {
                 let mut s = snap.lock().expect("snapshot lock");
                 sync_fields_from_ui(&ui, &mut s);
-                if s.last_package == "(none)" {
-                    s.set_err("No package to export — Run a successful demo first.");
+                if s.last_package == acquire_slint::NONE_SENTINEL {
+                    let msg = s.msg_no_package().to_string();
+                    s.set_err(msg);
                     apply(&ui, &s);
                     return;
                 }
                 let path = PathBuf::from(&s.output_dir).join("ui-coc-summary.json");
                 match write_coc_summary(&path, &s.coc_report_json()) {
                     Ok(()) => {
-                        s.status_line = format!("CoC summary written: {}", path.display());
+                        s.status_line = s.msg_coc_written(&path.display().to_string());
                     }
-                    Err(err) => s.set_err(format!("CoC export failed: {err}")),
+                    Err(err) => {
+                        let msg = s.msg_coc_failed(&err);
+                        s.set_err(msg);
+                    }
                 }
                 apply(&ui, &s);
             }

@@ -15,7 +15,7 @@ Raw evidence berada di `.ai-evidence/` dan tidak di-commit. Tabel ini hanya meny
 | 27 | Capability matrix | ff5933353b1d3414ee74c3f1cdf0460b22ec5af6 | ff5933353b1d3414ee74c3f1cdf0460b22ec5af6 | PR-44 | PASS_3OS (merge train) | Docs | NOT_APPLICABLE | docs/CAPABILITY-MATRIX-M0.md | IMPLEMENTED_UNREVIEWED | Codex review NOT_STARTED |
 | 28 | Docs / About / legal | f861379abfc1f48c46fbc584fd371c40b6cf9974 | f861379abfc1f48c46fbc584fd371c40b6cf9974 | PR-45 | PASS_3OS (merge train) | Docs + UI | NOT_APPLICABLE | docs/USER-GUIDE.md | IMPLEMENTED_UNREVIEWED | LEGAL_DRAFT_ONLY |
 | 29 | Adversarial review | f346430457587901d74370df5e87c1c20a05fc32 | f346430457587901d74370df5e87c1c20a05fc32 | PR-46 | PASS_3OS | Local + CI | NOT_APPLICABLE | docs/ADVERSARIAL-REVIEW-M0.md | IMPLEMENTED_UNREVIEWED | No new P0/P1 |
-| 30 | EAC complete redo | 4dd2828b37286f5d99de69825452502ec61bef53 | 4dd2828b37286f5d99de69825452502ec61bef53 | NOT_STARTED | NOT_STARTED | Local Day 30 redo author pass | NOT_APPLICABLE | docs/M0-MILESTONE-REVIEW.md | HUMAN_CLASSIFIED | Human (operator) |
+| 30 | EAC complete redo | 84a90eceffb4b3ddb3ed382c37ea892f85789858 | 84a90eceffb4b3ddb3ed382c37ea892f85789858 | NOT_STARTED | NOT_STARTED | Local Day 30 redo author pass | NOT_APPLICABLE | docs/M0-MILESTONE-REVIEW.md | HUMAN_CLASSIFIED | Human (operator) |
 | 30a | Prior incomplete EAC (superseded) | bb59f2cf9730f78cf981a40ef055855f815f4273 | 2b06c61ae8819e26d095d2102334514e778cb8ad | PR-48 | PASS_3OS | Hosted CI | NOT_APPLICABLE | DECISIONS/2026-07-17-day30-eac-human-approval.md | SUPERSEDED | Incomplete before Days 24–25 |
 
 Day 30 classification (complete redo): **Production-Directed Engineering Alpha Candidate — Lab Use Only**.

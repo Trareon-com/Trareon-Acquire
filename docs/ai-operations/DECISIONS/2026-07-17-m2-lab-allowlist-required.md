@@ -2,7 +2,7 @@
 
 - **Day / Task:** M2 Storage Lab Beta entry gate
 - **Frozen SHA:** `a037e01` (M1 exit tip on `main` at request time)
-- **Gate status:** `HUMAN_APPROVAL_REQUIRED`
+- **Gate status:** `HUMAN_APPROVAL_REQUIRED` for **other** media; **PROVIDED** for operator-designated `/Volumes/tiny11 2311` → `/dev/disk10` (see `2026-07-17-m2-lab-tiny11-disk10-approved.md`)
 - **Incident category:** `HUMAN-APPROVAL-REQUIRED` (control-plane hard stop: raw device / privilege / destructive lab)
 - **RFC/spec section affected:** Storage Lab Beta / privileged broker / platform adapters
 - **Observed evidence:**

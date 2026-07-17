@@ -98,7 +98,10 @@ ignore = [
     { id = "RUSTSEC-2024-0418", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
     { id = "RUSTSEC-2024-0419", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
     { id = "RUSTSEC-2024-0420", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
-    { id = "RUSTSEC-2024-0429", reason = "glib 0.18.x unsoundness; inherited from Tauri 2's dependency on gtk/muda, requires Tauri major upgrade to fix" },
+    # GHSA-wrw7-89jp-8q8g — Dependabot alert #1. Fixed only in glib>=0.20;
+    # gtk 0.18 (Tauri 2 Linux) cannot take that bump. Linux-only transitive;
+    # app never calls VariantStrIter. Revisit on Tauri GTK4 migration.
+    { id = "RUSTSEC-2024-0429", reason = "glib 0.18.x unsoundness (GHSA-wrw7-89jp-8q8g); Tauri 2 gtk0.18 chain; no gtk3-compatible patched glib; re-evaluate on Tauri GTK4" },
     { id = "RUSTSEC-2024-0370", reason = "proc-macro-error unmaintained; transitive build-time dependency, no CVE, no safe upgrade available upstream" },
 ]
 # If this is true, then cargo deny will use the git executable to fetch advisory database.

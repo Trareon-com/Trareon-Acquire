@@ -82,12 +82,28 @@ cargo run -q -p trareon-verifier -- verify /tmp/trareon-raw-bounded-lab/bounded-
 Recorded: `RAW_BOUNDED_OK` bytes=`67108864`, SHA
 `a0ff3432080bcd12f2e34f2a9ebb0c7b1388ae811ca7f45f4953eefc767cfe5f`, verifier `VALID`.
 
-## G. Partition node after unmount (optional)
+## G. Partition node after unmount (Hari 3 — operator)
+
+Unmount so `disk10s1` is not busy:
 
 ```bash
 diskutil unmount "/Volumes/tiny11 2311"
-# then elevated open / bounded smoke against /dev/disk10s1
 ```
+
+Bounded smoke on partition node (1 MiB):
+
+```bash
+cd "/Users/user/Projects/Trareon/Trareon Acquire"
+sudo cargo run -p trareon-core --example lab_raw_bounded_smoke -- \
+  /dev/disk10s1 fixtures/lab-allowlists/tiny11-2311-disk10.json 1048576
+cargo run -q -p trareon-verifier -- verify /tmp/trareon-raw-bounded-lab/bounded-1048576.fsnap
+```
+
+Record SHA in `docs/platform/m2-lab-tiny11-2311-disk10.md` and `docs/COMMERCIAL-LAUNCH-STATUS.md`.
+
+## Windows lab (Hari 8+)
+
+See `docs/COMMERCIAL-V1-GAP-AUDIT.md` and example `lab_windows_bounded_smoke`.
 
 ## H. Full-disk acquire → `/Volumes/Untitled` (PASS)
 

@@ -47,6 +47,7 @@ validate privilege boundaries only — not production raw-device adapters.
 | Windows raw-device UAC probe | Feasibility spike | Day 24 / PR #49 + `platform::windows` | Non-elevated denied; content read `NotValidated`; X270 `NotValidated` |
 | macOS raw-device privilege probe | Feasibility spike | Day 25 / PR #50 + `platform::macos` | Open denied without `operator`/helper; Intel/`hdiutil`/`FDA` `NotValidated` |
 | Privileged broker protocol | Spike only | `broker.rs` + `StubElevationHelper` | Helper trait exists; OS elevation still `NotImplemented` |
+| Lab source allowlist / system-disk deny | Implemented (M2 prep) | `lab_policy.rs` + fault_injection tests | Block-device acquire still NotValidated pending human allowlist |
 | Signing / release / certification | Out of scope | Day 30 human gate | Lab Use Only; no Official Production |
 
 ## `.fsnap` v0.1 Analysis freeze

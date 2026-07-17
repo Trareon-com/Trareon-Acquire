@@ -11,6 +11,7 @@ use sha2::{Digest, Sha256};
 use crate::{
     AcquisitionId, AcquisitionState, AuditJournal, CoreError,
     checkpoint::{self, AcquisitionCheckpoint},
+    lab_policy::{self, LabAllowlist},
 };
 
 #[derive(Debug, Clone)]
@@ -24,6 +25,8 @@ pub struct AcquireRequest {
     /// When true, resume from `checkpoint_path` if present (file-backed, including split-RAW).
     pub resume: bool,
     pub checkpoint_path: Option<PathBuf>,
+    /// Optional human-approved lab allowlist (required for block-device suspects).
+    pub lab_allowlist_path: Option<PathBuf>,
 }
 
 impl AcquireRequest {
@@ -39,6 +42,7 @@ impl AcquireRequest {
             split_segment_bytes: None,
             resume: false,
             checkpoint_path: None,
+            lab_allowlist_path: None,
         }
     }
 
@@ -71,6 +75,11 @@ impl AcquireRequest {
 
     pub fn with_checkpoint_path(mut self, path: impl Into<PathBuf>) -> Self {
         self.checkpoint_path = Some(path.into());
+        self
+    }
+
+    pub fn with_lab_allowlist_path(mut self, path: impl Into<PathBuf>) -> Self {
+        self.lab_allowlist_path = Some(path.into());
         self
     }
 
@@ -122,11 +131,19 @@ fn segment_path(output: &Path, index: usize) -> PathBuf {
 }
 
 pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, CoreError> {
+    let allowlist: Option<LabAllowlist> = match &request.lab_allowlist_path {
+        Some(path) => Some(lab_policy::load_lab_allowlist(path)?),
+        None => None,
+    };
+    let _source_identity =
+        lab_policy::assert_source_permitted(&request.source, allowlist.as_ref())?;
+
     let source_metadata = fs::metadata(&request.source)
         .map_err(|error| CoreError::Io(format!("source unavailable: {error}")))?;
     if !source_metadata.is_file() {
         return Err(CoreError::Verification(
-            "source must be a regular file".to_string(),
+            "source must be a regular file (raw-device acquire is NotValidated until M2 lab gate)"
+                .to_string(),
         ));
     }
     if source_metadata.len() == 0 {

@@ -5,6 +5,7 @@ mod audit;
 mod broker;
 mod checkpoint;
 mod domain;
+mod lab_policy;
 mod package;
 pub mod platform;
 
@@ -19,6 +20,10 @@ pub use checkpoint::{
     write_checkpoint,
 };
 pub use domain::{AcquisitionId, AcquisitionState, CaseId, CoreError};
+pub use lab_policy::{
+    LabAllowlist, LabAllowlistEntry, SourceIdentity, SourceKind, assert_source_permitted,
+    classify_source_path, load_lab_allowlist, source_identity_for, write_allowlist_template,
+};
 pub use package::{
     EvidenceSegmentV1, FsnapManifestV1, create_fsnap, create_fsnap_from_segments, verify_fsnap,
 };

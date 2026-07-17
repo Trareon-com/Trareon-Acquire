@@ -53,6 +53,23 @@ pub mod linux {
     }
 }
 
+#[cfg(target_os = "macos")]
+pub mod macos {
+    use super::{RawDeviceAccessCapability, probe_read_write_access};
+    use std::path::Path;
+
+    /// Feasibility probe for `/dev/rdisk0`, the character-device node macOS
+    /// exposes for the first whole-disk raw path. Day 25 observed that an
+    /// unprivileged admin user (not in group `operator`) receives
+    /// `DeniedInsufficientPrivilege` on both O_RDONLY and O_RDWR opens,
+    /// with SIP and Authenticated Root enabled — matching Track C's need
+    /// for an explicitly authorized elevation/helper path. This probe
+    /// never reads or writes through the handle.
+    pub fn probe_rdisk0() -> RawDeviceAccessCapability {
+        probe_read_write_access(Path::new("/dev/rdisk0"))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -90,6 +107,20 @@ mod tests {
         // asserted here; only that the probe classifies one of the three
         // known states instead of panicking.
         let result = linux::probe_loop_control();
+        assert!(matches!(
+            result,
+            RawDeviceAccessCapability::Available
+                | RawDeviceAccessCapability::DeniedInsufficientPrivilege
+                | RawDeviceAccessCapability::NotValidated { .. }
+        ));
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_rdisk0_probe_returns_without_panicking() {
+        // Hosted CI and developer Macs differ (operator membership, SIP,
+        // TCC). Assert only that the probe returns a known variant.
+        let result = macos::probe_rdisk0();
         assert!(matches!(
             result,
             RawDeviceAccessCapability::Available

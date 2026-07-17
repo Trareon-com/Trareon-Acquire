@@ -1,7 +1,7 @@
 # Milestone Review — M1 Engineering Alpha exit
 
 - **Milestone:** M1 Engineering Alpha (file-backed lab slice) exit → M2 Storage Lab Beta entry
-- **Frozen SHA:** see merge tip of PR closing this review on `main` (fill after merge; branch work on `feat/m1-exit-complete`)
+- **Frozen SHA:** `cc17f1b` (PR tip on `feat/m1-exit-complete`; merge SHA recorded after landing on `main`)
 - **Evidence index complete:** yes for M1 file-backed exit — [`docs/M1-FAILURE-MATRIX.md`](M1-FAILURE-MATRIX.md), Analysis importer suite, capability matrix update
 - **Required tests:** `cargo test --workspace --locked`, `cargo clippy --workspace --locked --all-targets -- -D warnings`, `cargo fmt --check`, `sh scripts/validate-ai-operations.sh`
 - **Open P0 findings:** none

@@ -2,11 +2,11 @@
 
 Result class: **Production-Directed Engineering Alpha Candidate — Lab Use Only**.
 
-This matrix consolidates evidence already present in the repository as of
-`main` tip `6594840` (includes Day 23 / PR #47) plus Day 30 human
-classification. Capabilities without exact hardware or independent Codex
-review evidence remain `NotValidated`. This document does **not** certify
-Official Production readiness.
+This matrix consolidates evidence as of `main` tip `4dd2828` (Days 01–29
+implemented, including Days 23–25 privilege spikes) plus the Day 30 **complete
+redo** human classification. Capabilities without exact hardware acquisition
+evidence or independent Codex review remain `NotValidated`. This document does
+**not** certify Official Production readiness.
 
 Authoritative day tracking: [`docs/ai-operations/MASTER-CHECKLIST.md`](ai-operations/MASTER-CHECKLIST.md).  
 Known gaps: [`docs/WEEK-01-DISCREPANCY-REGISTER.md`](WEEK-01-DISCREPANCY-REGISTER.md).  
@@ -14,16 +14,16 @@ Milestone: [`docs/M0-MILESTONE-REVIEW.md`](M0-MILESTONE-REVIEW.md).
 Risks: [`docs/M0-RISK-REGISTER.md`](M0-RISK-REGISTER.md).  
 `.fsnap` reader contract: [`docs/fsnap-v0.1-read-contract.md`](fsnap-v0.1-read-contract.md).
 
-## Platform evidence (hosted CI)
+## Platform evidence (hosted CI + lab)
 
-| Platform | Compile + unit/integration tests | Security job | Raw-device acquire | Notes |
+| Platform | Compile + unit/integration tests | Security job | Raw-device acquire | Privilege probe |
 |---|---|---|---|---|
-| ubuntu-latest | PASS | PASS | `NotValidated` (physical disk) | Day 23 Kali: loop/privilege probe only |
-| windows-latest | PASS | n/a (security job is Ubuntu) | Privilege probe only | Day 24 Win10: UAC elevation gates `PhysicalDrive0` open |
-| macos-latest | PASS | n/a | Privilege probe only | Day 25 M4 Pro: open `/dev/rdisk0` denied; physical acquire still `NotValidated` |
+| ubuntu-latest / Kali lab | PASS (CI); Kali HW Day 23 | PASS (CI) | `NotValidated` (physical disk) | Day 23: loop-control / `losetup` group boundary |
+| windows-latest / Win10 lab | PASS (CI); Win10 HW Day 24 | n/a on Windows job | `NotValidated` (content read) | Day 24: UAC elevation gates `PhysicalDrive0` |
+| macos-latest / M4 Pro lab | PASS (CI); M4 Pro HW Day 25 | n/a | `NotValidated` (content read) | Day 25: `/dev/rdisk0` denied without `operator`/helper |
 
-Hosted CI is **portability evidence for the file-backed slice**, not proof of
-read-only raw-device acquisition on Windows/macOS.
+Hosted CI is **portability evidence for the file-backed slice**. Days 23–25
+validate privilege boundaries only — not production raw-device adapters.
 
 ## Capability matrix
 
@@ -41,9 +41,9 @@ read-only raw-device acquisition on Windows/macOS.
 | DevSecOps gates | Implemented | `deny.toml`, CI `security` job, `SECURITY.md` | Unmaintained advisories explicitly ignored |
 | Bounded property tests | Implemented | `tests/properties.rs` + fuzz corpus docs | Full `cargo-fuzz` `NotValidated` |
 | Performance baseline (synthetic) | Implemented | `tests/performance.rs` + `docs/performance/` | Peak RSS `NotValidated`; no optimization |
-| Linux raw-device privilege probe | Feasibility spike | Day 23 / PR #47 + `platform.rs` | Physical disk attach/read `NotValidated`; Ubuntu LTS HW not separately recorded |
-| macOS raw-device privilege probe | Feasibility spike | Day 25 + `platform::macos::probe_rdisk0` | Open denied without `operator`/helper; Intel Mac `NotValidated`; synthetic `hdiutil` attach `NotValidated` |
-| Windows raw-device UAC probe | Feasibility spike | Day 24 / PR #49 + `windows::probe_physical_drive_zero` | Non-elevated denied; physical content read `NotValidated`; X270 `NotValidated` |
+| Linux raw-device privilege probe | Feasibility spike | Day 23 / PR #47 + `platform::linux` | Physical disk attach/read `NotValidated`; Ubuntu LTS HW not separately recorded |
+| Windows raw-device UAC probe | Feasibility spike | Day 24 / PR #49 + `platform::windows` | Non-elevated denied; content read `NotValidated`; X270 `NotValidated` |
+| macOS raw-device privilege probe | Feasibility spike | Day 25 / PR #50 + `platform::macos` | Open denied without `operator`/helper; Intel/`hdiutil`/`FDA` `NotValidated` |
 | Signing / release / certification | Out of scope | Day 30 human gate | Lab Use Only; no Official Production |
 
 ## `.fsnap` v0.1 Analysis freeze
@@ -60,12 +60,12 @@ read-only raw-device acquisition on Windows/macOS.
 
 - Split-RAW multi-segment packaging.
 - Independent Codex review for Days 01–29 still `NOT_STARTED`.
-- Raw-device and elevated Windows paths remain `NotValidated`; macOS physical acquire remains `NotValidated` (privilege probe only).
+- Raw-device *acquisition* remains `NotValidated` (privilege probes ≠ acquire adapters).
 - Any court-admissibility or Official Production claim.
 
 ## Independent review status
 
 All Day 01–29 `Review` cells remain `NOT_STARTED`. Closing GitHub issues
 for implementation does **not** equal `EXPECTED_PASS` Codex review.
-Day 30 human classification is recorded in
-[`docs/ai-operations/DECISIONS/2026-07-17-day30-eac-human-approval.md`](ai-operations/DECISIONS/2026-07-17-day30-eac-human-approval.md).
+Day 30 complete-redo classification is recorded in
+[`docs/ai-operations/DECISIONS/2026-07-17-day30-eac-complete-redo.md`](ai-operations/DECISIONS/2026-07-17-day30-eac-complete-redo.md).

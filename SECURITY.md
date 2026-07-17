@@ -19,8 +19,11 @@ disclosure timing before any public fix or advisory is published.
 ## What's in scope
 
 - The Rust core (`crates/trareon-core`, `crates/trareon-verifier`)
-- The Tauri/Svelte application (`apps/trareon-acquire`)
+- The Slint desktop application (`apps/acquire-slint`)
 - CI/CD workflows (`.github/workflows/`)
+
+The archived Tauri/Svelte reference under `apps/trareon-acquire` is not built,
+tested, or shipped.
 
 ## Automated checks
 
@@ -30,8 +33,6 @@ Every pull request and push to `main` runs a `security` CI job
 - Runs `cargo deny check` (license policy, security advisories, banned/
   duplicate dependency bans, dependency source allow-list) against
   `deny.toml`.
-- Runs `npm audit --omit=dev` against the Tauri app's production
-  dependencies.
 - Scans the tree for common committed-secret patterns (private key
   blocks, AWS access key IDs, hardcoded `aws_secret_access_key`).
 - Publishes a `cargo metadata`-derived dependency manifest as a build

@@ -57,3 +57,17 @@ fn assert_source_permitted_rejects_nvme_system_disk() {
     let err = assert_source_permitted(std::path::Path::new("/dev/nvme0n1p1"), None).unwrap_err();
     assert!(err.to_string().contains("hard-denied"));
 }
+
+#[test]
+fn broker_identity_rejects_system_disk_without_open() {
+    use trareon_core::assert_broker_source_identity;
+    let err = assert_broker_source_identity(r"\\.\PhysicalDrive0", None).unwrap_err();
+    assert!(err.to_string().contains("hard-denied"));
+}
+
+#[test]
+fn broker_identity_requires_allowlist_for_rdisk() {
+    use trareon_core::assert_broker_source_identity;
+    let err = assert_broker_source_identity("/dev/rdisk10", None).unwrap_err();
+    assert!(err.to_string().contains("allowlist"));
+}

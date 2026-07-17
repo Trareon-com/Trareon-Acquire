@@ -15,8 +15,7 @@ human allowlist approval.
 - [x] Bounded raw content sample (`lab_raw_bounded_smoke`, 1 MiB) under sudo — SHA `41fb8d9…` PASS + independent verify
 - [x] Optional larger bound (64 MiB) on same allowlist — SHA `a0ff343…` PASS + independent verify (still not full disk)
 - [ ] Allowlisted lab media + write-block process approved for **additional** devices as needed
-- [ ] Full-disk acquire of allowlisted media (explicit new gate only)
-- [x] Full-disk gate recorded: `rdisk10` → `/Volumes/Untitled/trareon-lab` (decision 2026-07-17; run pending operator sudo)
+- [ ] Full-disk acquire **run** of `rdisk10` → Untitled (gate PROVIDED; operator sudo pending — runbook §H)
 - [ ] GitHub Actions billing/spending limit restored so PR checks can run
 
 ## Software prep (landed)
@@ -51,7 +50,9 @@ Cite Day 25.
 
 Replace `StubElevationHelper` only after a reviewed helper design, allowlisted
 ops, and human gate. Shell-like payloads must remain denied. No network from
-helper.
+helper. **Progress:** allowlist binding + system-disk deny landed in core;
+OS elevation still stub-only.
+
 
 ### M2-P05 — Capability matrix promotion rules
 

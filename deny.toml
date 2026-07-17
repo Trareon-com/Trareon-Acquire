@@ -14,41 +14,12 @@
 # The graph table configures how the dependency graph is constructed and thus
 # which crates the checks are performed against
 [graph]
-# If 1 or more target triples (and optionally, target_features) are specified,
-# only the specified targets will be checked when running `cargo deny check`.
-# This means, if a particular package is only ever used as a target specific
-# dependency, such as, for example, the `nix` crate only being used via the
-# `target_family = "unix"` configuration, that only having windows targets in
-# this list would mean the nix crate, as well as any of its exclusive
-# dependencies not shared by any other crates, would be ignored, as the target
-# list here is effectively saying which targets you are building for.
 targets = [
-    # The triple can be any string, but only the target triples built in to
-    # rustc (as of 1.40) can be checked against actual config expressions
-    #"x86_64-unknown-linux-musl",
-    # You can also specify which target_features you promise are enabled for a
-    # particular target. target_features are currently not validated against
-    # the actual valid features supported by the target architecture.
-    #{ triple = "wasm32-unknown-unknown", features = ["atomics"] },
+    { triple = "x86_64-unknown-linux-gnu" },
+    { triple = "x86_64-pc-windows-msvc" },
+    { triple = "aarch64-apple-darwin" },
 ]
-# When creating the dependency graph used as the source of truth when checks are
-# executed, this field can be used to prune crates from the graph, removing them
-# from the view of cargo-deny. This is an extremely heavy hammer, as if a crate
-# is pruned from the graph, all of its dependencies will also be pruned unless
-# they are connected to another crate in the graph that hasn't been pruned,
-# so it should be used with care. The identifiers are [Package ID Specifications]
-# (https://doc.rust-lang.org/cargo/reference/pkgid-spec.html)
-#exclude = []
-# If true, metadata will be collected with `--all-features`. Note that this can't
-# be toggled off if true, if you want to conditionally enable `--all-features` it
-# is recommended to pass `--all-features` on the cmd line instead
-all-features = false
-# If true, metadata will be collected with `--no-default-features`. The same
-# caveat with `all-features` applies
-no-default-features = false
-# If set, these feature will be enabled when collecting metadata. If `--features`
-# is specified on the cmd line they will take precedence over this option.
-#features = []
+all-features = true
 
 # The output table provides options for how/if diagnostics are outputted
 [output]
@@ -63,6 +34,8 @@ feature-depth = 1
 # More documentation for the advisories section can be found here:
 # https://embarkstudios.github.io/cargo-deny/checks/advisories/cfg.html
 [advisories]
+# Keep Tauri Linux glib ignore even when host/target matrix omits it briefly.
+unused-ignored-advisory = "allow"
 # The path where the advisory databases are cloned/fetched into
 #db-path = "$CARGO_HOME/advisory-dbs"
 # The url(s) of the advisory databases to use
@@ -100,9 +73,17 @@ ignore = [
     { id = "RUSTSEC-2024-0420", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
     # GHSA-wrw7-89jp-8q8g — Dependabot alert #1. Fixed only in glib>=0.20;
     # gtk 0.18 (Tauri 2 Linux) cannot take that bump. Linux-only transitive;
-    # app never calls VariantStrIter. Revisit on Tauri GTK4 migration.
-    { id = "RUSTSEC-2024-0429", reason = "glib 0.18.x unsoundness (GHSA-wrw7-89jp-8q8g); Tauri 2 gtk0.18 chain; no gtk3-compatible patched glib; re-evaluate on Tauri GTK4" },
+    # app never calls VariantStrIter. Revisit when Tauri app is removed.
+    { id = "RUSTSEC-2024-0429", reason = "glib 0.18.x unsoundness (GHSA-wrw7-89jp-8q8g); Tauri 2 gtk0.18 chain; no gtk3-compatible patched glib; re-evaluate when Tauri shell is removed" },
     { id = "RUSTSEC-2024-0370", reason = "proc-macro-error unmaintained; transitive build-time dependency, no CVE, no safe upgrade available upstream" },
+    # Slint 1.17 transitive (winit/wayland/image/font stack). No direct use of
+    # quick-xml on untrusted input in Acquire; paste/rustybuzz/ttf-parser are
+    # unmaintained-crate notes from Slint/image/usvg. Revisit on Slint upgrades.
+    { id = "RUSTSEC-2024-0436", reason = "paste unmaintained; transitive via Slint image/exr stack; build-time only path" },
+    { id = "RUSTSEC-2026-0194", reason = "quick-xml<0.41 via wayland-scanner (Slint/winit Linux); not parsing untrusted XML in Acquire; blocked on upstream bump" },
+    { id = "RUSTSEC-2026-0195", reason = "quick-xml NsReader DoS via wayland-scanner (Slint/winit Linux); same as 0194; revisit on Slint/winit bump" },
+    { id = "RUSTSEC-2026-0206", reason = "rustybuzz unmaintained; transitive via Slint usvg/resvg font path" },
+    { id = "RUSTSEC-2026-0192", reason = "ttf-parser unmaintained; transitive via Slint fontdb/usvg path" },
 ]
 # If this is true, then cargo deny will use the git executable to fetch advisory database.
 # If this is false, then it uses a built-in git library.
@@ -121,16 +102,22 @@ allow = [
     "0BSD",
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
     "BSD-3-Clause",
     "BSL-1.0",
     "CC0-1.0",
+    "GPL-3.0-only",
+    "ISC",
     "LGPL-2.1-or-later",
     "MIT",
     "MIT-0",
     "MPL-2.0",
+    "NCSA",
     "Unicode-3.0",
     "Unlicense",
     "Zlib",
+    # Slint dual-license alternate branch (this repo elects GPL-3.0-only).
+    "LicenseRef-Slint-Royalty-free-2.0",
 ]
 # The confidence threshold for detecting a license from license text.
 # The higher the value, the more closely the license text must be to the

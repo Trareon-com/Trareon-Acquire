@@ -1,0 +1,28 @@
+[package]
+name = "acquire-slint"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Slint desktop shell for Trareon Acquire (GPLv3)"
+build = "build.rs"
+
+[[bin]]
+name = "trareon-acquire"
+path = "src/main.rs"
+required-features = ["gui"]
+
+[features]
+default = ["gui"]
+gui = ["dep:slint", "dep:slint-build"]
+
+[dependencies]
+trareon-core = { path = "../../crates/trareon-core" }
+slint = { version = "1.9", optional = true }
+
+[build-dependencies]
+slint-build = { version = "1.9", optional = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

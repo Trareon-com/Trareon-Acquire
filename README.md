@@ -19,7 +19,8 @@ Milestone review: [`docs/M0-MILESTONE-REVIEW.md`](docs/M0-MILESTONE-REVIEW.md).
 |---|---|
 | Portable Rust core (`trareon-core`) | Implemented — file-backed acquire, audit chain, `.fsnap` create/verify |
 | Independent verifier CLI (`trareon-verifier`) | Implemented — golden fixtures + fail-closed checks |
-| Desktop shell (Tauri + Svelte) | Implemented — guided foundation demo UI |
+| Desktop shell (**Slint + Rust**, GPLv3) | **Selected** — foundation synthetic demo in `apps/acquire-slint` |
+| Desktop shell (Tauri + Svelte) | **Deprecated** — retained until Slint cutover complete |
 | Cross-platform CI (Ubuntu / Windows / macOS) | Hosted CI green for the foundation slice |
 | DevSecOps gates (`cargo deny`, npm audit, secret scan) | Implemented on `main` |
 | Bounded property tests / fuzz corpus docs | Implemented on `main` (Day 22); full `cargo-fuzz` still deferred |
@@ -31,56 +32,55 @@ Milestone review: [`docs/M0-MILESTONE-REVIEW.md`](docs/M0-MILESTONE-REVIEW.md).
 | macOS raw-device privilege probe | Feasibility spike (Day 25 / M4 Pro); open `/dev/rdisk0` denied without elevation |
 | Production release / signing / certification | **Out of scope** — Lab Use Only EAC only |
 
-Authoritative status tracking: [`docs/ai-operations/MASTER-CHECKLIST.md`](docs/ai-operations/MASTER-CHECKLIST.md).
+Authoritative status tracking: [`docs/ai-operations/MASTER-CHECKLIST.md`](docs/ai-operations/MASTER-CHECKLIST.md).  
+Shell / license decision: [`docs/ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md`](docs/ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md).
 
 ## Repository layout
 
 ```
 crates/trareon-core/          # Domain, acquisition, audit, .fsnap package API
 crates/trareon-verifier/      # Independent CLI: `trareon-verifier verify PATH`
-apps/trareon-acquire/          # Tauri 2 + Svelte foundation demo
+apps/acquire-slint/           # Slint desktop shell (primary UI)
+apps/trareon-acquire/          # Deprecated Tauri 2 + Svelte demo (pending removal)
 fixtures/fsnap-v0.1/          # Synthetic golden packages (no real evidence)
 schemas/                      # Manifest JSON Schema
 docs/                         # Roadmap, demo guide, contracts, AI ops
 ```
 
-Core and verifier do **not** depend on Tauri. The UI depends on core; core
+Core and verifier do **not** depend on Slint/Tauri. The UI depends on core; core
 never depends on the UI.
 
 ## Requirements
 
 - Rust toolchain pinned in [`rust-toolchain.toml`](rust-toolchain.toml) (`1.95.0`)
-- Node.js / npm versions pinned in root [`package.json`](package.json) (`node` 22.x)
-- Linux CI/dev builds need the usual Tauri system libraries (see `.github/workflows/ci.yml`)
+- Linux GUI builds need Slint system libraries (see `.github/workflows/ci.yml`)
+- Node.js is only required for the **deprecated** Tauri shell
 
 ## Quick start
 
 ### Build and test
 
 ```bash
-cargo test --workspace --locked
+cargo test --workspace --locked --exclude acquire-slint
+cargo test -p acquire-slint --features gui --locked
 cargo fmt --all --check
-cargo clippy --workspace --all-targets --all-features -- -D warnings
-npm ci --prefix apps/trareon-acquire
-npm run build --prefix apps/trareon-acquire
+cargo clippy --workspace --all-targets --all-features --exclude acquire-slint -- -D warnings
+cargo clippy -p acquire-slint --all-targets --features gui -- -D warnings
 ```
 
-### Foundation demo (synthetic source)
-
-See the full walkthrough in [`docs/FOUNDATION-DEMO.md`](docs/FOUNDATION-DEMO.md).
+### Foundation demo (Slint)
 
 ```bash
-dd if=/dev/zero of=/tmp/trareon-source.img bs=1M count=8
-npm ci --prefix apps/trareon-acquire
-npm run tauri --prefix apps/trareon-acquire -- dev
-# In the UI: source=/tmp/trareon-source.img, output=/tmp/trareon-output,
-# confirm synthetic checkbox, Run.
-cargo run -p trareon-verifier --locked -- verify /tmp/trareon-output/foundation.fsnap
+cargo run -p acquire-slint --features gui
+# Click "Run synthetic acquire" — writes under $TMPDIR/trareon-acquire-slint-demo/
+cargo run -p trareon-verifier --locked -- verify "$TMPDIR/trareon-acquire-slint-demo/foundation.fsnap"
 ```
 
-The UI reports success only after the Rust core acquires, packages, and the
-independent verifier accepts the package — the frontend does not invent a
-completion state.
+Or headless synthetic package (no GUI):
+
+```bash
+cargo test -p acquire-slint --features gui synthetic_demo -- --nocapture
+```
 
 ### Verify a golden fixture
 
@@ -129,7 +129,10 @@ details or sensitive data.
 
 ## License
 
-[MPL-2.0](LICENSE)
+[GNU General Public License v3](LICENSE) (`GPL-3.0-only`).
+
+You may sell binaries. If you distribute binaries, you must also provide
+corresponding source under GPLv3. See the decision record for monetization notes.
 
 ## Attribution
 

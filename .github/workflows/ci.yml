@@ -18,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-      - name: Install Linux Tauri build dependencies
+      - name: Install Linux GUI build dependencies (Tauri + Slint)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
@@ -31,7 +31,15 @@ jobs:
             libayatana-appindicator3-dev \
             libxdo-dev \
             libssl-dev \
-            patchelf
+            patchelf \
+            pkg-config \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libx11-dev \
+            libxcursor-dev \
+            libxkbcommon-dev \
+            libwayland-dev \
+            libgl1-mesa-dev
       # GitHub-hosted macOS images preinstall third-party taps (e.g. aws/tap).
       # setup-rust-toolchain runs `brew install bash`, which then emits a Tap Trust
       # warning annotation. Untap only unused taps (azure/bicep stays — bicep is installed).
@@ -47,17 +55,23 @@ jobs:
           node-version: "22"
       - name: cargo fmt --check
         run: cargo fmt --all --check
-      - name: cargo clippy
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
-      - name: cargo test
-        run: cargo test --workspace --locked
+      - name: cargo clippy (workspace except Slint GUI)
+        run: cargo clippy --workspace --all-targets --all-features --exclude acquire-slint -- -D warnings
+      - name: cargo clippy (acquire-slint)
+        run: cargo clippy -p acquire-slint --all-targets --features gui -- -D warnings
+      - name: cargo test (workspace except Slint GUI)
+        run: cargo test --workspace --locked --exclude acquire-slint
+      - name: acquire-slint UI model + synthetic demo (no display required for lib tests)
+        run: cargo test -p acquire-slint --no-default-features --tests --locked
+      - name: acquire-slint GUI compile + tests
+        run: cargo test -p acquire-slint --features gui --locked
       - name: bounded property/fuzz smoke
         run: cargo test -p trareon-core --test properties --locked
       - name: performance baseline smoke
         run: cargo test -p trareon-core --test performance --locked
-      - name: npm ci
+      - name: npm ci (deprecated Tauri shell — retained until Slint cutover)
         run: npm ci --prefix apps/trareon-acquire
-      - name: npm run build
+      - name: npm run build (deprecated Tauri shell)
         run: npm run build --prefix apps/trareon-acquire
 
   security:

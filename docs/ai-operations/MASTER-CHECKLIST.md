@@ -73,7 +73,7 @@ Independent review Codex Day 01–29 masih `NOT_STARTED`.
 | 27 | Capability matrix and freeze | Codex | Claude | High | AUTO_WITH_REVIEW | feat/m0-d27-matrix | ff5933353b1d3414ee74c3f1cdf0460b22ec5af6 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-44 | 28 |
 | 28 | Docs About and limitations | Claude | Codex | Medium | AUTO_WITH_REVIEW | feat/m0-d28-docs | f861379abfc1f48c46fbc584fd371c40b6cf9974 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | NONE | 0 | LEGAL_DRAFT_ONLY | PR-45 | 29 |
 | 29 | Adversarial review | Codex | Claude | High | AUTO_WITH_REVIEW | feat/m0-d29-adversarial | f346430457587901d74370df5e87c1c20a05fc32 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-46 | 30 |
-| 30 | EAC and fsnap freeze gate | Codex | Human | Release-critical | HUMAN_APPROVAL | feat/m0-d30-complete | 84a90eceffb4b3ddb3ed382c37ea892f85789858 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | PROVIDED | NOT_STARTED | M1 |
+| 30 | EAC and fsnap freeze gate | Codex | Human | Release-critical | HUMAN_APPROVAL | feat/m0-d30-complete | 84a90eceffb4b3ddb3ed382c37ea892f85789858 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | PROVIDED | PR-51 | M1 |
 
 ## Milestone gates
 

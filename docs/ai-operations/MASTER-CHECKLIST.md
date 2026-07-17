@@ -28,7 +28,9 @@ Update: Day 27 (capability matrix + `.fsnap` freeze candidate) mengonsolidasikan
 
 Update: Day 28 (About / user guide / legal draft) menambah `docs/USER-GUIDE.md`, `docs/LEGAL-LIMITATIONS-DRAFT.md` (LEGAL_DRAFT_ONLY), mapping help, dan section About di UI dengan atribusi Trareon/Yusuf tanpa klaim sertifikasi. Entry gate Day 27 review belum formal; dilanjutkan dengan pola jujur.
 
-Day 23-25 tetap `NOT_STARTED` (`MANUAL_START`). Day 29–30 menyusul; Day 30 butuh `HUMAN_APPROVAL`. Independent review Codex untuk Day 01-28 masih `NOT_STARTED`.
+Update: Day 29 (adversarial review) menulis `docs/ADVERSARIAL-REVIEW-M0.md` terhadap freeze base `9e24b15` + tip branch docs/UI. Tidak ada P0/P1 baru; residual limitations tetap memblokir klaim EAC. **Day 30 tidak di-auto-approve.**
+
+Day 23-25 tetap `NOT_STARTED` (`MANUAL_START`). Day 30 menunggu `HUMAN_APPROVAL`. Independent review Codex untuk Day 01-29 masih `NOT_STARTED`.
 
 | Day | Task | Author | Reviewer | Risk | Autonomy | Branch | Frozen SHA | Implementation | Review | CI | Platform | Incident | Recovery | Human Gate | Evidence | Next |
 |---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|

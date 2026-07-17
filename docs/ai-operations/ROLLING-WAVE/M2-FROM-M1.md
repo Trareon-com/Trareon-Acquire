@@ -16,7 +16,7 @@ human allowlist approval.
 - [x] Optional larger bound (64 MiB) on same allowlist — SHA `a0ff343…` PASS + independent verify (still not full disk)
 - [ ] Allowlisted lab media + write-block process approved for **additional** devices as needed
 - [x] Full-disk acquire `rdisk10` → Untitled — SHA `23e039c…` PASS + independent verify (lab only; not Lab Beta exit)
-- [ ] GitHub Actions billing/spending limit restored so PR checks can run
+- [x] GitHub Actions CI green on `main` (repo public; PR #65 rustfmt + portable raw test fix)
 
 ## Software prep (landed)
 

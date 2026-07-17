@@ -24,6 +24,9 @@
 
 Each tag's `action.yml` declares `using: node24` (verified via GitHub API before commit).
 
+## Follow-up (same PR)
+- Root cause of remaining macOS annotation: `setup-rust-toolchain` runs `brew install bash`, and the GitHub-hosted macOS image preinstalls untrusted `aws/tap`.
+- Added a macOS-only step before that action to `brew untap` unused preinstalled taps (`aws/tap`, `azure/bicep`, `hashicorp/tap`) in both workflows.
+
 ## Next Step & Handoff
-- Await hosted CI on this PR; Node 20 deprecation annotations should disappear.
-- Homebrew `aws/tap` macOS warning may remain (GitHub runner image); ignore unless it starts failing jobs.
+- Await hosted CI after the untap follow-up; Node 20 and Homebrew tap-trust annotations should both be gone.

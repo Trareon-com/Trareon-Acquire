@@ -105,7 +105,7 @@ Windows hardware work is collected in [`platform/WINDOWS-LAB-OPERATOR-PACK.md`](
 | 79 | 4 Okt | Buyer training 1-pager | [x] |
 | 80 | 5 Okt | Gate 3 cash vs signing decision | [H] |
 | 81 | 6 Okt | Public release notes v1.0 | [x] draft |
-| 82 | 7 Okt | GitHub Release unsigned 3 OS | [H] |
+| 82 | 7 Okt | Offline Founder binary → Lynk.id/Gumroad (not GH Release) | [H] |
 | 83 | 8 Okt | Individual Rp299k tier | [H] |
 | 84 | 9 Okt | Launch article | [H] |
 | 85 | 10 Okt | 48h support monitor | [H] |

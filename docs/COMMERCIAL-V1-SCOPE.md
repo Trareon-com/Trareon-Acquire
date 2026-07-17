@@ -1,22 +1,32 @@
 # Commercial v1.0 scope (zero-cash, sellable unsigned)
 
-Date: 2026-07-17  
-Owner: operator  
+Date: 2026-07-17
+Owner: operator
 Policy: [`ZERO-CASH-LAUNCH-PLAN.md`](ZERO-CASH-LAUNCH-PLAN.md)
 
 ## What we sell (cheap, early)
 
 | Tier | Price (target) | Deliverable |
 |------|----------------|-------------|
-| Community | Rp0 | Source, self-build, `Build It For Me` artifact, verifier |
-| Founder | Rp199.000 | Unsigned ready-to-run build + install guide + v1 updates |
+| Community | Rp0 | Source on GitHub, self-build, `Build It For Me`, verifier |
+| Founder | Rp199.000 | Full unsigned ready-to-run binary (offline fulfillment) + install guide + v1 updates |
 | Individual Ready | Rp299.000 | After Founder stabilizes |
 
 No certificate spend until project cash clears reserves (Gate 3).
 
+**Sales channel:** paid binary is sold via **Lynk.id / Gumroad** (or equivalent
+checkout). Fulfillment is **offline from the operator machine** — the paid
+binary is **not** published as a GitHub Release artifact. GitHub stays source +
+docs + CI only.
+
+**No in-app license / activation.** The app is full once the buyer has the
+binary. Purchase proof lives on the store (Lynk.id/Gumroad) +
+`docs/commercial/fulfillment-ledger.csv`, not inside the app.
+
 **License:** project is **GPLv3** — selling unsigned binaries is allowed; source
-must be available to binary recipients. Desktop shell is **Slint** (Tauri
-deprecated). See [`docs/ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md`](ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md).
+must be available to binary recipients (link the commit in `NOTICE.txt`).
+Desktop shell is **Slint** (Tauri deprecated). See
+[`docs/ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md`](ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md).
 
 ## v1 capability promise (honest)
 
@@ -59,4 +69,6 @@ deprecated). See [`docs/ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.m
 2. Linux loop-device fault suite documented
 3. UI cancel + verifier wired
 4. Waitlist + Founder page live with limitation disclosure
-5. Unsigned build script produces 3 OS artifacts from one tag
+5. Operator can produce a full unsigned binary locally (`scripts/founder-build.sh`)
+   and deliver it privately (Lynk.id/Gumroad) with checksum + NOTICE — **not** via
+   GitHub Releases

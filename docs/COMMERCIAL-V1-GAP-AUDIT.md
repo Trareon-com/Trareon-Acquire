@@ -62,7 +62,7 @@ Do **not** invent Windows PASS. Execute [`platform/WINDOWS-LAB-OPERATOR-PACK.md`
 | Unsigned install guides | Done (`docs/install/`) |
 | Build script Founder artifact | Done (`scripts/founder-build.sh`) |
 | Fulfillment ledger template | Done (`docs/commercial/fulfillment-ledger.csv`) |
-| Payment channel + Gate 1/2 live | Human |
+| Payment channel + Gate 1/2 live | Human — Lynk.id/Gumroad; no in-app license |
 | Demo video / outreach / signing cash | Human |
 
 ## Priority order (after software close)

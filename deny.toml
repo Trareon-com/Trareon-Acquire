@@ -73,7 +73,7 @@ ignore = [
     # unic-* (RUSTSEC-2025-0080/0098/0100): transitive via tauri-utils ->
     # urlpattern -> unic-ucd-ident. Unmaintained-crate advisories, not
     # known vulnerabilities; no safe upgrade exists upstream yet and no
-    # unic-* crate is used directly by traeron-core/traeron-verifier/the
+    # unic-* crate is used directly by trareon-core/trareon-verifier/the
     # Tauri app. Tracked here instead of hidden; revisit when tauri-utils
     # drops the unic-* dependency chain or ships a fixed urlpattern.
     { id = "RUSTSEC-2025-0080", reason = "unmaintained transitive dep of tauri-utils via urlpattern; no safe upgrade available upstream" },

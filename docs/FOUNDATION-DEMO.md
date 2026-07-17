@@ -9,15 +9,15 @@ device, OS, or hardware.
 ## Run the demo
 
 ```bash
-dd if=/dev/zero of=/tmp/traeron-source.img bs=1M count=8
+dd if=/dev/zero of=/tmp/trareon-source.img bs=1M count=8
 cargo test --workspace --locked
-npm ci --prefix apps/traeron-acquire
-npm run tauri --prefix apps/traeron-acquire -- dev
-cargo run -p traeron-verifier --locked -- verify /tmp/traeron-output/foundation.fsnap
+npm ci --prefix apps/trareon-acquire
+npm run tauri --prefix apps/trareon-acquire -- dev
+cargo run -p trareon-verifier --locked -- verify /tmp/trareon-output/foundation.fsnap
 ```
 
-In the running app, set the source path to `/tmp/traeron-source.img` and the
-output directory to `/tmp/traeron-output`, confirm the synthetic-source
+In the running app, set the source path to `/tmp/trareon-source.img` and the
+output directory to `/tmp/trareon-output`, confirm the synthetic-source
 checkbox, and press Run. The UI reports `Verified Complete` only after the
 Rust core has acquired the file, built the `.fsnap` package, and the
 independent verifier has accepted it — the UI never decides success on its
@@ -28,9 +28,9 @@ own.
 To see the independent verifier reject tampered evidence:
 
 ```bash
-cp -r /tmp/traeron-output/foundation.fsnap /tmp/traeron-output/foundation-tampered.fsnap
-echo "tampered" >> /tmp/traeron-output/foundation-tampered.fsnap/acquisitions/0001/evidence.raw
-cargo run -p traeron-verifier --locked -- verify /tmp/traeron-output/foundation-tampered.fsnap
+cp -r /tmp/trareon-output/foundation.fsnap /tmp/trareon-output/foundation-tampered.fsnap
+echo "tampered" >> /tmp/trareon-output/foundation-tampered.fsnap/acquisitions/0001/evidence.raw
+cargo run -p trareon-verifier --locked -- verify /tmp/trareon-output/foundation-tampered.fsnap
 echo "exit code: $?"
 ```
 

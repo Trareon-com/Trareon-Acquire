@@ -43,9 +43,9 @@ jobs:
       - name: cargo test
         run: cargo test --workspace --locked
       - name: npm ci
-        run: npm ci --prefix apps/traeron-acquire
+        run: npm ci --prefix apps/trareon-acquire
       - name: npm run build
-        run: npm run build --prefix apps/traeron-acquire
+        run: npm run build --prefix apps/trareon-acquire
 
   security:
     runs-on: ubuntu-latest
@@ -60,7 +60,7 @@ jobs:
       - name: cargo deny check (licenses, advisories, bans, sources)
         run: cargo deny check
       - name: npm audit (production dependencies only)
-        run: npm audit --omit=dev --prefix apps/traeron-acquire
+        run: npm audit --omit=dev --prefix apps/trareon-acquire
       - name: Scan for committed secret patterns
         run: |
           if grep -RInE '\-\-\-\-\-BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY\-\-\-\-\-|AKIA[0-9A-Z]{16}|aws_secret_access_key\s*=' \

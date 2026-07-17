@@ -2,7 +2,7 @@
 
 ## Outcome
 
-Buat Rust workspace, traeron-core boundary, build identity, dan failing public-boundary test sesuai Foundation Plan Task 1.
+Buat Rust workspace, trareon-core boundary, build identity, dan failing public-boundary test sesuai Foundation Plan Task 1.
 
 ## Entry Gate
 
@@ -34,8 +34,8 @@ Buat Rust workspace, traeron-core boundary, build identity, dan failing public-b
 ```text
 Anda adalah author untuk M0-D02 Trareon Acquire.
 
-Outcome: Buat Rust workspace, traeron-core boundary, build identity, dan failing public-boundary test sesuai Foundation Plan Task 1.
-Scope file/interface: Cargo.toml; crates/traeron-core/Cargo.toml; crates/traeron-core/src/lib.rs; crates/traeron-core/tests/foundation.rs.
+Outcome: Buat Rust workspace, trareon-core boundary, build identity, dan failing public-boundary test sesuai Foundation Plan Task 1.
+Scope file/interface: Cargo.toml; crates/trareon-core/Cargo.toml; crates/trareon-core/src/lib.rs; crates/trareon-core/tests/foundation.rs.
 Branch wajib: feat/m0-d02-workspace. Baca authority files dan existing code sebelum perubahan. Gunakan TDD: tulis test yang gagal dengan alasan yang diharapkan, jalankan dan catat exit code, implementasikan perubahan minimum, lalu jalankan verification lengkap.
 
 Verification wajib: cargo test --workspace --all-targets; cargo fmt --all -- --check; cargo clippy --workspace --all-targets -- -D warnings.
@@ -78,8 +78,8 @@ human_approval_required:
 
 ## Expected Change Map
 
-- Expected files/interfaces: Cargo.toml; crates/traeron-core/Cargo.toml; crates/traeron-core/src/lib.rs; crates/traeron-core/tests/foundation.rs.
-- Expected behavior: Buat Rust workspace, traeron-core boundary, build identity, dan failing public-boundary test sesuai Foundation Plan Task 1.
+- Expected files/interfaces: Cargo.toml; crates/trareon-core/Cargo.toml; crates/trareon-core/src/lib.rs; crates/trareon-core/tests/foundation.rs.
+- Expected behavior: Buat Rust workspace, trareon-core boundary, build identity, dan failing public-boundary test sesuai Foundation Plan Task 1.
 - Explicit non-goals: fitur setelah Day 02, production claim, raw/elevated operation tanpa gate, refactor di luar scope, dan perubahan RFC.
 - Diff di luar map menjadi `FIX + SCOPE-DRIFT` sampai dijelaskan dan disetujui.
 

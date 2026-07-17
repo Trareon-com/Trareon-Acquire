@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    traeron_acquire_app_lib::run();
+    trareon_acquire_app_lib::run();
 }

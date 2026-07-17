@@ -7,7 +7,7 @@
   "required": ["schema", "build_identity", "evidence_relative_path", "evidence_size", "evidence_sha256", "audit_relative_path", "audit_sha256", "audit_root"],
   "properties": {
     "schema": { "const": "trareon.fsnap.manifest/1" },
-    "build_identity": { "const": "traeron-acquire-foundation-v1" },
+    "build_identity": { "const": "trareon-acquire-foundation-v1" },
     "evidence_relative_path": { "const": "acquisitions/0001/evidence.raw" },
     "evidence_size": { "type": "integer", "minimum": 1 },
     "evidence_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },

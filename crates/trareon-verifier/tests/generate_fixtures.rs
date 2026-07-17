@@ -4,13 +4,13 @@
 //! of the normal test suite. Regenerate deliberately with:
 //!
 //! ```bash
-//! cargo test -p traeron-verifier --test generate_fixtures -- --ignored --nocapture
+//! cargo test -p trareon-verifier --test generate_fixtures -- --ignored --nocapture
 //! ```
 
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use traeron_core::{AcquireRequest, acquire_file, create_fsnap};
+use trareon_core::{AcquireRequest, acquire_file, create_fsnap};
 
 fn fixtures_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))

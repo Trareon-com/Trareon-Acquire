@@ -1,6 +1,6 @@
 use std::fs;
 use tempfile::tempdir;
-use traeron_acquire_app_lib::run_foundation_demo_inner;
+use trareon_acquire_app_lib::run_foundation_demo_inner;
 
 #[test]
 fn foundation_demo_produces_verified_complete_package() {
@@ -13,5 +13,5 @@ fn foundation_demo_produces_verified_complete_package() {
         .expect("foundation demo should succeed on a synthetic fixture");
 
     assert_eq!(result.status, "verified_complete");
-    assert!(traeron_core::verify_fsnap(std::path::Path::new(&result.package_path)).is_ok());
+    assert!(trareon_core::verify_fsnap(std::path::Path::new(&result.package_path)).is_ok());
 }

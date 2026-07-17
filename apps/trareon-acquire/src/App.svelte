@@ -123,7 +123,7 @@
         <p>Evidence SHA-256: {result.evidenceSha256}</p>
         <p>Evidence size: {result.evidenceSize} bytes</p>
         <p class="verifier-note">
-          Verified by the independent core verifier (`traeron_core::verify_fsnap`), not by this
+          Verified by the independent core verifier (`trareon_core::verify_fsnap`), not by this
           UI. The UI only displays the core's result.
         </p>
       {:else if errorMessage}

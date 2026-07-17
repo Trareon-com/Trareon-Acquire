@@ -35,10 +35,10 @@ Lengkapi allowed transition table dan negative tests untuk invalid, cancel, fail
 Anda adalah author untuk M0-D04 Trareon Acquire.
 
 Outcome: Lengkapi allowed transition table dan negative tests untuk invalid, cancel, fail, incomplete, verification, serta terminal states.
-Scope file/interface: crates/traeron-core/src/domain.rs; crates/traeron-core/tests/domain.rs.
+Scope file/interface: crates/trareon-core/src/domain.rs; crates/trareon-core/tests/domain.rs.
 Branch wajib: feat/m0-d04-state. Baca authority files dan existing code sebelum perubahan. Gunakan TDD: tulis test yang gagal dengan alasan yang diharapkan, jalankan dan catat exit code, implementasikan perubahan minimum, lalu jalankan verification lengkap.
 
-Verification wajib: cargo test -p traeron-core --test domain; cargo test --workspace --all-targets.
+Verification wajib: cargo test -p trareon-core --test domain; cargo test --workspace --all-targets.
 Acceptance focus: semua forbidden transition fail-closed dan terminal state tidak dapat dimutasi.
 
 Jangan memperluas scope, melemahkan assertion, skip test, menghapus perubahan pengguna, memakai real evidence, mengakses raw disk/elevated privilege, menambah dependency tanpa review, merge, release, atau signing. Simpan semua status sebagai core-owned typed result. Capability tanpa evidence adalah NotValidated.
@@ -78,14 +78,14 @@ human_approval_required:
 
 ## Expected Change Map
 
-- Expected files/interfaces: crates/traeron-core/src/domain.rs; crates/traeron-core/tests/domain.rs.
+- Expected files/interfaces: crates/trareon-core/src/domain.rs; crates/trareon-core/tests/domain.rs.
 - Expected behavior: Lengkapi allowed transition table dan negative tests untuk invalid, cancel, fail, incomplete, verification, serta terminal states.
 - Explicit non-goals: fitur setelah Day 04, production claim, raw/elevated operation tanpa gate, refactor di luar scope, dan perubahan RFC.
 - Diff di luar map menjadi `FIX + SCOPE-DRIFT` sampai dijelaskan dan disetujui.
 
 ## Expected Result
 
-- Verification: `cargo test -p traeron-core --test domain; cargo test --workspace --all-targets`.
+- Verification: `cargo test -p trareon-core --test domain; cargo test --workspace --all-targets`.
 - Expected: command relevan exit 0 setelah TDD cycle; targeted dan regression tests lulus.
 - Required evidence: failing-test proof bila berlaku, commands/exit codes, files changed, exact commit, platforms tested, NotValidated list, dan remaining risks.
 - Performance-sensitive change wajib menjaga byte/hash/coverage/audit/cancel/tamper equivalence.
@@ -97,7 +97,7 @@ Anda adalah independent reviewer Codex untuk M0-D04. Jangan menulis pada worktre
 
 Verifikasi sendiri scope, correctness, negative paths, false-complete resistance, forensic validity, security, dependency boundary, deterministic behavior, performance equivalence, documentation, dan test oracle. Fokus khusus: semua forbidden transition fail-closed dan terminal state tidak dapat dimutasi.
 
-Jalankan command aman yang relevan: cargo test -p traeron-core --test domain; cargo test --workspace --all-targets. Bandingkan exact local/remote/PR/CI SHA bila remote evidence tersedia. SHA mismatch adalah BLOCKED + REMOTE-STATE-DIVERGENCE. Hasil tanpa reproducible evidence adalah UNVERIFIED.
+Jalankan command aman yang relevan: cargo test -p trareon-core --test domain; cargo test --workspace --all-targets. Bandingkan exact local/remote/PR/CI SHA bila remote evidence tersedia. SHA mismatch adalah BLOCKED + REMOTE-STATE-DIVERGENCE. Hasil tanpa reproducible evidence adalah UNVERIFIED.
 
 Jangan memperbaiki branch author, merge, release, sign, mengakses real evidence/raw disk, atau menyetujui scope expansion. Kembalikan finding ke author dan akhiri dengan TaskResult.v1 lengkap.
 schema: TaskResult.v1

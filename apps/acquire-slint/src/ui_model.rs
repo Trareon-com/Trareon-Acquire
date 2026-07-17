@@ -35,26 +35,42 @@ impl UiMode {
             Self::Expert => 2,
         }
     }
+}
 
-    pub fn guidance(self) -> &'static str {
+/// UI language preference.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum UiLocale {
+    #[default]
+    En,
+    Id,
+}
+
+impl UiLocale {
+    pub fn as_str(self) -> &'static str {
         match self {
-            Self::Guided => {
-                "Guided: press Fill synthetic demo paths → confirm → Run. Cancel anytime. No raw disks."
-            }
-            Self::Standard => {
-                "Standard: set file source + output (or Browse). Removable USB raw acquire is lab-gated separately."
-            }
-            Self::Expert => {
-                "Expert: raw/block paths need human-approved allowlist + elevation. System disks are hard-denied. Foundation Run remains file-backed."
-            }
+            Self::En => "en",
+            Self::Id => "id",
+        }
+    }
+
+    /// Coerce unknown values to English (Lab prefs contract).
+    pub fn parse(raw: &str) -> Self {
+        match raw.trim().to_ascii_lowercase().as_str() {
+            "id" => Self::Id,
+            _ => Self::En,
         }
     }
 }
+
+/// Sentinel stored in package/hash/size fields when empty.
+pub const NONE_SENTINEL: &str = "(none)";
 
 /// Snapshot shown in the foundation Slint window.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UiSnapshot {
     pub mode: UiMode,
+    pub dark_mode: bool,
+    pub locale: UiLocale,
     pub case_identity: String,
     pub source_path: String,
     pub output_dir: String,
@@ -68,22 +84,37 @@ pub struct UiSnapshot {
 
 impl Default for UiSnapshot {
     fn default() -> Self {
+        let locale = UiLocale::En;
         Self {
             mode: UiMode::Guided,
+            dark_mode: true,
+            locale,
             case_identity: String::new(),
             source_path: String::new(),
             output_dir: String::new(),
             confirmed_synthetic: false,
-            status_line: "Ready — Lab Use Only".into(),
-            last_package: "(none)".into(),
-            evidence_sha256: "(none)".into(),
-            evidence_size: "(none)".into(),
+            status_line: ready_status(locale).into(),
+            last_package: NONE_SENTINEL.into(),
+            evidence_sha256: NONE_SENTINEL.into(),
+            evidence_size: NONE_SENTINEL.into(),
             busy: false,
         }
     }
 }
 
 impl UiSnapshot {
+    pub fn set_dark_mode(&mut self, dark: bool) {
+        self.dark_mode = dark;
+    }
+
+    pub fn set_locale(&mut self, locale: impl AsRef<str>) {
+        self.locale = UiLocale::parse(locale.as_ref());
+        // Refresh idle status if still on the default ready line.
+        if !self.busy && self.last_package == NONE_SENTINEL {
+            self.status_line = ready_status(self.locale).into();
+        }
+    }
+
     pub fn can_run(&self) -> bool {
         self.confirmed_synthetic
             && !self.source_path.trim().is_empty()
@@ -93,6 +124,10 @@ impl UiSnapshot {
 
     pub fn show_path_editors(&self) -> bool {
         !matches!(self.mode, UiMode::Guided)
+    }
+
+    pub fn guidance(&self) -> &'static str {
+        guidance(self.mode, self.locale)
     }
 
     /// Elevation / allowlist preflight hint (Hari 26 / Expert).
@@ -107,7 +142,7 @@ impl UiSnapshot {
                 || path.starts_with("/dev/sd"));
 
         if matches!(self.mode, UiMode::Expert) && !blockish {
-            return "EXPERT: type a raw path only with an approved allowlist; Run here is still file-backed.".into();
+            return expert_hint(self.locale).into();
         }
         if path.is_empty() || !blockish {
             return String::new();
@@ -119,9 +154,9 @@ impl UiSnapshot {
             || path == "/dev/sda"
             || path.starts_with("/dev/sda")
         {
-            return "PREFLIGHT DENY: system-disk-like path — hard-denied.".into();
+            return deny_system_disk(self.locale).into();
         }
-        "PREFLIGHT: block-device path — requires human-approved allowlist + elevation; UI foundation demo is file-backed only.".into()
+        allowlist_hint(self.locale).into()
     }
 
     pub fn set_busy(&mut self, busy: bool) {
@@ -148,24 +183,163 @@ impl UiSnapshot {
     }
 
     pub fn clear_results(&mut self) {
-        self.status_line = "Ready — Lab Use Only".into();
-        self.last_package = "(none)".into();
-        self.evidence_sha256 = "(none)".into();
-        self.evidence_size = "(none)".into();
+        self.status_line = ready_status(self.locale).into();
+        self.last_package = NONE_SENTINEL.into();
+        self.evidence_sha256 = NONE_SENTINEL.into();
+        self.evidence_size = NONE_SENTINEL.into();
         self.busy = false;
+    }
+
+    pub fn msg_need_confirm_paths(&self) -> &'static str {
+        match self.locale {
+            UiLocale::Id => {
+                "Konfirmasi sumber sintetis dan isi jalur sumber + keluaran."
+            }
+            UiLocale::En => "Confirm synthetic source and set source + output paths.",
+        }
+    }
+
+    pub fn msg_running(&self) -> &'static str {
+        match self.locale {
+            UiLocale::Id => "Menjalankan demo fondasi…",
+            UiLocale::En => "Running foundation demo…",
+        }
+    }
+
+    pub fn msg_cancelling(&self) -> &'static str {
+        match self.locale {
+            UiLocale::Id => "Membatalkan…",
+            UiLocale::En => "Cancelling…",
+        }
+    }
+
+    pub fn msg_verified(&self) -> &'static str {
+        match self.locale {
+            UiLocale::Id => "Verifikasi Selesai",
+            UiLocale::En => "Verified Complete",
+        }
+    }
+
+    pub fn msg_cancelled(&self, err: &str) -> String {
+        match self.locale {
+            UiLocale::Id => format!("Dibatalkan: {err}"),
+            UiLocale::En => format!("Cancelled: {err}"),
+        }
+    }
+
+    pub fn msg_failed(&self, err: &str) -> String {
+        match self.locale {
+            UiLocale::Id => format!("Gagal: {err}"),
+            UiLocale::En => format!("Failed: {err}"),
+        }
+    }
+
+    pub fn msg_no_package(&self) -> &'static str {
+        match self.locale {
+            UiLocale::Id => "Belum ada paket — jalankan demo yang berhasil dulu.",
+            UiLocale::En => "No package to export — Run a successful demo first.",
+        }
+    }
+
+    pub fn msg_coc_written(&self, path: &str) -> String {
+        match self.locale {
+            UiLocale::Id => format!("Ringkasan CoC ditulis: {path}"),
+            UiLocale::En => format!("CoC summary written: {path}"),
+        }
+    }
+
+    pub fn msg_coc_failed(&self, err: &str) -> String {
+        match self.locale {
+            UiLocale::Id => format!("Ekspor CoC gagal: {err}"),
+            UiLocale::En => format!("CoC export failed: {err}"),
+        }
+    }
+
+    pub fn dialog_source_title(&self) -> &'static str {
+        match self.locale {
+            UiLocale::Id => "Pilih berkas sumber sintetis",
+            UiLocale::En => "Select synthetic source file",
+        }
+    }
+
+    pub fn dialog_output_title(&self) -> &'static str {
+        match self.locale {
+            UiLocale::Id => "Pilih direktori keluaran",
+            UiLocale::En => "Select output directory",
+        }
     }
 
     /// Minimal CoC/report card JSON (operator note + core results). Not forensic CoC.
     pub fn coc_report_json(&self) -> String {
         format!(
-            "{{\n  \"schema\": \"trareon.ui-coc-summary/1\",\n  \"mode\": \"{}\",\n  \"case_identity_operator_note\": {},\n  \"status\": {},\n  \"package\": {},\n  \"evidence_sha256\": {},\n  \"evidence_size\": {},\n  \"disclaimer\": \"Operator note is outside the cryptographic audit; Lab Use Only.\"\n}}\n",
+            "{{\n  \"schema\": \"trareon.ui-coc-summary/1\",\n  \"mode\": \"{}\",\n  \"locale\": \"{}\",\n  \"case_identity_operator_note\": {},\n  \"status\": {},\n  \"package\": {},\n  \"evidence_sha256\": {},\n  \"evidence_size\": {},\n  \"disclaimer\": \"Operator note is outside the cryptographic audit; Lab Use Only.\"\n}}\n",
             self.mode.as_str(),
+            self.locale.as_str(),
             json_str(&self.case_identity),
             json_str(&self.status_line),
             json_str(&self.last_package),
             json_str(&self.evidence_sha256),
             json_str(&self.evidence_size),
         )
+    }
+}
+
+fn ready_status(locale: UiLocale) -> &'static str {
+    match locale {
+        UiLocale::Id => "Siap — Hanya Lab",
+        UiLocale::En => "Ready — Lab Use Only",
+    }
+}
+
+fn guidance(mode: UiMode, locale: UiLocale) -> &'static str {
+    match (mode, locale) {
+        (UiMode::Guided, UiLocale::En) => {
+            "Guided: Fill demo → confirm synthetic source → Acquire. Cancel anytime. No raw disks."
+        }
+        (UiMode::Guided, UiLocale::Id) => {
+            "Terpandu: Isi demo → konfirmasi sumber sintetis → Akuisisi. Batal kapan saja. Tanpa disk raw."
+        }
+        (UiMode::Standard, UiLocale::En) => {
+            "Standard: set file source + output (or Browse). Removable USB raw acquire is lab-gated separately."
+        }
+        (UiMode::Standard, UiLocale::Id) => {
+            "Standar: isi sumber + keluaran berkas (atau Jelajah). Akuisisi raw USB lab-gated terpisah."
+        }
+        (UiMode::Expert, UiLocale::En) => {
+            "Expert: raw/block paths need human-approved allowlist + elevation. System disks are hard-denied. Foundation Acquire remains file-backed."
+        }
+        (UiMode::Expert, UiLocale::Id) => {
+            "Ahli: jalur raw/blok butuh allowlist + elevasi yang disetujui manusia. Disk sistem ditolak. Akuisisi fondasi tetap berbasis berkas."
+        }
+    }
+}
+
+fn expert_hint(locale: UiLocale) -> &'static str {
+    match locale {
+        UiLocale::Id => {
+            "AHLI: ketik jalur raw hanya dengan allowlist yang disetujui; Akuisisi di sini tetap berbasis berkas."
+        }
+        UiLocale::En => {
+            "EXPERT: type a raw path only with an approved allowlist; Run here is still file-backed."
+        }
+    }
+}
+
+fn deny_system_disk(locale: UiLocale) -> &'static str {
+    match locale {
+        UiLocale::Id => "PREFLIGHT TOLAK: jalur mirip disk sistem — ditolak keras.",
+        UiLocale::En => "PREFLIGHT DENY: system-disk-like path — hard-denied.",
+    }
+}
+
+fn allowlist_hint(locale: UiLocale) -> &'static str {
+    match locale {
+        UiLocale::Id => {
+            "PREFLIGHT: jalur perangkat blok — butuh allowlist + elevasi yang disetujui; demo fondasi UI hanya berbasis berkas."
+        }
+        UiLocale::En => {
+            "PREFLIGHT: block-device path — requires human-approved allowlist + elevation; UI foundation demo is file-backed only."
+        }
     }
 }
 
@@ -199,7 +373,7 @@ mod tests {
         assert!(!snap.busy);
         assert_eq!(snap.evidence_size, "1024");
         snap.clear_results();
-        assert_eq!(snap.last_package, "(none)");
+        assert_eq!(snap.last_package, NONE_SENTINEL);
     }
 
     #[test]
@@ -241,5 +415,49 @@ mod tests {
         assert!(j.contains("\"mode\": \"standard\""));
         assert!(j.contains("TRN-1"));
         assert!(j.contains("Lab Use Only"));
+        assert!(j.contains("\"locale\": \"en\""));
+    }
+
+    #[test]
+    fn prefs_default_dark_en() {
+        let snap = UiSnapshot::default();
+        assert!(snap.dark_mode);
+        assert_eq!(snap.locale, UiLocale::En);
+    }
+
+    #[test]
+    fn set_dark_mode_round_trips() {
+        let mut snap = UiSnapshot::default();
+        snap.set_dark_mode(false);
+        assert!(!snap.dark_mode);
+        snap.set_dark_mode(true);
+        assert!(snap.dark_mode);
+    }
+
+    #[test]
+    fn set_locale_accepts_id_and_en_and_coerces() {
+        let mut snap = UiSnapshot::default();
+        snap.set_locale("id");
+        assert_eq!(snap.locale, UiLocale::Id);
+        assert!(snap.status_line.contains("Siap"));
+        snap.set_locale("en");
+        assert_eq!(snap.locale, UiLocale::En);
+        snap.set_locale("fr");
+        assert_eq!(snap.locale, UiLocale::En);
+        snap.set_locale("");
+        assert_eq!(snap.locale, UiLocale::En);
+    }
+
+    #[test]
+    fn indonesian_guidance_and_preflight() {
+        let mut snap = UiSnapshot::default();
+        snap.set_locale("id");
+        assert!(snap.guidance().contains("Terpandu"));
+        snap.mode = UiMode::Expert;
+        assert!(snap.preflight_hint().contains("AHLI"));
+        snap.source_path = "/dev/disk10".into();
+        assert!(snap.preflight_hint().contains("allowlist"));
+        snap.source_path = "/dev/disk0".into();
+        assert!(snap.preflight_hint().contains("TOLAK"));
     }
 }

@@ -1,41 +1,67 @@
 # Design plan — Trareon Acquire shell (frontend-design skill)
 
 ## Subject
-Desktop forensic **acquire** tool for lab operators / Founder buyers.
-Audience: DFIR operators comparing to CollectionLoom-class tools.
-Single job: mode → confirm → acquire → show verified hash.
+Desktop **evidence acquisition** station for DFIR lab operators.
+Audience: examiners comparing Trareon to Magnet AXIOM Process / Belkasoft X acquire /
+Cellebrite collection workflows — people who buy tools that look like instruments, not demos.
+Single job: choose mode → confirm synthetic source → acquire → leave with a verified seal.
 
-## Brief
-Clean, simple, luxurious — not loud SaaS, not hacker dark, not cream/terracotta.
+## Competitive read (2026)
+- Magnet AXIOM / Belkasoft X: dark themes for long shifts, task-oriented panes, hairline
+  structure over decoration, hash/status as first-class readouts.
+- Cellebrite Inseyets: simplified guided workflows with clear primary action.
+- Avoid cloning neon “cyber HUD” landing-page templates (cyan glow + void black).
+
+## Aesthetic
+**Evidence Control Room** — cool deep slate instrument panel, one copper signal for primary
+action and verified state (lab brass, not acid green), asymmetric custody rail + work surface.
+Quiet density. No cards-for-decoration. No cream paper. No Optima brochure look.
 
 ## Token system
 
 ### Color
 | Name | Hex | Role |
 |------|-----|------|
-| graphite | `#161B22` | Primary ink / active mode |
-| slate-paper | `#E9EEF2` | Lab bench surface |
-| porcelain | `#FCFCFD` | Raised work surface |
-| case-indigo | `#2A3F5F` | Accent (case-file blue, not purple SaaS) |
-| mute | `#66707C` | Secondary text |
-| faint | `#94A0AB` | Labels / captions |
-| line | `#D2D9E0` | Hairlines |
-| deny | `#8E2F2F` | Preflight deny |
-| seal | `#F7F1E6` | Hash seal panel (warm paper *inside* seal only) |
+| void | `#0B1014` | Window chrome |
+| ink | `#101820` | Left custody rail |
+| panel | `#151E27` | Main work surface |
+| raised | `#1B2632` | Inputs / seal well |
+| hairline | `#2C3A48` | 1px structure |
+| copper | `#C4845A` | Primary CTA + verified |
+| copper-dim | `#8A5E42` | Idle signal / rail accent |
+| readout | `#E6EDF3` | Primary text |
+| mute | `#8B9AAB` | Secondary |
+| faint | `#5C6B7A` | Eyebrows / chrome |
+| deny | `#D16B6B` | Preflight hard-deny |
+| ok-mist | `#3D5A4C` | Soft verified well tint |
 
 ### Type
-- Display (brand only): Optima / Avenir Next — tracked TRAREON, large Acquire
-- Body: native UI face (quiet)
-- Utility (hash): Menlo / Consolas — oversized SHA as artifact
+- Brand / display: **Avenir Next** — tracked wordmark, restrained display weight
+- Body: native UI sans
+- Utility (hash, sizes, paths): **Menlo** — cryptographic instrument face
 
 ### Layout
-Quiet instrument bench: brand thesis at top, controls mid, **hash seal** as the only loud region at bottom.
+```
+┌──────────┬─────────────────────────────────────┐
+│ TRAREON  │  Acquire              Lab · Alpha   │
+│ custody  │  pipeline: Capture · Hash · Verify  │
+│ rail     │  case / paths / confirm / actions   │
+│ modes    │  ═════════════════════════════════  │
+│          │  SEAL WELL — grouped SHA readout    │
+└──────────┴─────────────────────────────────────┘
+```
 
-### Signature
-**Evidence seal** — oversized monospace SHA-256 block as the product’s jewel; everything else restrained.
+### Theme + language (runtime)
+- Header segmented toggles: **Dark | Light** and **EN | ID**
+- Tokens live in `ui/theme.slint`; chrome copy in `ui/strings.slint`
+- Rust `UiSnapshot.dark_mode` / `locale` drive prefs; guidance/status/preflight localize with locale
+- Responsive: rail + padding compress below ~980px; body scrolls via `Flickable`; action row scrolls horizontally when tight
+- Min window ~760×600; preferred 1080×740
+
 
 ## Critique vs AI defaults
-- Rejected cream+#serif+terracotta page
-- Rejected near-black + acid green
+- Rejected warm cream + serif + terracotta (prior seal pass drifted here)
+- Rejected near-black + acid green / electric cyan HUD
 - Rejected broadsheet dense columns
-- Rejected purple gradient SaaS teal clone as the *only* idea — indigo case-file + seal is forensic-specific
+- Dark slate retained because it matches real DFIR workstation norms (AXIOM/Belkasoft),
+  not as a generic “dark mode SaaS” skin — copper replaces neon as the single accent

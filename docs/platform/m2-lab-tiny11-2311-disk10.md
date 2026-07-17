@@ -1,7 +1,7 @@
 # M2 lab media trial — tiny11 2311 (`disk10`)
 
-Date: 2026-07-17  
-Operator designation: `/Volumes/tiny11 2311`  
+Date: 2026-07-17
+Operator designation: `/Volumes/tiny11 2311`
 Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
 
 ## Inventory (redacted)
@@ -49,8 +49,15 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
 9. **2026-07-17 readiness recheck (agent, no elevate):**
    - `/dev/disk10s1` present; `Mounted: No`; tiny11 not under `/Volumes`
    - Unelevated open of `disk10` / `disk10s1` / `rdisk10` → `EACCES`
-   - `sudo -n` unavailable (password required) — elevated smoke still operator-only
    - Operator helper: `scripts/operator-disk10s1-smoke.sh`
+10. **Bounded raw content smoke on unmounted `/dev/disk10s1` (1 MiB):**
+   - Path: Terminal `sudo` via `./scripts/operator-disk10s1-smoke.sh` (osascript admin
+     privilege alone hit `EPERM` / TCC; Terminal elevated path worked)
+   - Result: `RAW_BOUNDED_OK` bytes=`1048576`
+   - SHA-256: `445808af80ff3a67e29fcd10131b690fc27d2243297186524b5cd7de4d3a63ff`
+   - Package: `/tmp/trareon-raw-bounded-lab/bounded-1048576.fsnap` (not committed)
+   - Independent verify: `trareon-verifier verify` → `VALID` same SHA/size
+   - Note: SHA differs from whole-disk `rdisk10` 1 MiB sample (different starting LBA)
 
 ## Capability claims
 
@@ -60,7 +67,7 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
 | File-backed acquire of a file *on* the volume | PASS |
 | Elevated open of `disk10` / `rdisk10` | PASS |
 | Elevated open of mounted `disk10s1` | Busy while mounted (historical) |
-| Elevated open of **unmounted** `disk10s1` | Ready — Mounted=No as of 2026-07-17 recheck; needs operator sudo |
+| Elevated open / bounded sample of **unmounted** `disk10s1` | **PASS** (1 MiB) |
 | Bounded raw content sample (1 MiB of `rdisk10`) | **PASS** (lab smoke) |
 | Bounded raw content sample (64 MiB of `rdisk10`) | **PASS** (lab smoke) |
 | Full-disk raw acquire of `rdisk10` → Untitled | **PASS** (lab; not Lab Beta exit) |
@@ -71,14 +78,14 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
 - No commit of acquired evidence bytes
 - No Official Production / Lab Beta exit claim
 
-## Agent elevation attempt (2026-07-17)
+## Agent elevation notes (2026-07-17)
 
-- `sudo -n` open-only probe: **failed** (`sudo: a password is required`) — agent cannot enter interactive admin password.
-- Operator-run elevated steps (open, bounded samples, full-disk) are authoritative for this report.
+- `sudo -n` / bare agent: cannot supply interactive admin password.
+- `osascript … with administrator privileges`: compiled/ran as root but raw
+  `disk10s1` open returned `Operation not permitted` (TCC / Full Disk Access).
+- Terminal `sudo` path (operator password in Terminal.app): **PASS** for this smoke.
 
 ## Next
 
-- Operator: run `./scripts/operator-disk10s1-smoke.sh` (interactive sudo) while
-  `disk10s1` remains unmounted; paste `RAW_BOUNDED_OK` + verifier `VALID` here.
-- Windows: fill `docs/platform/windows-lab-inventory.md` then accept the Windows
-  media decision request (Hari 8–9).
+- Windows: fill `docs/platform/windows-lab-inventory.md` on a Windows host, then
+  accept the Windows media decision request (Hari 8–9) before elevated Windows smoke.

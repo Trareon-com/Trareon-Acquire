@@ -1,0 +1,11 @@
+{
+  "schema": "trareon.lab-allowlist/1",
+  "human_approved": false,
+  "approved_by": "",
+  "entries": [
+    {
+      "source_identity": "\\\\.\\PhysicalDriveN",
+      "notes": "REPLACE N with removable USB index from diskpart/Get-Disk. NEVER PhysicalDrive0."
+    }
+  ]
+}

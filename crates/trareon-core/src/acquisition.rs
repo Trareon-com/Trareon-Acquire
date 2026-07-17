@@ -27,6 +27,8 @@ pub struct AcquireRequest {
     pub checkpoint_path: Option<PathBuf>,
     /// Optional human-approved lab allowlist (required for block-device suspects).
     pub lab_allowlist_path: Option<PathBuf>,
+    /// Lab/safety bound: stop after this many bytes (partial sample, never whole-disk claim).
+    pub max_bytes: Option<u64>,
 }
 
 impl AcquireRequest {
@@ -43,6 +45,7 @@ impl AcquireRequest {
             resume: false,
             checkpoint_path: None,
             lab_allowlist_path: None,
+            max_bytes: None,
         }
     }
 
@@ -80,6 +83,12 @@ impl AcquireRequest {
 
     pub fn with_lab_allowlist_path(mut self, path: impl Into<PathBuf>) -> Self {
         self.lab_allowlist_path = Some(path.into());
+        self
+    }
+
+    /// Bound the acquire to at most `max_bytes` (lab smoke / partial sample).
+    pub fn with_max_bytes(mut self, max_bytes: u64) -> Self {
+        self.max_bytes = Some(max_bytes.max(1));
         self
     }
 
@@ -135,20 +144,31 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
         Some(path) => Some(lab_policy::load_lab_allowlist(path)?),
         None => None,
     };
-    let _source_identity =
-        lab_policy::assert_source_permitted(&request.source, allowlist.as_ref())?;
+    let source_identity = lab_policy::assert_source_permitted(&request.source, allowlist.as_ref())?;
 
     let source_metadata = fs::metadata(&request.source)
         .map_err(|error| CoreError::Io(format!("source unavailable: {error}")))?;
-    if !source_metadata.is_file() {
+
+    let allow_block_device = matches!(
+        source_identity.kind,
+        lab_policy::SourceKind::BlockDeviceSuspect
+    ) && allowlist.as_ref().is_some_and(|list| list.human_approved);
+
+    if !source_metadata.is_file() && !allow_block_device {
         return Err(CoreError::Verification(
-            "source must be a regular file (raw-device acquire is NotValidated until M2 lab gate)"
+            "source must be a regular file, or an allowlisted block/raw device with human approval"
                 .to_string(),
         ));
     }
-    if source_metadata.len() == 0 {
+    if source_metadata.is_file() && source_metadata.len() == 0 {
         return Err(CoreError::Verification(
             "source must not be empty".to_string(),
+        ));
+    }
+    if allow_block_device && request.max_bytes.is_none() {
+        return Err(CoreError::Verification(
+            "raw/block-device acquire requires max_bytes (bounded lab sample; full-disk not auto)"
+                .to_string(),
         ));
     }
 
@@ -309,8 +329,23 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
                 return Err(CoreError::Cancelled);
             }
 
+            if let Some(limit) = request.max_bytes
+                && bytes_written >= limit
+            {
+                break;
+            }
+
+            let mut read_cap = buffer.len();
+            if let Some(limit) = request.max_bytes {
+                let remaining = limit.saturating_sub(bytes_written);
+                if remaining == 0 {
+                    break;
+                }
+                read_cap = read_cap.min(remaining as usize);
+            }
+
             let read = source_file
-                .read(&mut buffer)
+                .read(&mut buffer[..read_cap])
                 .map_err(|error| CoreError::Io(error.to_string()))?;
             if read == 0 {
                 break;

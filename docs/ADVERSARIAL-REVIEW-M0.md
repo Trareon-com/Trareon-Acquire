@@ -60,7 +60,7 @@ Known residual **limitations** (not filed as new P0 because already tracked; the
 - Requires explicit **human** classification after reviewing this report + capability matrix + discrepancy register.
 - File-backed synthetic slice may be described as Engineering Alpha lab demo only.
 
-**Follow-up (2026-07-17):** Human operator instructed `selesaikan day 30`. Classification recorded as **Production-Directed Engineering Alpha Candidate — Lab Use Only** with Analysis-only `.fsnap` v0.1 freeze. See `docs/M0-MILESTONE-REVIEW.md` and `docs/ai-operations/DECISIONS/2026-07-17-day30-eac-human-approval.md`. Residuals in this report remain valid and still block Official Production.
+**Follow-up (2026-07-17):** Human operator instructed `selesaikan day 30` (PR #48, incomplete before Days 24–25). Later instructed Day 30 redo after all days landed. Classification remains **Production-Directed Engineering Alpha Candidate — Lab Use Only** with Analysis-only `.fsnap` v0.1 freeze against tip `4dd2828`. See `docs/M0-MILESTONE-REVIEW.md` and `docs/ai-operations/DECISIONS/2026-07-17-day30-eac-complete-redo.md`. Residuals in this report remain valid and still block Official Production. Days 23–25 privilege spikes do not clear raw-device acquisition `NotValidated` residuals.
 
 ## NotValidated list (review scope)
 

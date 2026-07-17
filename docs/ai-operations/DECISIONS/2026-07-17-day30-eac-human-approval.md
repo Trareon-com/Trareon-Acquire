@@ -1,5 +1,9 @@
 # Decision Record — Day 30 EAC / `.fsnap` Analysis Freeze
 
+> **SUPERSEDED** by [`2026-07-17-day30-eac-complete-redo.md`](2026-07-17-day30-eac-complete-redo.md).
+> This record remains for audit history of the incomplete PR #48 freeze
+> (Days 24–25 were still open).
+
 - **Day / Task:** M0-D30
 - **Frozen SHA (pre-Day-30 docs commit base):** `6594840f30a7119174eb19b8c22552869ae51f60`
 - **Gate status:** `HUMAN_APPROVAL_REQUIRED` resolved by operator instruction

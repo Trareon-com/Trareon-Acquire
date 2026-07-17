@@ -45,6 +45,21 @@ software work can finish without blocking on the Windows machine.
 - Never commit evidence bytes.
 - Update `docs/COMMERCIAL-LAUNCH-STATUS.md` and capability matrix only after verifier `VALID`.
 
+## Evidence table (fill on Windows only)
+
+| Hari | Step | Result | SHA / size / notes |
+|------|------|--------|--------------------|
+| 8 | Inventory + removable `PhysicalDriveN` | | |
+| 9 | Allowlist `human_approved: true` path | | |
+| 10 | Non-elevated deny / elevated open-only | | |
+| 11 | Bounded 1 MiB + verifier `VALID` | | |
+| 12 | Full-disk USB → staging volume | | |
+| 13 | Split-RAW + resume | | |
+| 14 | Wrote `windows-lab-acquire.md` | | |
+| 22 | Cancel mid-acquire | | |
+| 64 | Second media | | |
+| 88 | Win11 24H2 smoke (if different) | | |
+
 ## Exit of this pack
 
 Pack is **closed** when Hari 11 minimum (bounded + verify) is recorded with Windows-only evidence.

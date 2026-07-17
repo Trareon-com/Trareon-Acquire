@@ -1,6 +1,7 @@
 # Commercial v1 — gap audit (Day 2)
 
 Date: 2026-07-17
+Last sync: 2026-07-17 (software pack closed on `main` @ post-#75)
 Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 probes
 
 ## Summary
@@ -8,14 +9,15 @@ Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 pr
 | Area | Status | Blocker untuk jual murah 3 OS |
 |------|--------|-------------------------------|
 | File-backed acquire + verifier | **PASS** | — |
-| macOS raw lab (tiny11) | **PASS** (bounded + full) | Perlu media ke-2 untuk klaim lebar |
+| Slint Guided/Standard/Expert + CoC export | **PASS** | — |
+| Commercial drafts (waitlist/Founder/freeze/articles) | **PASS** (drafts) | Live open = human Gate 1/2 |
+| macOS raw lab (tiny11) | **PASS** (bounded + full) | Media ke-2 untuk klaim lebar |
 | macOS `disk10s1` mounted | **PASS while unmounted** (1 MiB) | Remount still busy historically |
-| Windows raw acquire | **NotValidated** | Adapter + lab USB (Hari 8–14) |
-| Linux loop acquire | **NotValidated** | Root lab session (Hari 15–20) |
+| Windows raw acquire | **NotValidated** | [`WINDOWS-LAB-OPERATOR-PACK.md`](platform/WINDOWS-LAB-OPERATOR-PACK.md) |
+| Linux loop acquire | **NotValidated** | Root lab ([`linux-loop-lab.md`](platform/linux-loop-lab.md)) |
 | Real elevation helper | **Stub only** | Hari 40+; until then `sudo`/UAC manual |
-| UI cancel wired | **PASS** (Slint → `cancel_flag`) | Hari 24 closed early |
+| UI cancel wired | **PASS** (Slint → `cancel_flag`) | — |
 | Signing/notarization | **Deferred** | Zero-cash; unsigned + docs |
-| Waitlist / Founder page | **Drafts ready** | Gate 1/2 still human open |
 
 ## macOS (current)
 
@@ -29,39 +31,43 @@ Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 pr
 | Intel Mac | NotValidated |
 | `disk10s1` unmounted bounded sample | **PASS** (1 MiB, SHA `445808af…`) |
 
-## Windows (gap)
+## Windows (gap) — collected pack
 
 | Item | State |
 |------|-------|
 | UAC probe `PhysicalDrive0` | Day 24 PASS (open only) |
-| `PhysicalDriveN` content acquire | **Not started** |
-| Allowlist for removable USB | Template + Hari 8 inventory/decision request (approval pending) |
-| Bounded smoke example | Added `lab_windows_bounded_smoke` (operator elevated) |
-| Split/resume on raw | Not tested |
+| `PhysicalDriveN` content acquire | **Deferred** → operator pack |
+| Allowlist for removable USB | Template + inventory/decision request ready |
+| Bounded smoke example | `lab_windows_bounded_smoke` ready |
+| Split/resume on raw | Not tested (pack Hari 13) |
+
+Do **not** invent Windows PASS. Execute [`platform/WINDOWS-LAB-OPERATOR-PACK.md`](platform/WINDOWS-LAB-OPERATOR-PACK.md).
 
 ## Linux (gap)
 
 | Item | State |
 |------|-------|
 | `loop-control` probe | Day 23 PASS |
-| Physical loop attach acquire | Not started |
+| Software prep (example + template + scaffold) | Done |
+| Physical loop attach acquire | Human root lab |
 | Fault injection portable tests | Implemented in CI |
-| Physical disconnect fault | Not started |
+| Physical disconnect fault | Human lab |
 
 ## Commercial / ops (gap)
 
 | Item | State |
 |------|-------|
-| `COMMERCIAL-V1-SCOPE.md` | Done (Day 1) |
-| 90-day daily plan | Done |
+| `COMMERCIAL-V1-SCOPE.md` | Done |
+| 90-day daily plan | Done; remaining rows are `[W]` / `[H]` / `[~]` lab |
 | Unsigned install guides | Done (`docs/install/`) |
 | Build script Founder artifact | Done (`scripts/founder-build.sh`) |
-| Windows removable content | Deferred → `WINDOWS-LAB-OPERATOR-PACK.md` |
-| Linux loop software prep | Done; physical attach still human |
-| Payment + fulfillment ledger | Not started (Hari 51–54) |
+| Fulfillment ledger template | Done (`docs/commercial/fulfillment-ledger.csv`) |
+| Payment channel + Gate 1/2 live | Human |
+| Demo video / outreach / signing cash | Human |
 
-## Priority order (next 7 days)
+## Priority order (after software close)
 
-1. Windows lab inventory fill + allowlist approval (Hari 8–9)
-2. Windows elevated open + bounded 1 MiB (Hari 10–11)
-3. Linux loop Hari 15–17
+1. Run Windows operator pack on a real Windows host (Hari 8–11 minimum).
+2. Human: open Gate 1 waitlist from draft.
+3. Linux root loop attach when a Linux host is available.
+4. Gate 2 Founder only after payment channel exists.

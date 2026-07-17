@@ -1,20 +1,24 @@
 # Commercial launch status
 
-Last updated: 2026-07-17 (Guided/Standard/Expert + commercial drafts complete)
+Last updated: 2026-07-17 (**software pack CLOSED**)
 Plan: [`COMMERCIAL-90-DAY-DAILY-PLAN.md`](COMMERCIAL-90-DAY-DAILY-PLAN.md)
+Gap audit: [`COMMERCIAL-V1-GAP-AUDIT.md`](COMMERCIAL-V1-GAP-AUDIT.md)
 
-## Current day
+## Verdict
 
-**Software complete for Founder path** — Slint progressive modes + CoC export,
-waitlist/Founder page drafts, feature freeze note, articles, and Linux loop
-report scaffold are in-repo.
+All automatable commercial **software** for the Founder unsigned path is on
+`main` (through PR #75). Nothing further should be invented in-repo without a
+new product decision or lab evidence.
 
-**Windows hardware** remains deferred exclusively to
-[`platform/WINDOWS-LAB-OPERATOR-PACK.md`](platform/WINDOWS-LAB-OPERATOR-PACK.md).
+## Remaining (not software)
 
-**Human gates still required to “go live”:** open waitlist, payment channel,
-Founder page publish, demo video, outreach, Windows pack execution, Linux root
-loop attach.
+| Kind | What | Where |
+|------|------|-------|
+| **Windows lab** | Hari 8–14, 22, 64, 88 | [`platform/WINDOWS-LAB-OPERATOR-PACK.md`](platform/WINDOWS-LAB-OPERATOR-PACK.md) |
+| **Linux lab** | Root loop attach + fill report | [`platform/linux-loop-lab.md`](platform/linux-loop-lab.md) |
+| **Human Gate 1** | Publish waitlist from draft | `docs/commercial/WAITLIST-PAGE-DRAFT.md` |
+| **Human Gate 2** | Payment + Founder page live | `docs/commercial/FOUNDER-PAGE-DRAFT.md` |
+| **Human other** | Demo video, outreach, signing cash, releases | Plan rows marked `[H]` |
 
 ## Gates
 
@@ -26,16 +30,10 @@ loop attach.
 | Gate 3 signing cash | Blocked (zero-cash) |
 | Gate 4 paid release | Not started |
 
-## Deferred packs
-
-| Pack | Path |
-|------|------|
-| Windows lab | `docs/platform/WINDOWS-LAB-OPERATOR-PACK.md` |
-| Linux loop attach | `docs/platform/linux-loop-lab.md` (fill after root lab) |
-
 ## Session log
 
 | Date | Note |
 |------|------|
 | 2026-07-17 | Slint cutover; disk10s1 PASS; non-Windows pack |
-| 2026-07-17 | Guided/Standard/Expert + CoC export + Gate 1/2 drafts |
+| 2026-07-17 | Guided/Standard/Expert + CoC export + Gate 1/2 drafts (#75) |
+| 2026-07-17 | Software pack closed; Windows + human remaining only |

@@ -46,7 +46,8 @@ validate privilege boundaries only — not production raw-device adapters.
 | Linux raw-device privilege probe | Feasibility spike | Day 23 / PR #47 + `platform::linux` | Physical disk attach/read `NotValidated`; Ubuntu LTS HW not separately recorded |
 | Windows raw-device UAC probe | Feasibility spike | Day 24 / PR #49 + `platform::windows` | Non-elevated denied; content read `NotValidated`; X270 `NotValidated` |
 | macOS raw-device privilege probe | Feasibility spike | Day 25 / PR #50 + `platform::macos` | Open denied without `operator`/helper; Intel/`hdiutil`/`FDA` `NotValidated` |
-| macOS allowlisted bounded raw sample | Lab smoke PASS | `disk10`/`rdisk10` tiny11 USB; 1 MiB + 64 MiB `max_bytes`; report `m2-lab-tiny11-2311-disk10.md` | Full-disk NotValidated; NTFS volume RO; not Lab Beta exit |
+| macOS allowlisted bounded raw sample | Lab smoke PASS | `disk10`/`rdisk10` tiny11 USB; 1 MiB + 64 MiB; report `m2-lab-tiny11-2311-disk10.md` | NTFS volume RO; not Lab Beta exit |
+| macOS allowlisted full-disk raw acquire | Lab PASS | tiny11 `rdisk10` → `/Volumes/Untitled`; SHA `23e039c…`; decision `m2-fulldisk-rdisk10-to-untitled.md` | Single USB/host; not Lab Beta exit / not Windows/Linux |
 | Privileged broker protocol | Spike only | `broker.rs` + `StubElevationHelper` | Helper trait exists; OS elevation still `NotImplemented` |
 | Lab source allowlist / system-disk deny | Implemented (M2 prep) | `lab_policy.rs` + fault_injection tests | Human-approved allowlist required for block/raw |
 | Signing / release / certification | Out of scope | Day 30 human gate | Lab Use Only; no Official Production |

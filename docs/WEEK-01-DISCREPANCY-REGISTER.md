@@ -46,7 +46,7 @@ trail. As of this register:
 | 10 | Failure semantics | Cancellation implemented and tested (`CoreError::Cancelled`, cooperative `cancel_flag`); destination-write-failure tested via a portable deterministic substitute (blocked path component) | Retry-boundary and literal destination-full simulation intentionally not implemented — that belongs to raw-device bad-sector policy in Track B/M2, not the file-backed M0 engine |
 | 11 | RAW and split-RAW | Implemented and tested (`with_split_segment_bytes`, …) | Split packaging now via `create_fsnap_from_segments` + optional `evidence_segments` (classic single-file Analysis freeze retained) |
 | 15 | CLI and fsnap draft | Implemented and tested — 6 golden fixtures (valid, mutated, truncated, removed-file, audit-discontinuous, unsupported-version), CLI exit-code assertions for each, `docs/fsnap-v0.1-read-contract.md` written. Also closed a real gap: `verify_fsnap` now enforces manifest schema/build-identity, which was previously declared in the JSON Schema but never checked in Rust | None known |
-| 17–19 | Guided UI, guidance/accessibility, CoC/report preview | Case identity field (operator note only, explicitly not part of verification), `<label for>` + `aria-describedby` + `aria-live` + `aria-busy` accessibility wiring, and a Chain-of-Custody-style report card added; report status is still driven only by the core's returned status, never invented by the UI | UI Cancel → `cancel_flag` landed in M1 (`cancel_foundation_demo`); formal accessibility audit still not run (manual label/ARIA review only) |
+| 17–19 | Guided UI, guidance/accessibility, CoC/report preview | Case identity field (operator note only, explicitly not part of verification), `<label for>` + `aria-describedby` + `aria-live` + `aria-busy` accessibility wiring, and a Chain-of-Custody-style report card added; report status is still driven only by the core's returned status, never invented by the UI | UI Cancel landed in M1; manual a11y checklist PASS (`docs/accessibility/M1-A11Y-CHECKLIST.md`); automated scanner still open |
 | 20 | Cross-platform CI | Implemented and hosted-CI green on 3 OS (PR #32) | 3 recovery cycles were needed (exceeds this runbook's own 2-cycle limit) — recorded honestly in `MASTER-CHECKLIST.md` |
 | 21 | DevSecOps gates | Implemented via PR #34 (merged); rename path fix via PR #35 (merged) | Independent Codex review still `NOT_STARTED` |
 | 22 | Property and fuzz baseline | Implemented via PR #37 (`feat/m0-d22-fuzz`, frozen SHA `f225d33`) — bounded property suite + synthetic corpus + CI smoke; hosted CI `PASS_3OS` | Full `cargo-fuzz`/libFuzzer remains `NotValidated` (needs dependency/toolchain review). Day 22 entry gate asked for Day 21 independent review `EXPECTED_PASS`, which has not happened yet |
@@ -61,7 +61,8 @@ trail. As of this register:
 
 | post-M0 | Privileged broker protocol spike | `broker.rs` typed allowlist + deny shell; returns `NotImplemented` | `StubElevationHelper` trait added in M1; still no OS elevate |
 | post-M0 | Cursor independent review Days 01–29 | `docs/INDEPENDENT-REVIEW-M0-CURSOR.md` | Codex review still not performed; substitute documented |
-| M1 | UI cancel + checkpoint/resume + Analysis importer | `feat/m1-engineering-alpha` | Split-RAW resume deferred; Analysis indexes outside package only |
+| M1 | UI cancel + checkpoint/resume + Analysis importer | PR #53 merged | Initial slice; split resume + exit bundle follow on `feat/m1-exit-complete` |
+| M1 exit | Failure matrix, split resume, 6-golden Analysis, a11y checklist, M2 prompts | `feat/m1-exit-complete` | File-backed Engineering Alpha exit; raw acquire still NotValidated |
 
 ## P0/P1 status
 

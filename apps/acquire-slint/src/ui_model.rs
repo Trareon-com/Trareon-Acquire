@@ -66,7 +66,7 @@ impl UiLocale {
 pub const NONE_SENTINEL: &str = "(none)";
 
 /// Snapshot shown in the foundation Slint window.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UiSnapshot {
     pub mode: UiMode,
     pub dark_mode: bool,
@@ -80,6 +80,9 @@ pub struct UiSnapshot {
     pub evidence_sha256: String,
     pub evidence_size: String,
     pub busy: bool,
+    pub progress_fraction: f64,
+    pub progress_label: String,
+    pub progress_phase: String,
 }
 
 impl Default for UiSnapshot {
@@ -98,6 +101,9 @@ impl Default for UiSnapshot {
             evidence_sha256: NONE_SENTINEL.into(),
             evidence_size: NONE_SENTINEL.into(),
             busy: false,
+            progress_fraction: 0.0,
+            progress_label: String::new(),
+            progress_phase: String::new(),
         }
     }
 }
@@ -156,7 +162,36 @@ impl UiSnapshot {
         {
             return deny_system_disk(self.locale).into();
         }
-        allowlist_hint(self.locale).into()
+        let wb = trareon_ata::probe_write_blocker(std::path::Path::new(&self.source_path));
+        let wb_line = match wb {
+            trareon_ata::WriteBlockerState::Detected { vendor, .. } => {
+                format!("write-blocker: detected ({vendor})")
+            }
+            trareon_ata::WriteBlockerState::NotApplicable => String::new(),
+            trareon_ata::WriteBlockerState::ManualConfirmed { note } => {
+                format!("write-blocker: manual ({note})")
+            }
+            trareon_ata::WriteBlockerState::NotDetected => {
+                "write-blocker: NOT detected — confirm hardware blocker before acquire".into()
+            }
+            trareon_ata::WriteBlockerState::Uncertain { reason } => {
+                format!("write-blocker: uncertain ({reason})")
+            }
+        };
+        let hpa = match trareon_ata::detect_hpa_dco(std::path::Path::new(&self.source_path)) {
+            Ok(r) => match r.status {
+                trareon_ata::DetectionStatus::Ok if r.is_hidden_area() => {
+                    "HPA/DCO: hidden area indicated".into()
+                }
+                trareon_ata::DetectionStatus::Ok => "HPA/DCO: no hidden area in probe".into(),
+                trareon_ata::DetectionStatus::Unavailable { reason } => {
+                    format!("HPA/DCO: {reason}")
+                }
+            },
+            Err(e) => format!("HPA/DCO: {e}"),
+        };
+        let base = allowlist_hint(self.locale);
+        format!("{base} | {wb_line} | {hpa}")
     }
 
     pub fn set_busy(&mut self, busy: bool) {
@@ -188,6 +223,9 @@ impl UiSnapshot {
         self.evidence_sha256 = NONE_SENTINEL.into();
         self.evidence_size = NONE_SENTINEL.into();
         self.busy = false;
+        self.progress_fraction = 0.0;
+        self.progress_label.clear();
+        self.progress_phase.clear();
     }
 
     pub fn msg_need_confirm_paths(&self) -> &'static str {

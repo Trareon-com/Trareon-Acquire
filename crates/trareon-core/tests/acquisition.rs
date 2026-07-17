@@ -317,3 +317,30 @@ fn resume_split_mismatch_settings_is_rejected() {
     .unwrap_err();
     assert!(matches!(err, CoreError::Verification(_)));
 }
+
+#[test]
+fn progress_callback_is_monotonic_for_file_acquire() {
+    use std::sync::Mutex;
+    use trareon_core::{AcquirePhase, AcquireProgress, ProgressCallback};
+
+    let dir = tempdir().unwrap();
+    let source = dir.path().join("source.img");
+    let output = dir.path().join("evidence.raw");
+    fs::write(&source, vec![9u8; 256 * 1024]).unwrap();
+
+    let samples = Arc::new(Mutex::new(Vec::<u64>::new()));
+    let samples_cb = Arc::clone(&samples);
+    let cb: ProgressCallback = Arc::new(move |p: AcquireProgress| {
+        if p.phase == AcquirePhase::Acquiring {
+            samples_cb.lock().unwrap().push(p.bytes_done);
+        }
+    });
+
+    let summary = acquire_file(&AcquireRequest::new(&source, &output).with_progress(cb)).unwrap();
+    assert_eq!(summary.bytes_written, 256 * 1024);
+    let vals = samples.lock().unwrap();
+    assert!(!vals.is_empty());
+    for w in vals.windows(2) {
+        assert!(w[1] >= w[0]);
+    }
+}

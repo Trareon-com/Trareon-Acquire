@@ -226,6 +226,9 @@ export component AppWindow inherits Window {
     in-out property <bool> busy: false;
     in-out property <bool> dark-mode: true;
     in-out property <string> locale: "en";
+    in-out property <float> progress-fraction: 0.0;
+    in-out property <string> progress-label: "";
+    in-out property <string> progress-phase: "";
 
     property <bool> can-run: root.confirmed-synthetic && root.source-path != "" && root.output-dir != "" && !root.busy;
     property <bool> has-package: root.last-package != "(none)";
@@ -659,6 +662,42 @@ export component AppWindow inherits Window {
                                         ghost: true;
                                         enabled: !root.busy && (root.has-hash || root.status-line != "");
                                         clicked => { root.clear-clicked(); }
+                                    }
+                                }
+
+                                if root.busy || root.progress-label != "": VerticalLayout {
+                                    spacing: 6px;
+                                    HorizontalLayout {
+                                        Text {
+                                            text: root.progress-phase;
+                                            color: Theme.copper-dim;
+                                            font-size: 11px;
+                                            font-weight: 700;
+                                            font-family: "Avenir Next";
+                                            letter-spacing: 0.8px;
+                                        }
+                                        Rectangle { horizontal-stretch: 1; background: transparent; }
+                                        Text {
+                                            text: root.progress-label;
+                                            color: Theme.mute;
+                                            font-size: 11px;
+                                            font-family: "Avenir Next";
+                                        }
+                                    }
+                                    Rectangle {
+                                        height: 8px;
+                                        border-radius: 4px;
+                                        background: Theme.raised;
+                                        border-width: 1px;
+                                        border-color: Theme.hairline;
+                                        Rectangle {
+                                            x: 0px;
+                                            y: 0px;
+                                            height: parent.height;
+                                            width: parent.width * root.progress-fraction;
+                                            border-radius: 3px;
+                                            background: Theme.copper;
+                                        }
                                     }
                                 }
                             }

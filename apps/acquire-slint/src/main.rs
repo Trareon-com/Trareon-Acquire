@@ -1,11 +1,12 @@
 #[cfg(feature = "gui")]
 fn main() -> Result<(), slint::PlatformError> {
-    use acquire_slint::{AppWindow, UiMode, UiSnapshot, run_foundation_demo, write_coc_summary};
+    use acquire_slint::{AppWindow, UiMode, UiSnapshot, run_foundation_demo_with_progress, write_coc_summary};
     use slint::ComponentHandle;
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::{Arc, Mutex};
     use std::thread;
+    use trareon_core::{AcquireProgress, ProgressCallback};
 
     fn apply(ui: &AppWindow, snap: &UiSnapshot) {
         ui.set_mode_index(snap.mode.index());
@@ -25,6 +26,9 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.set_busy(snap.busy);
         ui.set_dark_mode(snap.dark_mode);
         ui.set_locale(snap.locale.as_str().into());
+        ui.set_progress_fraction(snap.progress_fraction as f32);
+        ui.set_progress_label(snap.progress_label.clone().into());
+        ui.set_progress_phase(snap.progress_phase.clone().into());
     }
 
     fn sync_fields_from_ui(ui: &AppWindow, snap: &mut UiSnapshot) {
@@ -163,6 +167,9 @@ fn main() -> Result<(), slint::PlatformError> {
                 cancel.store(false, Ordering::SeqCst);
                 s.set_busy(true);
                 s.status_line = s.msg_running().into();
+                s.progress_fraction = 0.0;
+                s.progress_label = String::new();
+                s.progress_phase = "PREFLIGHT".into();
                 apply(&ui, &s);
             }
 
@@ -172,8 +179,37 @@ fn main() -> Result<(), slint::PlatformError> {
             let ui_weak = ui.as_weak();
             let snap_done = Arc::clone(&snap);
 
+            let progress_ui = ui.as_weak();
+            let progress_snap = Arc::clone(&snap);
+            let progress_cb: ProgressCallback = Arc::new(move |p: AcquireProgress| {
+                let fraction = p.fraction().unwrap_or(0.0);
+                let label = match p.bytes_total {
+                    Some(total) => format!("{} / {} B", p.bytes_done, total),
+                    None => format!("{} B", p.bytes_done),
+                };
+                let phase = p.phase.as_str().to_ascii_uppercase();
+                let ui_weak = progress_ui.clone();
+                let snap = Arc::clone(&progress_snap);
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(ui) = ui_weak.upgrade() {
+                        let mut s = snap.lock().expect("snapshot lock");
+                        s.progress_fraction = fraction;
+                        s.progress_label = label;
+                        s.progress_phase = phase;
+                        if s.busy {
+                            apply(&ui, &s);
+                        }
+                    }
+                });
+            });
+
             thread::spawn(move || {
-                let result = run_foundation_demo(&source, &output, Some(cancel_job));
+                let result = run_foundation_demo_with_progress(
+                    &source,
+                    &output,
+                    Some(cancel_job),
+                    Some(progress_cb),
+                );
                 let _ = slint::invoke_from_event_loop(move || {
                     if let Some(ui) = ui_weak.upgrade() {
                         let mut s = snap_done.lock().expect("snapshot lock");
@@ -186,6 +222,9 @@ fn main() -> Result<(), slint::PlatformError> {
                                     demo.evidence_size,
                                     ok,
                                 );
+                                s.progress_fraction = 1.0;
+                                s.progress_phase = "DONE".into();
+                                s.progress_label = format!("{} B", demo.evidence_size);
                             }
                             Err(err) => {
                                 let lower = err.to_lowercase();
@@ -196,6 +235,7 @@ fn main() -> Result<(), slint::PlatformError> {
                                     let msg = s.msg_failed(&err);
                                     s.set_err(msg);
                                 }
+                                s.progress_phase = "FAILED".into();
                             }
                         }
                         apply(&ui, &s);

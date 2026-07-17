@@ -19,6 +19,7 @@ gui = ["dep:slint", "dep:slint-build", "dep:rfd"]
 
 [dependencies]
 trareon-core = { path = "../../crates/trareon-core" }
+trareon-ata = { path = "../../crates/trareon-ata" }
 slint = { version = "1.9", optional = true }
 rfd = { version = "0.15", optional = true }
 

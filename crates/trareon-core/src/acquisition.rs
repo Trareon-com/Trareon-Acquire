@@ -2,7 +2,12 @@ use std::{
     fs::{self, File},
     io::{Read, Seek, SeekFrom, Write},
     path::{Path, PathBuf},
-    sync::{Arc, atomic::AtomicBool, atomic::Ordering},
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+        Mutex,
+    },
+    time::{Duration, Instant},
 };
 
 use chrono::Utc;
@@ -14,7 +19,65 @@ use crate::{
     lab_policy::{self, LabAllowlist},
 };
 
-#[derive(Debug, Clone)]
+/// Coarse phase reported to UI / operators during acquire.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AcquirePhase {
+    Preflight,
+    Acquiring,
+    Hashing,
+    Packaging,
+    Verifying,
+    Done,
+    Failed,
+}
+
+impl AcquirePhase {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Preflight => "preflight",
+            Self::Acquiring => "acquiring",
+            Self::Hashing => "hashing",
+            Self::Packaging => "packaging",
+            Self::Verifying => "verifying",
+            Self::Done => "done",
+            Self::Failed => "failed",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AcquireProgress {
+    pub phase: AcquirePhase,
+    pub bytes_done: u64,
+    pub bytes_total: Option<u64>,
+    pub message: String,
+}
+
+impl AcquireProgress {
+    pub fn new(
+        phase: AcquirePhase,
+        bytes_done: u64,
+        bytes_total: Option<u64>,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            phase,
+            bytes_done,
+            bytes_total,
+            message: message.into(),
+        }
+    }
+
+    /// 0.0–1.0 when total known; otherwise `None`.
+    pub fn fraction(&self) -> Option<f64> {
+        let total = self.bytes_total.filter(|t| *t > 0)?;
+        Some((self.bytes_done as f64 / total as f64).min(1.0))
+    }
+}
+
+pub type ProgressCallback = Arc<dyn Fn(AcquireProgress) + Send + Sync>;
+
+#[derive(Clone)]
 pub struct AcquireRequest {
     pub source: PathBuf,
     pub output: PathBuf,
@@ -29,6 +92,23 @@ pub struct AcquireRequest {
     pub lab_allowlist_path: Option<PathBuf>,
     /// Lab/safety bound: stop after this many bytes (partial sample, never whole-disk claim).
     pub max_bytes: Option<u64>,
+    /// Throttled progress callback (optional).
+    pub progress: Option<ProgressCallback>,
+}
+
+impl std::fmt::Debug for AcquireRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AcquireRequest")
+            .field("source", &self.source)
+            .field("output", &self.output)
+            .field("audit_output", &self.audit_output)
+            .field("buffer_size", &self.buffer_size)
+            .field("split_segment_bytes", &self.split_segment_bytes)
+            .field("resume", &self.resume)
+            .field("max_bytes", &self.max_bytes)
+            .field("has_progress", &self.progress.is_some())
+            .finish_non_exhaustive()
+    }
 }
 
 impl AcquireRequest {
@@ -46,6 +126,7 @@ impl AcquireRequest {
             checkpoint_path: None,
             lab_allowlist_path: None,
             max_bytes: None,
+            progress: None,
         }
     }
 
@@ -89,6 +170,11 @@ impl AcquireRequest {
     /// Bound the acquire to at most `max_bytes` (lab smoke / partial sample).
     pub fn with_max_bytes(mut self, max_bytes: u64) -> Self {
         self.max_bytes = Some(max_bytes.max(1));
+        self
+    }
+
+    pub fn with_progress(mut self, callback: ProgressCallback) -> Self {
+        self.progress = Some(callback);
         self
     }
 
@@ -202,6 +288,13 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
         AcquisitionState::PreflightPassed,
         "preflight_passed",
     )?;
+
+    let emit = |phase: AcquirePhase, done: u64, total: Option<u64>, msg: &str| {
+        if let Some(cb) = &request.progress {
+            cb(AcquireProgress::new(phase, done, total, msg));
+        }
+    };
+    emit(AcquirePhase::Preflight, 0, None, "preflight_passed");
 
     let mut run = || -> Result<AcquisitionSummary, CoreError> {
         journal.append(
@@ -323,6 +416,41 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
         let mut bytes_read: u64 = resume_bytes;
         let mut bytes_written: u64 = resume_bytes;
 
+        // Prefer known source size for progress; clamp by max_bytes when set.
+        let bytes_total = match (source_metadata.is_file(), request.max_bytes) {
+            (true, Some(limit)) => Some(source_metadata.len().min(limit)),
+            (true, None) => Some(source_metadata.len()),
+            (false, Some(limit)) => Some(limit),
+            (false, None) => None,
+        };
+
+        let last_emit = Mutex::new(Instant::now() - Duration::from_secs(1));
+        let report = |done: u64| {
+            let should = {
+                let mut last = last_emit.lock().unwrap_or_else(|e| e.into_inner());
+                if last.elapsed() >= Duration::from_millis(100) || bytes_total == Some(done) {
+                    *last = Instant::now();
+                    true
+                } else {
+                    false
+                }
+            };
+            if should {
+                emit(
+                    AcquirePhase::Acquiring,
+                    done,
+                    bytes_total,
+                    "acquiring",
+                );
+            }
+        };
+        emit(
+            AcquirePhase::Acquiring,
+            bytes_written,
+            bytes_total,
+            "acquiring",
+        );
+
         loop {
             if let Some(flag) = &request.cancel_flag
                 && flag.load(Ordering::SeqCst)
@@ -396,6 +524,7 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
                     current_segment_bytes = 0;
                 }
             }
+            report(bytes_written);
         }
 
         current_file
@@ -409,6 +538,12 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
             size: current_segment_bytes,
         });
 
+        emit(
+            AcquirePhase::Hashing,
+            bytes_written,
+            bytes_total,
+            "finalizing_hash",
+        );
         let sha256 = hex::encode(hasher.finalize());
 
         journal.append(
@@ -417,6 +552,13 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
             AcquisitionState::AcquiredUnverified,
             "acquired_unverified",
         )?;
+
+        emit(
+            AcquirePhase::Done,
+            bytes_written,
+            bytes_total,
+            "acquired_unverified",
+        );
 
         Ok(AcquisitionSummary {
             bytes_read,
@@ -438,6 +580,7 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
             Ok(summary)
         }
         Err(CoreError::Cancelled) => {
+            emit(AcquirePhase::Failed, 0, None, "cancelled");
             if journal
                 .append(
                     acquisition_id,
@@ -480,6 +623,7 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
             Err(CoreError::Cancelled)
         }
         Err(error) => {
+            emit(AcquirePhase::Failed, 0, None, "failed");
             if journal
                 .append(
                     acquisition_id,

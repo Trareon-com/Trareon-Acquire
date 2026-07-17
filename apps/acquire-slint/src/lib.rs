@@ -8,7 +8,10 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 
-use trareon_core::{AcquireRequest, acquire_file, create_fsnap, verify_fsnap};
+use trareon_core::{
+    AcquirePhase, AcquireProgress, AcquireRequest, ProgressCallback, acquire_file, create_fsnap,
+    verify_fsnap,
+};
 
 #[cfg(feature = "gui")]
 slint::include_modules!();
@@ -31,6 +34,15 @@ pub fn run_foundation_demo(
     output_dir: &Path,
     cancel_flag: Option<Arc<AtomicBool>>,
 ) -> Result<FoundationDemoResult, String> {
+    run_foundation_demo_with_progress(source, output_dir, cancel_flag, None)
+}
+
+pub fn run_foundation_demo_with_progress(
+    source: &Path,
+    output_dir: &Path,
+    cancel_flag: Option<Arc<AtomicBool>>,
+    progress: Option<ProgressCallback>,
+) -> Result<FoundationDemoResult, String> {
     if !source.is_file() {
         return Err(format!("source path is not a file: {}", source.display()));
     }
@@ -45,11 +57,24 @@ pub fn run_foundation_demo(
     if let Some(flag) = cancel_flag {
         request = request.with_cancel_flag(flag);
     }
+    let progress_cb = progress.clone();
+    if let Some(cb) = progress {
+        request = request.with_progress(cb);
+    }
+
+    let emit = |phase: AcquirePhase, msg: &str| {
+        if let Some(cb) = &progress_cb {
+            cb(AcquireProgress::new(phase, 0, None, msg));
+        }
+    };
 
     let summary = acquire_file(&request).map_err(|error| error.to_string())?;
+    emit(AcquirePhase::Packaging, "packaging");
     create_fsnap(&evidence_path, &summary.audit_path, &package_path)
         .map_err(|error| error.to_string())?;
+    emit(AcquirePhase::Verifying, "verifying");
     let manifest = verify_fsnap(&package_path).map_err(|error| error.to_string())?;
+    emit(AcquirePhase::Done, "verified_complete");
 
     Ok(FoundationDemoResult {
         status: "verified_complete".to_string(),
@@ -79,6 +104,7 @@ pub fn run_synthetic_demo(out_dir: &Path) -> Result<PathBuf, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Mutex;
 
     #[test]
     fn synthetic_demo_produces_verifiable_package() {
@@ -118,5 +144,26 @@ mod tests {
         let path = dir.path().join("coc.json");
         write_coc_summary(&path, "{\"ok\":true}\n").unwrap();
         assert_eq!(std::fs::read_to_string(path).unwrap(), "{\"ok\":true}\n");
+    }
+
+    #[test]
+    fn progress_callback_is_monotonic() {
+        let dir = tempfile::tempdir().unwrap();
+        let source = dir.path().join("source.bin");
+        std::fs::write(&source, vec![0xAB; 256 * 1024]).unwrap();
+        let out = dir.path().join("out");
+        let samples = Arc::new(Mutex::new(Vec::<u64>::new()));
+        let samples_cb = Arc::clone(&samples);
+        let cb: ProgressCallback = Arc::new(move |p: AcquireProgress| {
+            if p.phase == AcquirePhase::Acquiring {
+                samples_cb.lock().unwrap().push(p.bytes_done);
+            }
+        });
+        run_foundation_demo_with_progress(&source, &out, None, Some(cb)).expect("demo");
+        let vals = samples.lock().unwrap();
+        assert!(!vals.is_empty());
+        for w in vals.windows(2) {
+            assert!(w[1] >= w[0], "progress must be monotonic");
+        }
     }
 }

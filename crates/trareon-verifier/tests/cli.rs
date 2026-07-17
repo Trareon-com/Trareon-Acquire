@@ -34,6 +34,53 @@ fn golden_valid_package_is_accepted() {
 }
 
 #[test]
+fn info_prints_manifest_fields() {
+    let output = Command::new(env!("CARGO_BIN_EXE_trareon-verifier"))
+        .arg("info")
+        .arg(fixtures_root().join("valid"))
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("evidence_sha256="));
+    assert!(stdout.contains("audit_events="));
+}
+
+#[test]
+fn hash_only_skips_full_verify_path_but_reads_manifest() {
+    let output = Command::new(env!("CARGO_BIN_EXE_trareon-verifier"))
+        .args(["verify", "--hash-only"])
+        .arg(fixtures_root().join("valid"))
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(0));
+    assert!(String::from_utf8_lossy(&output.stdout).starts_with("HASH"));
+}
+
+#[test]
+fn integrity_accepts_valid() {
+    let output = Command::new(env!("CARGO_BIN_EXE_trareon-verifier"))
+        .arg("integrity")
+        .arg(fixtures_root().join("valid"))
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(0));
+    assert!(String::from_utf8_lossy(&output.stdout).contains("INTEGRITY_OK"));
+}
+
+#[test]
+fn compare_identical_packages() {
+    let output = Command::new(env!("CARGO_BIN_EXE_trareon-verifier"))
+        .arg("compare")
+        .arg(fixtures_root().join("valid"))
+        .arg(fixtures_root().join("valid"))
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(0));
+    assert!(String::from_utf8_lossy(&output.stdout).contains("IDENTICAL"));
+}
+
+#[test]
 fn golden_mutated_evidence_is_rejected() {
     let output = verify_fixture("mutated");
     assert_eq!(output.status.code(), Some(2));

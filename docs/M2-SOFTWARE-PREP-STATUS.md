@@ -19,12 +19,11 @@ Branch tip: in progress (broker allowlist binding + plan depth)
 - Elevated open of `disk10`/`rdisk10` PASS
 - Bounded raw sample **1 MiB** PASS (SHA `41fb8d9…`) + independent verify
 - Bounded raw sample **64 MiB** PASS (SHA `a0ff343…`) + independent verify
-- Full-disk gate **PROVIDED** → `/Volumes/Untitled/trareon-lab` (run in progress / pending verify)
+- Full-disk **PASS** (SHA `23e039c…`, 61524148224 bytes) + independent verify on Untitled
 
 ## Still blocked / NotValidated (HUMAN_APPROVAL_REQUIRED)
 
-- Full-disk **completion evidence** (SHA + verifier) once operator run finishes
-- Unmount + `disk10s1` open/sample (if still desired after full-disk)
+- Unmount + `disk10s1` open/sample (optional)
 - Real OS elevation helper (M2-P04; stub remains)
 - Windows narrow-storage lab host + media allowlist (M2-P01)
 - Linux physical loop fault session (M2-P02)

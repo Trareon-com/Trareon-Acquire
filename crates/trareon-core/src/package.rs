@@ -13,16 +13,32 @@ const AUDIT_RELATIVE_PATH: &str = "audit/audit.jsonl";
 const MANIFEST_RELATIVE_PATH: &str = "manifest/manifest.json";
 const SUPPORTED_SCHEMA: &str = "trareon.fsnap.manifest/1";
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct EvidenceSegmentV1 {
+    pub relative_path: String,
+    pub size: u64,
+    pub sha256: String,
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct FsnapManifestV1 {
     pub schema: String,
     pub build_identity: String,
+    /// Primary evidence path. For single-file packages this is
+    /// `acquisitions/0001/evidence.raw`. For split-RAW packages this is the
+    /// first segment path; full segment list is in `evidence_segments`.
     pub evidence_relative_path: String,
     pub evidence_size: u64,
+    /// SHA-256 of the logical evidence stream (single file, or concatenation
+    /// of `evidence_segments` in listed order).
     pub evidence_sha256: String,
     pub audit_relative_path: String,
     pub audit_sha256: String,
     pub audit_root: String,
+    /// When present and non-empty, the package carries split-RAW segments.
+    /// Omitted on classic single-file packages (Analysis freeze golden set).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evidence_segments: Option<Vec<EvidenceSegmentV1>>,
 }
 
 fn hash_file(path: &Path) -> Result<(u64, String), CoreError> {
@@ -43,10 +59,28 @@ fn hash_file(path: &Path) -> Result<(u64, String), CoreError> {
     Ok((size, hex::encode(hasher.finalize())))
 }
 
+fn hash_files_concat(paths: &[&Path]) -> Result<(u64, String), CoreError> {
+    let mut hasher = Sha256::new();
+    let mut size = 0u64;
+    let mut buffer = [0u8; 64 * 1024];
+    for path in paths {
+        let mut file = File::open(path).map_err(|error| CoreError::Io(error.to_string()))?;
+        loop {
+            let read = file
+                .read(&mut buffer)
+                .map_err(|error| CoreError::Io(error.to_string()))?;
+            if read == 0 {
+                break;
+            }
+            hasher.update(&buffer[..read]);
+            size += read as u64;
+        }
+    }
+    Ok((size, hex::encode(hasher.finalize())))
+}
+
 fn copy_and_sync(source: &Path, destination: &Path) -> Result<(), CoreError> {
     fs::copy(source, destination).map_err(|error| CoreError::Io(error.to_string()))?;
-    // Must be opened with write access: on Windows, FlushFileBuffers (which
-    // sync_all calls) fails with ERROR_ACCESS_DENIED on a read-only handle.
     let file = File::options()
         .write(true)
         .open(destination)
@@ -56,19 +90,43 @@ fn copy_and_sync(source: &Path, destination: &Path) -> Result<(), CoreError> {
     Ok(())
 }
 
-pub fn create_fsnap(raw: &Path, audit: &Path, package: &Path) -> Result<(), CoreError> {
+fn segment_relative_path(index: usize) -> String {
+    format!("acquisitions/0001/evidence.{index:03}.raw")
+}
+
+fn write_manifest(package: &Path, manifest: &FsnapManifestV1) -> Result<(), CoreError> {
+    let manifest_path = package.join(MANIFEST_RELATIVE_PATH);
+    let manifest_bytes = serde_json::to_vec(manifest)
+        .map_err(|error| CoreError::Serialization(error.to_string()))?;
+    let mut manifest_file =
+        File::create(&manifest_path).map_err(|error| CoreError::Io(error.to_string()))?;
+    manifest_file
+        .write_all(&manifest_bytes)
+        .map_err(|error| CoreError::Io(error.to_string()))?;
+    manifest_file
+        .sync_all()
+        .map_err(|error| CoreError::Io(error.to_string()))?;
+    Ok(())
+}
+
+fn prepare_package_dirs(package: &Path) -> Result<(), CoreError> {
     if package.exists() {
         return Err(CoreError::Verification(
             "package path must not already exist".to_string(),
         ));
     }
-
     let manifest_dir = package.join("manifest");
     let audit_dir = package.join("audit");
     let acquisitions_dir = package.join("acquisitions/0001");
     for dir in [&manifest_dir, &audit_dir, &acquisitions_dir] {
         fs::create_dir_all(dir).map_err(|error| CoreError::Io(error.to_string()))?;
     }
+    Ok(())
+}
+
+/// Create a classic single-`evidence.raw` `.fsnap` package (Analysis freeze layout).
+pub fn create_fsnap(raw: &Path, audit: &Path, package: &Path) -> Result<(), CoreError> {
+    prepare_package_dirs(package)?;
 
     let evidence_path = package.join(EVIDENCE_RELATIVE_PATH);
     let audit_path = package.join(AUDIT_RELATIVE_PATH);
@@ -88,21 +146,62 @@ pub fn create_fsnap(raw: &Path, audit: &Path, package: &Path) -> Result<(), Core
         audit_relative_path: AUDIT_RELATIVE_PATH.to_string(),
         audit_sha256,
         audit_root,
+        evidence_segments: None,
     };
+    write_manifest(package, &manifest)
+}
 
-    let manifest_path = package.join(MANIFEST_RELATIVE_PATH);
-    let manifest_bytes = serde_json::to_vec(&manifest)
-        .map_err(|error| CoreError::Serialization(error.to_string()))?;
-    let mut manifest_file =
-        File::create(&manifest_path).map_err(|error| CoreError::Io(error.to_string()))?;
-    manifest_file
-        .write_all(&manifest_bytes)
-        .map_err(|error| CoreError::Io(error.to_string()))?;
-    manifest_file
-        .sync_all()
-        .map_err(|error| CoreError::Io(error.to_string()))?;
+/// Create a split-RAW `.fsnap` package from ordered segment files.
+pub fn create_fsnap_from_segments(
+    segments: &[PathBuf],
+    audit: &Path,
+    package: &Path,
+) -> Result<(), CoreError> {
+    if segments.is_empty() {
+        return Err(CoreError::Verification(
+            "split-RAW package requires at least one segment".to_string(),
+        ));
+    }
+    if segments.len() == 1 {
+        return create_fsnap(&segments[0], audit, package);
+    }
 
-    Ok(())
+    prepare_package_dirs(package)?;
+    let audit_path = package.join(AUDIT_RELATIVE_PATH);
+    copy_and_sync(audit, &audit_path)?;
+
+    let mut segment_metas = Vec::with_capacity(segments.len());
+    let mut packaged_paths = Vec::with_capacity(segments.len());
+    for (index, source) in segments.iter().enumerate() {
+        let relative = segment_relative_path(index + 1);
+        let dest = package.join(&relative);
+        copy_and_sync(source, &dest)?;
+        let (size, sha256) = hash_file(&dest)?;
+        packaged_paths.push(dest);
+        segment_metas.push(EvidenceSegmentV1 {
+            relative_path: relative,
+            size,
+            sha256,
+        });
+    }
+
+    let path_refs: Vec<&Path> = packaged_paths.iter().map(PathBuf::as_path).collect();
+    let (evidence_size, evidence_sha256) = hash_files_concat(&path_refs)?;
+    let (_, audit_sha256) = hash_file(&audit_path)?;
+    let audit_root = AuditJournal::read_jsonl(&audit_path)?.verify()?;
+
+    let manifest = FsnapManifestV1 {
+        schema: SUPPORTED_SCHEMA.to_string(),
+        build_identity: build_identity().to_string(),
+        evidence_relative_path: segment_metas[0].relative_path.clone(),
+        evidence_size,
+        evidence_sha256,
+        audit_relative_path: AUDIT_RELATIVE_PATH.to_string(),
+        audit_sha256,
+        audit_root,
+        evidence_segments: Some(segment_metas),
+    };
+    write_manifest(package, &manifest)
 }
 
 fn reject_unsafe_relative_path(relative: &str) -> Result<(), CoreError> {
@@ -163,6 +262,30 @@ fn collect_regular_files(root: &Path, out: &mut Vec<PathBuf>) -> Result<(), Core
     Ok(())
 }
 
+fn evidence_paths_from_manifest(
+    package: &Path,
+    manifest: &FsnapManifestV1,
+) -> Result<Vec<PathBuf>, CoreError> {
+    match &manifest.evidence_segments {
+        Some(segments) if !segments.is_empty() => {
+            let mut paths = Vec::with_capacity(segments.len());
+            for segment in segments {
+                paths.push(resolve_within_package(package, &segment.relative_path)?);
+            }
+            if manifest.evidence_relative_path != segments[0].relative_path {
+                return Err(CoreError::Verification(
+                    "evidence_relative_path must match the first evidence segment".to_string(),
+                ));
+            }
+            Ok(paths)
+        }
+        _ => Ok(vec![resolve_within_package(
+            package,
+            &manifest.evidence_relative_path,
+        )?]),
+    }
+}
+
 pub fn verify_fsnap(package: &Path) -> Result<FsnapManifestV1, CoreError> {
     let manifest_path = resolve_within_package(package, MANIFEST_RELATIVE_PATH)?;
     let manifest_bytes =
@@ -183,7 +306,7 @@ pub fn verify_fsnap(package: &Path) -> Result<FsnapManifestV1, CoreError> {
         )));
     }
 
-    let evidence_path = resolve_within_package(package, &manifest.evidence_relative_path)?;
+    let evidence_paths = evidence_paths_from_manifest(package, &manifest)?;
     let audit_path = resolve_within_package(package, &manifest.audit_relative_path)?;
 
     let package_canonical =
@@ -191,11 +314,13 @@ pub fn verify_fsnap(package: &Path) -> Result<FsnapManifestV1, CoreError> {
     let mut all_files = Vec::new();
     collect_regular_files(&package_canonical, &mut all_files)?;
 
-    let allowed: Vec<PathBuf> = vec![
+    let mut allowed: Vec<PathBuf> = vec![
         fs::canonicalize(&manifest_path).map_err(|error| CoreError::Io(error.to_string()))?,
-        fs::canonicalize(&evidence_path).map_err(|error| CoreError::Io(error.to_string()))?,
         fs::canonicalize(&audit_path).map_err(|error| CoreError::Io(error.to_string()))?,
     ];
+    for path in &evidence_paths {
+        allowed.push(fs::canonicalize(path).map_err(|error| CoreError::Io(error.to_string()))?);
+    }
     for file in &all_files {
         let canonical = fs::canonicalize(file).map_err(|error| CoreError::Io(error.to_string()))?;
         if !allowed.contains(&canonical) {
@@ -206,7 +331,31 @@ pub fn verify_fsnap(package: &Path) -> Result<FsnapManifestV1, CoreError> {
         }
     }
 
-    let (evidence_size, evidence_sha256) = hash_file(&evidence_path)?;
+    if let Some(segments) = &manifest.evidence_segments {
+        if segments.len() != evidence_paths.len() {
+            return Err(CoreError::Verification(
+                "evidence segment count mismatch".to_string(),
+            ));
+        }
+        for (segment, path) in segments.iter().zip(evidence_paths.iter()) {
+            let (size, sha256) = hash_file(path)?;
+            if size != segment.size {
+                return Err(CoreError::Verification(format!(
+                    "segment size does not match manifest: {}",
+                    segment.relative_path
+                )));
+            }
+            if sha256 != segment.sha256 {
+                return Err(CoreError::Verification(format!(
+                    "segment sha256 does not match manifest: {}",
+                    segment.relative_path
+                )));
+            }
+        }
+    }
+
+    let path_refs: Vec<&Path> = evidence_paths.iter().map(PathBuf::as_path).collect();
+    let (evidence_size, evidence_sha256) = hash_files_concat(&path_refs)?;
     if evidence_size != manifest.evidence_size {
         return Err(CoreError::Verification(
             "evidence size does not match manifest".to_string(),

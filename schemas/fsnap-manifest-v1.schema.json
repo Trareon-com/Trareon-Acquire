@@ -8,11 +8,31 @@
   "properties": {
     "schema": { "const": "trareon.fsnap.manifest/1" },
     "build_identity": { "const": "trareon-acquire-foundation-v1" },
-    "evidence_relative_path": { "const": "acquisitions/0001/evidence.raw" },
+    "evidence_relative_path": {
+      "type": "string",
+      "pattern": "^acquisitions/0001/evidence(\\.[0-9]{3})?\\.raw$"
+    },
     "evidence_size": { "type": "integer", "minimum": 1 },
     "evidence_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "audit_relative_path": { "const": "audit/audit.jsonl" },
     "audit_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-    "audit_root": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    "audit_root": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "evidence_segments": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["relative_path", "size", "sha256"],
+        "properties": {
+          "relative_path": {
+            "type": "string",
+            "pattern": "^acquisitions/0001/evidence\\.[0-9]{3}\\.raw$"
+          },
+          "size": { "type": "integer", "minimum": 1 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    }
   }
 }

@@ -16,6 +16,7 @@ Status: **PLAN + Apple Silicon lab evidence** — no FDA claim; Intel Mac remain
 | Elevated open `disk10`/`rdisk10` | Available |
 | Elevated open mounted `disk10s1` | Resource busy |
 | Allowlisted bounded content sample (1 MiB `rdisk10`) | PASS + independent verifier VALID |
+| Allowlisted bounded content sample (64 MiB `rdisk10`) | PASS + independent verifier VALID |
 | Full-disk acquire | **NotValidated** / not requested |
 
 Evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, allowlist
@@ -34,4 +35,4 @@ Evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, allowlist
 - Full Disk Access as proof of forensic fitness
 - Production readiness on macOS
 - Intel Mac coverage
-- Storage Lab Beta exit from a 1 MiB sample
+- Storage Lab Beta exit from a 1 MiB or 64 MiB sample

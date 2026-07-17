@@ -28,11 +28,11 @@ Update: Day 27 (capability matrix + `.fsnap` freeze candidate) mengonsolidasikan
 
 Update: Day 28 (About / user guide / legal draft) menambah `docs/USER-GUIDE.md`, `docs/LEGAL-LIMITATIONS-DRAFT.md` (LEGAL_DRAFT_ONLY), mapping help, dan section About di UI dengan atribusi Trareon/Yusuf tanpa klaim sertifikasi. Entry gate Day 27 review belum formal; dilanjutkan dengan pola jujur.
 
-Update: Day 29 (adversarial review) menulis `docs/ADVERSARIAL-REVIEW-M0.md` terhadap freeze base `9e24b15` + tip branch docs/UI. Tidak ada P0/P1 baru; residual limitations tetap memblokir klaim EAC. **Day 30 tidak di-auto-approve.**
+Update: Day 29 (adversarial review) menulis `docs/ADVERSARIAL-REVIEW-M0.md` terhadap freeze base `9e24b15` + tip branch docs/UI. Tidak ada P0/P1 baru; residual limitations tetap memblokir klaim EAC produksi. **Day 30 tidak di-auto-approve oleh adversarial pass saja.**
 
 Update: Day 23 (Linux feasibility) selesai lewat PR #47 dengan real hardware — mesin Kali fisik (bukan VM), dioperasikan manusia lewat RustDesk relay (sesi ini tidak punya jalur jaringan langsung ke device). Temuan: enumerasi metadata (`lsblk`/`ls -la`/`stat`) tersedia untuk semua user; attach loop device sintetis read-only (`losetup -r`) berhasil sebagai root; sebagai user non-root `kali` (bukan anggota grup `disk`), `losetup -f`/`losetup -fr` **ditolak eksplisit** ("Permission denied") sebelum menyentuh file apa pun — validasi nyata untuk kebutuhan privileged broker Track C. Disk sistem asli (`nvme0n1`) diidentifikasi tapi **tidak pernah disentuh**; semua pengujian device pakai file sintetis yang dibuat dan dihapus. Kode `crates/trareon-core/src/platform.rs` mereplikasi probe ini di Rust (tanpa dependency baru, tanpa `unsafe`). Detail lengkap: `docs/platform/day23-linux-feasibility.md`. Entry gate Day 22 review `EXPECTED_PASS` belum formal terpenuhi (pola sama seperti Day lain); Human Gate diisi `PROVIDED` karena eksekusi manual device sungguh terjadi.
 
-Day 24-25 tetap `NOT_STARTED` (`MANUAL_START`, butuh mesin Windows/macOS fisik). Day 30 menunggu `HUMAN_APPROVAL`. Independent review Codex untuk Day 01-29 masih `NOT_STARTED`.
+Update: Day 30 (EAC + `.fsnap` Analysis freeze) diselesaikan atas instruksi operator `selesaikan day 30` (2026-07-17). Klasifikasi: **Production-Directed Engineering Alpha Candidate — Lab Use Only**. Evidence index, milestone review, risk register, decision record, capability matrix, dan read contract diperbarui. `.fsnap` v0.1 **dibekukan untuk Analysis** pada layout single-`evidence.raw` saja; bukan Official Production. Days 24–25 tetap `MANUAL_START`. Independent review Codex Day 01–29 masih `NOT_STARTED`. Tidak ada publish/release/sign.
 
 | Day | Task | Author | Reviewer | Risk | Autonomy | Branch | Frozen SHA | Implementation | Review | CI | Platform | Incident | Recovery | Human Gate | Evidence | Next |
 |---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -65,7 +65,7 @@ Day 24-25 tetap `NOT_STARTED` (`MANUAL_START`, butuh mesin Windows/macOS fisik).
 | 27 | Capability matrix and freeze | Codex | Claude | High | AUTO_WITH_REVIEW | feat/m0-d27-matrix | ff5933353b1d3414ee74c3f1cdf0460b22ec5af6 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-44 | 28 |
 | 28 | Docs About and limitations | Claude | Codex | Medium | AUTO_WITH_REVIEW | feat/m0-d28-docs | f861379abfc1f48c46fbc584fd371c40b6cf9974 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | LEGAL_DRAFT_ONLY | PR-45 | 29 |
 | 29 | Adversarial review | Codex | Claude | High | AUTO_WITH_REVIEW | feat/m0-d29-adversarial | f346430457587901d74370df5e87c1c20a05fc32 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-46 | 30 |
-| 30 | EAC and fsnap freeze gate | Codex | Human | Release-critical | HUMAN_APPROVAL | feat/m0-d30-gate | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED | NOT_STARTED | M1 |
+| 30 | EAC and fsnap freeze gate | Codex | Human | Release-critical | HUMAN_APPROVAL | feat/m0-d30-gate | 6594840f30a7119174eb19b8c22552869ae51f60 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | PROVIDED | DECISION-2026-07-17 | M1 |
 
 ## Milestone gates
 

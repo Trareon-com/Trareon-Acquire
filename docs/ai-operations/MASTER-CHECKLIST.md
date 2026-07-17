@@ -20,7 +20,9 @@ Update: Day 21 (DevSecOps gates) selesai lewat PR #34 (`deny.toml` untuk 431 cra
 
 Update: PR #35 (`fix/rename-traeron-to-trareon`) sudah di-merge ke `main` (merge commit `6f69f6e7699b7d366a3455dd4e2c8772abb82f7a`). Rename crate/app paths dan string `build_identity` ke ejaan `trareon` selesai; konflik dengan job `security` dari PR #34 diselesaikan di commit `30e7e36` sebelum merge. Tidak mengubah kolom Day — ini housekeeping ejaan/path, bukan Day baru.
 
-Day 22-30 tetap `NOT_STARTED` sepenuhnya — fuzz, feasibility perangkat, performance baseline, capability matrix, docs, adversarial review, dan freeze gate belum disentuh sama sekali. Independent review Codex untuk Day 01-21 juga masih `NOT_STARTED` (hosted CI hijau bukan pengganti).
+Update: Day 22 (property/fuzz baseline) diimplementasikan tanpa dependency produk baru — suite `crates/trareon-core/tests/properties.rs`, corpus sintetis `fixtures/fuzz-corpus/v0/`, docs bound di `docs/fuzz/README.md`, dan step CI `bounded property/fuzz smoke`. Full `cargo-fuzz`/libFuzzer tetap `NotValidated` (butuh review dependency/toolchain). Entry gate "independent review Day 21 EXPECTED_PASS" belum terpenuhi formal (Review Day 21 masih `NOT_STARTED`); dilanjutkan dengan pola yang sama seperti Day 21 yang juga mulai tanpa Codex review Day 20, dan dicatat jujur di sini.
+
+Day 23-30 tetap `NOT_STARTED` — feasibility perangkat (23-25 `MANUAL_START`), performance baseline, capability matrix, docs, adversarial review, dan freeze gate belum disentuh. Independent review Codex untuk Day 01-22 juga masih `NOT_STARTED` (hosted CI hijau bukan pengganti).
 
 | Day | Task | Author | Reviewer | Risk | Autonomy | Branch | Frozen SHA | Implementation | Review | CI | Platform | Incident | Recovery | Human Gate | Evidence | Next |
 |---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -45,7 +47,7 @@ Day 22-30 tetap `NOT_STARTED` sepenuhnya — fuzz, feasibility perangkat, perfor
 | 19 | CoC and report preview | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d19-report | bad982f5218df5e5a7b39bc4f47d7b2a24a5827f | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-33 | 20 |
 | 20 | Cross-platform CI | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d20-ci | bad982f5218df5e5a7b39bc4f47d7b2a24a5827f | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | IMPLEMENTATION-FAILURE | 3 | NOT_REQUIRED | PR-33 | 21 |
 | 21 | DevSecOps gates | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d21-devsecops | 229f2109ad9af27c99729eb846605c9e33ee7a5a | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-34 | 22 |
-| 22 | Property and fuzz | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d22-fuzz | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | NOT_STARTED | 23 |
+| 22 | Property and fuzz | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d22-fuzz | f225d33a974aca59c3febf9a0d61e46dc89952b8 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-37 | 23 |
 | 23 | Linux feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d23-linux | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 24 |
 | 24 | Windows feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d24-windows | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 25 |
 | 25 | macOS feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d25-macos | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 26 |

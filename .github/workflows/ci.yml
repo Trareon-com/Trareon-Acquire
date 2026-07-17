@@ -42,6 +42,8 @@ jobs:
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
       - name: cargo test
         run: cargo test --workspace --locked
+      - name: bounded property/fuzz smoke
+        run: cargo test -p trareon-core --test properties --locked
       - name: npm ci
         run: npm ci --prefix apps/trareon-acquire
       - name: npm run build

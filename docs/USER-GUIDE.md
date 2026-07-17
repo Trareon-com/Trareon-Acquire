@@ -40,7 +40,7 @@ workstation, not live evidence acquisition from raw disks.
 
 - Raw-device / elevated acquisition (Days 23–25).
 - UI cancellation of an in-flight acquire.
-- Multi-segment split-RAW inside `.fsnap`.
+- Privileged raw-device broker helper (protocol spike only).
 - Signing, release channels, or certification claims.
 
 See [`docs/CAPABILITY-MATRIX-M0.md`](CAPABILITY-MATRIX-M0.md) for the full matrix.

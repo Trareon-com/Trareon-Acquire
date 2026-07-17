@@ -33,7 +33,7 @@ validate privilege boundaries only — not production raw-device adapters.
 | SHA-256 of acquired bytes | Implemented | Acquisition summary + independent re-hash in verify | — |
 | Append-only audit hash chain | Implemented | Audit tests + package verify | — |
 | Cooperative cancel (`cancel_flag`) | Implemented (core) | Acquisition / property / performance tests | **No UI path** to arm cancel |
-| Split-RAW segment writes | Implemented (core) | Acquisition split tests | **Not packaged** into `.fsnap` yet |
+| Split-RAW segment writes | Implemented (core + package) | Acquisition + `create_fsnap_from_segments` | Optional `evidence_segments`; single-file Analysis goldens unchanged |
 | `.fsnap` v0.1 create/verify | Implemented + **Analysis-frozen** | Package tests + 6 golden fixtures + CLI | Single `evidence.raw` only |
 | Independent verifier CLI | Implemented | `trareon-verifier` CLI tests | Exit 0 / 2 only; no repair |
 | Guided synthetic UI | Partial | App.svelte CoC card + a11y labels | No formal a11y audit; no cancel control |
@@ -44,6 +44,7 @@ validate privilege boundaries only — not production raw-device adapters.
 | Linux raw-device privilege probe | Feasibility spike | Day 23 / PR #47 + `platform::linux` | Physical disk attach/read `NotValidated`; Ubuntu LTS HW not separately recorded |
 | Windows raw-device UAC probe | Feasibility spike | Day 24 / PR #49 + `platform::windows` | Non-elevated denied; content read `NotValidated`; X270 `NotValidated` |
 | macOS raw-device privilege probe | Feasibility spike | Day 25 / PR #50 + `platform::macos` | Open denied without `operator`/helper; Intel/`hdiutil`/`FDA` `NotValidated` |
+| Privileged broker protocol | Spike only | `broker.rs` + `docs/platform/privileged-broker-protocol-spike.md` | No elevation helper; execute returns `NotImplemented` |
 | Signing / release / certification | Out of scope | Day 30 human gate | Lab Use Only; no Official Production |
 
 ## `.fsnap` v0.1 Analysis freeze
@@ -65,7 +66,7 @@ validate privilege boundaries only — not production raw-device adapters.
 
 ## Independent review status
 
-All Day 01–29 `Review` cells remain `NOT_STARTED`. Closing GitHub issues
+Day 01–29 `Review` cells set to `EXPECTED_PASS` via Cursor substitute review (`docs/INDEPENDENT-REVIEW-M0-CURSOR.md`); Codex review still not performed. Closing GitHub issues
 for implementation does **not** equal `EXPECTED_PASS` Codex review.
 Day 30 complete-redo classification is recorded in
 [`docs/ai-operations/DECISIONS/2026-07-17-day30-eac-complete-redo.md`](ai-operations/DECISIONS/2026-07-17-day30-eac-complete-redo.md).

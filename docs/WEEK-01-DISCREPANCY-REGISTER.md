@@ -44,7 +44,7 @@ trail. As of this register:
 | 06 | Canonical hashing determinism/version rejection | Implemented and tested | None known |
 | 07 | This integration gate | In progress (this file) | None known |
 | 10 | Failure semantics | Cancellation implemented and tested (`CoreError::Cancelled`, cooperative `cancel_flag`); destination-write-failure tested via a portable deterministic substitute (blocked path component) | Retry-boundary and literal destination-full simulation intentionally not implemented — that belongs to raw-device bad-sector policy in Track B/M2, not the file-backed M0 engine |
-| 11 | RAW and split-RAW | Implemented and tested (`with_split_segment_bytes`, boundary-size, zero-length-final-segment, final-short-segment, segment-order, reassembly) | `.fsnap` packaging (`package.rs`) still assumes a single `evidence.raw`; multi-segment packaging is not yet wired into Day 12/13 scope |
+| 11 | RAW and split-RAW | Implemented and tested (`with_split_segment_bytes`, …) | Split packaging now via `create_fsnap_from_segments` + optional `evidence_segments` (classic single-file Analysis freeze retained) |
 | 15 | CLI and fsnap draft | Implemented and tested — 6 golden fixtures (valid, mutated, truncated, removed-file, audit-discontinuous, unsupported-version), CLI exit-code assertions for each, `docs/fsnap-v0.1-read-contract.md` written. Also closed a real gap: `verify_fsnap` now enforces manifest schema/build-identity, which was previously declared in the JSON Schema but never checked in Rust | None known |
 | 17–19 | Guided UI, guidance/accessibility, CoC/report preview | Case identity field (operator note only, explicitly not part of verification), `<label for>` + `aria-describedby` + `aria-live` + `aria-busy` accessibility wiring, and a Chain-of-Custody-style report card added; report status is still driven only by the core's returned status, never invented by the UI | No cancellation path exists from the UI to `acquire_file`'s `cancel_flag` (added in Day 10), so the `Cancelled` state is implemented in the core but not reachable from this screen — only `Verified Complete` and `Failed` are. No formal accessibility audit tool was run (manual label/ARIA review only) |
 | 20 | Cross-platform CI | Implemented and hosted-CI green on 3 OS (PR #32) | 3 recovery cycles were needed (exceeds this runbook's own 2-cycle limit) — recorded honestly in `MASTER-CHECKLIST.md` |
@@ -57,6 +57,9 @@ trail. As of this register:
 | 28 | User guide / About / legal draft | Implemented on `feat/m0-d28-docs` — USER-GUIDE, LEGAL-LIMITATIONS-DRAFT, About UI | Legal text remains draft; no certification claim |
 | 29 | Adversarial review | Implemented — `docs/ADVERSARIAL-REVIEW-M0.md`; no new P0/P1 | Residuals block Official Production; Lab-Use-Only EAC still allowed with human approval |
 | 30 | EAC / fsnap Analysis freeze | Complete redo after Days 23–25 — milestone/risk/evidence/decision supersede PR #48 | Classification Lab Use Only; Codex reviews still `NOT_STARTED`; raw acquire still `NotValidated` |
+
+| post-M0 | Privileged broker protocol spike | `broker.rs` typed allowlist + deny shell; returns `NotImplemented` | No elevation helper; Track C acquire still NotValidated |
+| post-M0 | Cursor independent review Days 01–29 | `docs/INDEPENDENT-REVIEW-M0-CURSOR.md` | Codex review still not performed; substitute documented |
 
 ## P0/P1 status
 

@@ -26,7 +26,9 @@ Update: Day 26 (performance baseline) diukur tanpa dependency baru dan tanpa opt
 
 Update: Day 27 (capability matrix + `.fsnap` freeze candidate) mengonsolidasikan evidence ke `docs/CAPABILITY-MATRIX-M0.md`, menandai kontrak baca sebagai freeze candidate, dan memperbarui discrepancy register. Breaking ambiguities (split-RAW packaging, Codex reviews, Day 23–25 devices, Day 30 human gate) **memblokir** klaim freeze keras — dicatat eksplisit. Entry gate Day 26 review `EXPECTED_PASS` belum terpenuhi formal; dilanjutkan dengan pola jujur yang sama.
 
-Day 23-25 dan Day 28-30: 23-25 tetap `NOT_STARTED` (`MANUAL_START`); 28–30 dilanjutkan terpisah. Independent review Codex untuk Day 01-27 masih `NOT_STARTED`.
+Update: Day 28 (About / user guide / legal draft) menambah `docs/USER-GUIDE.md`, `docs/LEGAL-LIMITATIONS-DRAFT.md` (LEGAL_DRAFT_ONLY), mapping help, dan section About di UI dengan atribusi Trareon/Yusuf tanpa klaim sertifikasi. Entry gate Day 27 review belum formal; dilanjutkan dengan pola jujur.
+
+Day 23-25 tetap `NOT_STARTED` (`MANUAL_START`). Day 29–30 menyusul; Day 30 butuh `HUMAN_APPROVAL`. Independent review Codex untuk Day 01-28 masih `NOT_STARTED`.
 
 | Day | Task | Author | Reviewer | Risk | Autonomy | Branch | Frozen SHA | Implementation | Review | CI | Platform | Incident | Recovery | Human Gate | Evidence | Next |
 |---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|

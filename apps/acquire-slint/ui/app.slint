@@ -1,0 +1,57 @@
+import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+export component AppWindow inherits Window {
+    title: "Trareon Acquire";
+    preferred-width: 720px;
+    preferred-height: 420px;
+
+    in-out property <string> status-line: "Ready — Lab Use Only (Engineering Alpha)";
+    in-out property <string> last-package: "(none)";
+    in-out property <bool> busy: false;
+
+    callback run-synthetic-clicked();
+    callback clear-status-clicked();
+
+    VerticalBox {
+        padding: 16px;
+        spacing: 12px;
+
+        Text {
+            text: "Trareon Acquire";
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        Text {
+            text: "GPLv3 · Slint shell · file-backed foundation demo";
+            font-size: 13px;
+        }
+
+        Text {
+            text: "Status: " + root.status-line;
+            font-size: 14px;
+            wrap: word-wrap;
+        }
+
+        Text {
+            text: "Last package: " + root.last-package;
+            font-size: 13px;
+            wrap: word-wrap;
+        }
+
+        HorizontalBox {
+            spacing: 8px;
+            Button {
+                text: "Run synthetic acquire";
+                primary: true;
+                enabled: !root.busy;
+                clicked => { root.run-synthetic-clicked(); }
+            }
+            Button {
+                text: "Clear status";
+                enabled: !root.busy;
+                clicked => { root.clear-status-clicked(); }
+            }
+        }
+    }
+}

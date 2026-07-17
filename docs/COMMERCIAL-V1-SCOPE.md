@@ -14,6 +14,10 @@ Policy: [`ZERO-CASH-LAUNCH-PLAN.md`](ZERO-CASH-LAUNCH-PLAN.md)
 
 No certificate spend until project cash clears reserves (Gate 3).
 
+**License:** project is **GPLv3** — selling unsigned binaries is allowed; source
+must be available to binary recipients. Desktop shell is **Slint** (Tauri
+deprecated). See [`docs/ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md`](ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md).
+
 ## v1 capability promise (honest)
 
 **In scope** — must work on tested combinations:
@@ -23,7 +27,7 @@ No certificate spend until project cash clears reserves (Gate 3).
 - Independent `trareon-verifier` post-check
 - Allowlist + system-disk hard-deny
 - Cooperative cancel + checkpoint/resume (file-backed; raw where evidenced)
-- Guided / Standard / Expert UI modes (progressive disclosure)
+- Guided / Standard / Expert UI modes (progressive disclosure) via **Slint**
 
 **Tested OS matrix (v1 target, not “all versions”):**
 

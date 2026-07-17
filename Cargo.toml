@@ -3,6 +3,7 @@ members = [
   "crates/trareon-core",
   "crates/trareon-verifier",
   "crates/trareon-analysis",
+  "apps/acquire-slint",
   "apps/trareon-acquire/src-tauri",
 ]
 resolver = "2"
@@ -10,7 +11,7 @@ resolver = "2"
 [workspace.package]
 edition = "2024"
 rust-version = "1.95"
-license = "MPL-2.0"
+license = "GPL-3.0-only"
 authors = ["Yusuf Shalahuddin Al Ayyubi As Sobari"]
 
 [workspace.dependencies]

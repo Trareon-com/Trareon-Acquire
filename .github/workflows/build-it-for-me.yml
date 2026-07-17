@@ -24,20 +24,19 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
-      - name: Install Linux Tauri build dependencies
+      - name: Install Linux Slint GUI build dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libjavascriptcoregtk-4.1-dev \
-            libgtk-3-dev \
-            librsvg2-dev \
-            libsoup-3.0-dev \
-            libayatana-appindicator3-dev \
-            libxdo-dev \
-            libssl-dev \
-            patchelf
+            pkg-config \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libx11-dev \
+            libxcursor-dev \
+            libxkbcommon-dev \
+            libwayland-dev \
+            libgl1-mesa-dev
 
       # Same as ci.yml: clear unused preinstalled aws/tap before brew runs.
       - name: Remove unused preinstalled Homebrew taps
@@ -49,42 +48,42 @@ jobs:
 
       - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: "22"
-
       - name: cargo fmt --check
         run: cargo fmt --all --check
 
       - name: cargo clippy
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+        run: |
+          cargo clippy --workspace --all-targets --all-features --exclude acquire-slint -- -D warnings
+          cargo clippy -p acquire-slint --all-targets --features gui -- -D warnings
 
       - name: cargo test
-        run: cargo test --workspace --locked
+        run: |
+          cargo test --workspace --locked --exclude acquire-slint
+          cargo test -p acquire-slint --features gui --locked
 
-      - name: npm ci
-        run: npm ci --prefix apps/trareon-acquire
+      - name: cargo build (Slint shell, release)
+        run: cargo build -p acquire-slint --features gui --release --locked
 
-      - name: npm run build
-        run: npm run build --prefix apps/trareon-acquire
-
-      - name: cargo build (tauri app, release)
-        run: cargo build --manifest-path apps/trareon-acquire/src-tauri/Cargo.toml --release --locked
-
-      - name: Write community build notice
+      - name: Package community build
         shell: bash
         run: |
-          mkdir -p community-build
-          cp -r apps/trareon-acquire/dist community-build/dist
+          mkdir -p community-build/bin
+          BIN="target/release/trareon-acquire"
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            BIN="target/release/trareon-acquire.exe"
+          fi
+          cp "$BIN" community-build/bin/
           {
-            echo "Trareon Acquire — Community/Self Build"
+            echo "Trareon Acquire — Community/Self Build (Slint, GPLv3)"
             echo ""
             echo "Source commit: ${{ github.sha }}"
             echo "Workflow repository: ${{ github.repository }}"
             echo "Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             echo "Build class: Community/Self Build"
+            echo "Binary: bin/trareon-acquire"
             echo ""
             echo "Not validated for production evidence acquisition."
+            echo "GPLv3: corresponding source is this repository at the commit above."
           } > community-build/COMMUNITY-SELF-BUILD.txt
 
       - name: Upload community build artifact

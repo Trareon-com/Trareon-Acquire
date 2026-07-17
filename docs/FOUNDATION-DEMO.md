@@ -10,9 +10,9 @@ device, OS, or hardware.
 
 ```bash
 dd if=/dev/zero of=/tmp/trareon-source.img bs=1M count=8
-cargo test --workspace --locked
-npm ci --prefix apps/trareon-acquire
-npm run tauri --prefix apps/trareon-acquire -- dev
+cargo test --workspace --locked --exclude acquire-slint
+cargo test -p acquire-slint --features gui --locked
+cargo run -p acquire-slint --features gui
 cargo run -p trareon-verifier --locked -- verify /tmp/trareon-output/foundation.fsnap
 ```
 

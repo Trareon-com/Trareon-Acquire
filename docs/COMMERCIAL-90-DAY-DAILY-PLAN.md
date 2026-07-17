@@ -18,7 +18,7 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` pending
 | 4 | 21 Jul | Broker CI tests `PhysicalDrive0` + shell deny | [x] |
 | 5 | 22 Jul | `macos-elevation-operator-guide.md` | [x] |
 | 6 | 23 Jul | Windows bounded smoke example + allowlist template | [x] |
-| 7 | 24 Jul | Review minggu 1; merge; update matrix | [~] |
+| 7 | 24 Jul | Review minggu 1; merge; update matrix | [x] |
 | 8 | 25 Jul | Windows lab inventory + allowlist decision | [ ] |
 | 9 | 26 Jul | Allowlist JSON Windows USB | [ ] |
 | 10 | 27 Jul | Windows elevated open probe non-system drive | [ ] |

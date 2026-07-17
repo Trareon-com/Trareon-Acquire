@@ -1,11 +1,13 @@
 # Commercial launch status
 
-Last updated: 2026-07-17 (Hari 1–6 execution)  
+Last updated: 2026-07-17 (week 1 + Slint cutover)
 Plan: [`COMMERCIAL-90-DAY-DAILY-PLAN.md`](COMMERCIAL-90-DAY-DAILY-PLAN.md)
 
 ## Current day
 
-**Hari 7** — review week 1, merge `feat/commercial-v1-day1-7`, operator pending `disk10s1` (Hari 3).
+**Week 1 complete early** — week-1 work is merged and the Slint shell is now
+the primary UI. Next automatable milestone is Hari 8 Windows lab inventory;
+the Hari 3 `disk10s1` smoke still requires the operator.
 
 ## Week 1 deliverables
 
@@ -17,6 +19,7 @@ Plan: [`COMMERCIAL-90-DAY-DAILY-PLAN.md`](COMMERCIAL-90-DAY-DAILY-PLAN.md)
 | `macos-elevation-operator-guide.md` | Done |
 | `lab_windows_bounded_smoke` example | Done |
 | Broker `PhysicalDrive0` deny test | Done |
+| Week-1 review, merge, and matrix update | Done |
 | `disk10s1` operator smoke | **Waiting operator** |
 
 ## Gates
@@ -46,3 +49,4 @@ Paste output to update lab report.
 | Date | Note |
 |------|------|
 | 2026-07-17 | Hari 1–6 docs + Windows smoke example + broker test; CI expected green on PR |
+| 2026-07-17 | Week-1 branch merged; Slint replaced Tauri as the primary desktop shell |

@@ -1,7 +1,7 @@
 # Decision: Desktop shell = Slint; project license = GPLv3
 
-Date: 2026-07-17  
-Status: **ACCEPTED** (operator decision)  
+Date: 2026-07-17
+Status: **ACCEPTED** (operator decision)
 Applies to: Trareon Acquire
 
 ## Decision
@@ -35,4 +35,4 @@ GPLv3 **allows selling** binaries. Recipients of binaries must be able to get co
 - [x] Wire Slint demo: path pickers, synthetic confirm, cancel_flag, verify display
 - [x] Remove Tauri/Svelte from workspace + CI (archived under `apps/trareon-acquire/`)
 - [ ] Progressive Guided/Standard/Expert modes on Slint
-- [ ] Update commercial / user docs for “source with binary” obligation (ongoing)
+- [x] Update commercial / user docs for “source with binary” obligation

@@ -15,6 +15,8 @@ workstation, not live evidence acquisition from raw disks.
 1. Confirm the source file is synthetic or training data — never real evidence in M0.
 2. Read the lab banner in the app and [`docs/LEGAL-LIMITATIONS-DRAFT.md`](LEGAL-LIMITATIONS-DRAFT.md).
 3. Prefer the walkthrough in [`docs/FOUNDATION-DEMO.md`](FOUNDATION-DEMO.md).
+4. If you received a binary, its GPLv3 corresponding source is the repository
+   at the source commit recorded with that build.
 
 ## In-app help mapping
 
@@ -32,8 +34,9 @@ workstation, not live evidence acquisition from raw disks.
 
 ## Supported workflow (M0 / early M1)
 
-1. Build/test locally (`cargo test --workspace --locked`, `npm run build`).
-2. Launch the Tauri demo (`npm run tauri --prefix apps/trareon-acquire -- dev`).
+1. Build/test locally (`cargo test --workspace --locked --exclude acquire-slint`
+   and `cargo test -p acquire-slint --features gui --locked`).
+2. Launch the Slint demo (`cargo run -p acquire-slint --features gui`).
 3. Acquire a synthetic source; confirm checkbox.
 4. Optionally Cancel an in-flight Run (cooperative cancel; incomplete checkpoint may remain on disk for resume tooling).
 5. Independently verify the package with `trareon-verifier`.

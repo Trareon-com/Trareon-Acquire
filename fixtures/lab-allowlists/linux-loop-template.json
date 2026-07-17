@@ -1,0 +1,11 @@
+{
+  "schema": "trareon.lab-allowlist/1",
+  "human_approved": false,
+  "approved_by": "",
+  "entries": [
+    {
+      "source_identity": "/dev/loopN",
+      "notes": "REPLACE N with read-only losetup device from synthetic image. NEVER nvme0n1 / system disk."
+    }
+  ]
+}

@@ -13,6 +13,7 @@ export component AppWindow inherits Window {
     in-out property <string> last-package: "(none)";
     in-out property <string> evidence-sha256: "(none)";
     in-out property <string> evidence-size: "(none)";
+    in-out property <string> preflight-hint: "";
     in-out property <bool> busy: false;
     // Computed in UI so typing in LineEdit enables Run without a round-trip.
     property <bool> can-run: root.confirmed-synthetic && root.source-path != "" && root.output-dir != "" && !root.busy;
@@ -88,6 +89,13 @@ export component AppWindow inherits Window {
             enabled: !root.busy;
         }
 
+        Text {
+            text: root.preflight-hint;
+            font-size: 12px;
+            wrap: word-wrap;
+            visible: root.preflight-hint != "";
+        }
+
         HorizontalBox {
             spacing: 8px;
             Button {
@@ -131,6 +139,12 @@ export component AppWindow inherits Window {
         Text {
             text: "Size: " + root.evidence-size + " bytes";
             font-size: 12px;
+        }
+
+        Text {
+            text: "About: Trareon Acquire — Engineering Alpha / Lab Use Only. GPLv3. Unsigned Founder builds until Gate 3. Not court-admissible. UI cancel arms core cancel_flag; success only after independent verify.";
+            font-size: 11px;
+            wrap: word-wrap;
         }
     }
 }

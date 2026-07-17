@@ -15,7 +15,7 @@ Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 pr
 | Real elevation helper | **Stub only** | Hari 40+; until then `sudo`/UAC manual |
 | UI cancel wired | **PASS** (Slint → `cancel_flag`) | Hari 24 closed early |
 | Signing/notarization | **Deferred** | Zero-cash; unsigned + docs |
-| Waitlist / Founder page | **Not started** | Hari 39–53 |
+| Waitlist / Founder page | **Drafts ready** | Gate 1/2 still human open |
 
 ## macOS (current)
 
@@ -54,8 +54,10 @@ Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 pr
 |------|-------|
 | `COMMERCIAL-V1-SCOPE.md` | Done (Day 1) |
 | 90-day daily plan | Done |
-| Unsigned install guides | Not started (Hari 33–35) |
-| Build script Founder artifact | Not started (Hari 55) |
+| Unsigned install guides | Done (`docs/install/`) |
+| Build script Founder artifact | Done (`scripts/founder-build.sh`) |
+| Windows removable content | Deferred → `WINDOWS-LAB-OPERATOR-PACK.md` |
+| Linux loop software prep | Done; physical attach still human |
 | Payment + fulfillment ledger | Not started (Hari 51–54) |
 
 ## Priority order (next 7 days)

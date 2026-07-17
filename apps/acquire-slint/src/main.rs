@@ -16,6 +16,7 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.set_last_package(snap.last_package.clone().into());
         ui.set_evidence_sha256(snap.evidence_sha256.clone().into());
         ui.set_evidence_size(snap.evidence_size.clone().into());
+        ui.set_preflight_hint(snap.preflight_hint().into());
         ui.set_busy(snap.busy);
     }
 

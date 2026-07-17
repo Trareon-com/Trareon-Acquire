@@ -8,10 +8,10 @@ redo** human classification. Capabilities without exact hardware acquisition
 evidence or independent Codex review remain `NotValidated`. This document does
 **not** certify Official Production readiness.
 
-Authoritative day tracking: [`docs/ai-operations/MASTER-CHECKLIST.md`](ai-operations/MASTER-CHECKLIST.md).  
-Known gaps: [`docs/WEEK-01-DISCREPANCY-REGISTER.md`](WEEK-01-DISCREPANCY-REGISTER.md).  
-Milestone: [`docs/M0-MILESTONE-REVIEW.md`](M0-MILESTONE-REVIEW.md).  
-Risks: [`docs/M0-RISK-REGISTER.md`](M0-RISK-REGISTER.md).  
+Authoritative day tracking: [`docs/ai-operations/MASTER-CHECKLIST.md`](ai-operations/MASTER-CHECKLIST.md).
+Known gaps: [`docs/WEEK-01-DISCREPANCY-REGISTER.md`](WEEK-01-DISCREPANCY-REGISTER.md).
+Milestone: [`docs/M0-MILESTONE-REVIEW.md`](M0-MILESTONE-REVIEW.md).
+Risks: [`docs/M0-RISK-REGISTER.md`](M0-RISK-REGISTER.md).
 `.fsnap` reader contract: [`docs/fsnap-v0.1-read-contract.md`](fsnap-v0.1-read-contract.md).
 
 ## Platform evidence (hosted CI + lab)
@@ -32,13 +32,13 @@ validate privilege boundaries only — not production raw-device adapters.
 | File-backed streaming acquire | Implemented | `trareon-core` acquisition tests; foundation demo | Synthetic/file sources only |
 | SHA-256 of acquired bytes | Implemented | Acquisition summary + independent re-hash in verify | — |
 | Append-only audit hash chain | Implemented | Audit tests + package verify | — |
-| Cooperative cancel (`cancel_flag`) | Implemented (core + UI) | Acquisition / property / Tauri cancel tests | Resume of cancelled file-backed acquire is M1 (non-split) |
+| Cooperative cancel (`cancel_flag`) | Implemented (core + UI) | Acquisition / property / Slint cancel tests | Resume of cancelled file-backed acquire is M1 (non-split) |
 | Checkpoint / resume (file-backed) | Implemented (non-split + split-RAW) | `checkpoint.rs` + acquisition resume tests | Physical-media resume still M2 |
 | Split-RAW segment writes | Implemented (core + package) | Acquisition + `create_fsnap_from_segments` | Optional `evidence_segments`; single-file Analysis goldens unchanged |
 | `.fsnap` v0.1 create/verify | Implemented + **Analysis-frozen** | Package tests + 6 golden fixtures + CLI | Single `evidence.raw` only |
 | Independent verifier CLI | Implemented | `trareon-verifier` CLI tests | Exit 0 / 2 only; no repair |
 | Analysis read-only importer | Implemented (M1 exit) | `trareon-analysis` covers all 6 goldens + immutability | Indexes outside package; no repair/upgrade |
-| Guided synthetic UI | Partial (Slint) | Slint cancel + SHA/size verify display | Manual a11y checklist PASS (legacy Tauri); automated scanner open; Guided/Standard/Expert modes not yet |
+| Guided synthetic UI | Partial (Slint) | Slint cancel + SHA/size + allowlist/elevation preflight hint + About | Guided/Standard/Expert modes not yet; automated a11y scanner open |
 | Cross-OS CI matrix | Implemented | GitHub Actions `test` × 3 OS | See Day 20 recovery-cycle note |
 | DevSecOps gates | Implemented | `deny.toml`, CI `security` job, `SECURITY.md` | Unmaintained advisories explicitly ignored |
 | Bounded property tests | Implemented | `tests/properties.rs` + fuzz corpus docs | Full `cargo-fuzz` `NotValidated` |
@@ -47,7 +47,10 @@ validate privilege boundaries only — not production raw-device adapters.
 | Windows raw-device UAC probe | Feasibility spike | Day 24 / PR #49 + `platform::windows` | Non-elevated denied; content read `NotValidated`; X270 `NotValidated` |
 | macOS raw-device privilege probe | Feasibility spike | Day 25 / PR #50 + `platform::macos` | Open denied without `operator`/helper; Intel/`hdiutil`/`FDA` `NotValidated` |
 | macOS allowlisted bounded raw sample | Lab smoke PASS | `disk10`/`rdisk10` tiny11 USB; 1 MiB + 64 MiB; report `m2-lab-tiny11-2311-disk10.md` | NTFS volume RO; not Lab Beta exit |
+| macOS `disk10s1` unmounted bounded sample | Lab smoke PASS | 1 MiB SHA `445808af…`; Terminal sudo | Remounted partition historically busy |
 | macOS allowlisted full-disk raw acquire | Lab PASS | tiny11 `rdisk10` → `/Volumes/Untitled`; SHA `23e039c…`; decision `m2-fulldisk-rdisk10-to-untitled.md` | Single USB/host; not Lab Beta exit / not Windows/Linux |
+| Windows removable raw content | Deferred pack | `WINDOWS-LAB-OPERATOR-PACK.md` | Needs Windows host + HUMAN_APPROVAL |
+| Linux loop bounded acquire | Software prep | inventory + `lab_linux_loop_bounded_smoke` | Needs root lab + HUMAN_APPROVAL |
 | Privileged broker protocol | Spike only | `broker.rs` + `StubElevationHelper` | Helper trait exists; OS elevation still `NotImplemented` |
 | Lab source allowlist / system-disk deny | Implemented (M2 prep) | `lab_policy.rs` + fault_injection tests | Human-approved allowlist required for block/raw |
 | Signing / release / certification | Out of scope | Day 30 human gate | Lab Use Only; no Official Production |

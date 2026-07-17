@@ -1,0 +1,2 @@
+order_id,buyer_handle,email_redacted,tier,amount_idr,paid_at_utc,artifact_commit,os,checksum_sha256,delivered_at_utc,refund_status,notes
+EXAMPLE-001,example_user,redacted@example.com,Founder,199000,2026-01-01T00:00:00Z,REPLACE_WITH_COMMIT,macos,REPLACE_WITH_SHA,,none,template row — delete before real use

@@ -100,6 +100,8 @@ cargo run -p trareon-verifier --locked -- verify fixtures/fsnap-v0.1/valid
 | [`docs/FOUNDATION-DEMO.md`](docs/FOUNDATION-DEMO.md) | End-to-end synthetic demo + tamper demo |
 | [`docs/COMMERCIAL-V1-SCOPE.md`](docs/COMMERCIAL-V1-SCOPE.md) | Commercial v1 scope (zero-cash, unsigned) |
 | [`docs/COMMERCIAL-90-DAY-DAILY-PLAN.md`](docs/COMMERCIAL-90-DAY-DAILY-PLAN.md) | 90-day daily execution checklist |
+| [`docs/platform/WINDOWS-LAB-OPERATOR-PACK.md`](docs/platform/WINDOWS-LAB-OPERATOR-PACK.md) | Deferred Windows lab checklist |
+| [`docs/install/UNSIGNED-LIMITATIONS.md`](docs/install/UNSIGNED-LIMITATIONS.md) | Unsigned install limitations |
 | [`docs/ZERO-CASH-LAUNCH-PLAN.md`](docs/ZERO-CASH-LAUNCH-PLAN.md) | Business model without personal spend |
 | [`docs/IMPLEMENTATION-ROADMAP.md`](docs/IMPLEMENTATION-ROADMAP.md) | Tracks, result classes, exit criteria |
 | [`docs/fsnap-v0.1-read-contract.md`](docs/fsnap-v0.1-read-contract.md) | `.fsnap` v0.1 reader/verifier contract (Analysis-frozen) |

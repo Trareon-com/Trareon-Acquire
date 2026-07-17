@@ -1,10 +1,13 @@
 //! Bounded raw-device lab smoke (requires elevated privileges).
 //!
 //! Does **not** image the whole disk. Default bound: 1 MiB from `/dev/rdisk10`.
+//! Output: `/tmp/trareon-raw-bounded-lab/bounded-<max_bytes>.{raw,fsnap}`.
 //!
 //! ```bash
 //! sudo cargo run -p trareon-core --example lab_raw_bounded_smoke -- \
 //!   /dev/rdisk10 fixtures/lab-allowlists/tiny11-2311-disk10.json 1048576
+//! # optional larger bound (still not full disk):
+//! # … 67108864
 //! ```
 
 use std::{env, fs, path::PathBuf, process};
@@ -30,8 +33,10 @@ fn main() {
 
     let out_dir = PathBuf::from("/tmp/trareon-raw-bounded-lab");
     fs::create_dir_all(&out_dir).expect("tmpdir");
-    let evidence = out_dir.join("bounded.raw");
-    let package = out_dir.join("bounded.fsnap");
+    // Bound-specific names so a larger sample does not overwrite a smaller one.
+    let stem = format!("bounded-{max_bytes}");
+    let evidence = out_dir.join(format!("{stem}.raw"));
+    let package = out_dir.join(format!("{stem}.fsnap"));
     let _ = fs::remove_file(&evidence);
 
     let summary = match acquire_file(

@@ -13,6 +13,7 @@ human allowlist approval.
 - [x] Operator designated removable media `/Volumes/tiny11 2311` → `/dev/disk10` (allowlist + file-backed smoke PASS)
 - [x] Raw open of `disk10`/`rdisk10` Available under elevation (operator sudo probe 2026-07-17)
 - [x] Bounded raw content sample (`lab_raw_bounded_smoke`, 1 MiB) under sudo — SHA `41fb8d9…` PASS + independent verify
+- [ ] Optional larger bound (64 MiB) on same allowlist — runbook §F (still not full disk)
 - [ ] Allowlisted lab media + write-block process approved for **additional** devices as needed
 - [ ] Full-disk acquire of allowlisted media (explicit new gate only)
 - [ ] GitHub Actions billing/spending limit restored so PR checks can run

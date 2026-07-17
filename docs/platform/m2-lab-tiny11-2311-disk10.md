@@ -59,6 +59,7 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
 
 ## Next
 
-- Optional: unmount volume then probe `/dev/disk10s1`, or larger bounded samples with explicit gate
+- Optional next gate: **64 MiB** bounded sample (runbook §F) — still not full disk
+- Optional: unmount volume then probe `/dev/disk10s1`
 - Full-disk acquire only with a new human gate
 - Restore GitHub Actions billing for normal CI

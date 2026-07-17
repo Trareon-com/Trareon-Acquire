@@ -36,7 +36,7 @@ fn main() {
         process::exit(2);
     }
 
-    let out_dir = PathBuf::from(env::temp_dir()).join("trareon-windows-bounded-lab");
+    let out_dir = env::temp_dir().join("trareon-windows-bounded-lab");
     fs::create_dir_all(&out_dir).expect("tmpdir");
     let stem = format!("bounded-{max_bytes}");
     let evidence = out_dir.join(format!("{stem}.raw"));

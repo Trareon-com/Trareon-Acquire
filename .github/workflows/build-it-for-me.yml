@@ -22,7 +22,7 @@ jobs:
   community-build:
     runs-on: ${{ inputs.platform }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Install Linux Tauri build dependencies
         if: runner.os == 'Linux'
@@ -39,9 +39,17 @@ jobs:
             libssl-dev \
             patchelf
 
+      # Same as ci.yml: clear unused preinstalled aws/tap before brew runs.
+      - name: Remove unused preinstalled Homebrew taps
+        if: runner.os == 'macOS'
+        run: |
+          if brew tap 2>/dev/null | grep -Fxq aws/tap; then
+            brew untap aws/tap
+          fi
+
       - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: "22"
 
@@ -81,14 +89,14 @@ jobs:
 
       - name: Upload community build artifact
         id: upload
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: trareon-acquire-community-build-${{ inputs.platform }}
           path: community-build
           retention-days: 7
 
       - name: Attest community build artifact
-        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6
         with:
           subject-path: community-build/COMMUNITY-SELF-BUILD.txt
           predicate-type: "https://trareon.com/attestations/community-self-build/v1"

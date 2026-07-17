@@ -136,6 +136,23 @@
       </p>
     </section>
   {/if}
+
+  <section class="about" aria-labelledby="about-heading">
+    <h2 id="about-heading">About</h2>
+    <p>
+      <strong>Trareon Acquire</strong> — Engineering Alpha foundation demo (file-backed /
+      synthetic sources only).
+    </p>
+    <p>
+      Steward: Yusuf Shalahuddin Al Ayyubi As Sobari · Organization: Trareon
+    </p>
+    <p class="help">
+      Limitations (draft): see repository docs
+      <code>docs/LEGAL-LIMITATIONS-DRAFT.md</code>,
+      <code>docs/USER-GUIDE.md</code>, and
+      <code>docs/CAPABILITY-MATRIX-M0.md</code>. No certification or production claim.
+    </p>
+  </section>
 </main>
 
 <style>
@@ -196,5 +213,11 @@
   .not-validated {
     font-size: 0.85rem;
     color: #555;
+  }
+
+  .about {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ccc;
   }
 </style>

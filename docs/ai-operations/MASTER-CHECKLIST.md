@@ -22,9 +22,15 @@ Update: PR #35 (`fix/rename-traeron-to-trareon`) sudah di-merge ke `main` (merge
 
 Update: Day 22 (property/fuzz baseline) diimplementasikan tanpa dependency produk baru — suite `crates/trareon-core/tests/properties.rs`, corpus sintetis `fixtures/fuzz-corpus/v0/`, docs bound di `docs/fuzz/README.md`, dan step CI `bounded property/fuzz smoke`. Full `cargo-fuzz`/libFuzzer tetap `NotValidated` (butuh review dependency/toolchain). Entry gate "independent review Day 21 EXPECTED_PASS" belum terpenuhi formal (Review Day 21 masih `NOT_STARTED`); dilanjutkan dengan pola yang sama seperti Day 21 yang juga mulai tanpa Codex review Day 20, dan dicatat jujur di sini.
 
-Update: Day 26 (performance baseline) diukur tanpa dependency baru dan tanpa optimasi — harness `crates/trareon-core/tests/performance.rs`, laporan `docs/performance/m0-day26-baseline.md`, dan step CI `performance baseline smoke`. Peak RSS tetap `NotValidated` (tidak ada sampler portabel). Entry gate Day 25 `EXPECTED_PASS` belum terpenuhi (Day 23–25 masih `MANUAL_START`/`NOT_STARTED`); dilanjutkan hanya untuk jalur file-backed sintetis, dicatat jujur di sini.
+Update: Day 26 (performance baseline) diukur tanpa dependency baru dan tanpa optimasi — harness `crates/trareon-core/tests/performance.rs`, laporan `docs/performance/m0-day26-baseline.md`, dan step CI `performance baseline smoke`. Peak RSS tetap `NotValidated` (tidak ada sampler portabel). Entry gate Day 25 `EXPECTED_PASS` belum terpenuhi (Day 23–25 masih `MANUAL_START`/`NOT_STARTED`); dilanjutkan hanya untuk jalur file-backed sintetis, dicatat jujur di sini. PR #43 sudah di-merge; hosted CI `PASS_3OS` + security.
 
-Day 23-25 dan Day 27-30 tetap `NOT_STARTED` — feasibility perangkat (23-25 `MANUAL_START`), capability matrix, docs, adversarial review, dan freeze gate belum disentuh. Independent review Codex untuk Day 01-26 juga masih `NOT_STARTED` (hosted CI hijau bukan pengganti).
+Update: Day 27 (capability matrix + `.fsnap` freeze candidate) mengonsolidasikan evidence ke `docs/CAPABILITY-MATRIX-M0.md`, menandai kontrak baca sebagai freeze candidate, dan memperbarui discrepancy register. Breaking ambiguities (split-RAW packaging, Codex reviews, Day 23–25 devices, Day 30 human gate) **memblokir** klaim freeze keras — dicatat eksplisit. Entry gate Day 26 review `EXPECTED_PASS` belum terpenuhi formal; dilanjutkan dengan pola jujur yang sama.
+
+Update: Day 28 (About / user guide / legal draft) menambah `docs/USER-GUIDE.md`, `docs/LEGAL-LIMITATIONS-DRAFT.md` (LEGAL_DRAFT_ONLY), mapping help, dan section About di UI dengan atribusi Trareon/Yusuf tanpa klaim sertifikasi. Entry gate Day 27 review belum formal; dilanjutkan dengan pola jujur.
+
+Update: Day 29 (adversarial review) menulis `docs/ADVERSARIAL-REVIEW-M0.md` terhadap freeze base `9e24b15` + tip branch docs/UI. Tidak ada P0/P1 baru; residual limitations tetap memblokir klaim EAC. **Day 30 tidak di-auto-approve.**
+
+Day 23-25 tetap `NOT_STARTED` (`MANUAL_START`). Day 30 menunggu `HUMAN_APPROVAL`. Independent review Codex untuk Day 01-29 masih `NOT_STARTED`.
 
 | Day | Task | Author | Reviewer | Risk | Autonomy | Branch | Frozen SHA | Implementation | Review | CI | Platform | Incident | Recovery | Human Gate | Evidence | Next |
 |---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -53,10 +59,10 @@ Day 23-25 dan Day 27-30 tetap `NOT_STARTED` — feasibility perangkat (23-25 `MA
 | 23 | Linux feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d23-linux | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 24 |
 | 24 | Windows feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d24-windows | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 25 |
 | 25 | macOS feasibility | Claude | Codex | High | MANUAL_START | feat/m0-d25-macos | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED_FOR_DEVICE | NOT_STARTED | 26 |
-| 26 | Performance baseline | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d26-performance | 4008934abccd5a339c97bd58e5ab233693af8581 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-43 | 27 |
-| 27 | Capability matrix and freeze | Codex | Claude | High | AUTO_WITH_REVIEW | feat/m0-d27-matrix | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | NOT_STARTED | 28 |
-| 28 | Docs About and limitations | Claude | Codex | Medium | AUTO_WITH_REVIEW | feat/m0-d28-docs | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | LEGAL_DRAFT_ONLY | NOT_STARTED | 29 |
-| 29 | Adversarial review | Codex | Claude | High | AUTO_WITH_REVIEW | feat/m0-d29-adversarial | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | NOT_STARTED | 30 |
+| 26 | Performance baseline | Claude | Codex | High | AUTO_WITH_REVIEW | feat/m0-d26-performance | 4008934abccd5a339c97bd58e5ab233693af8581 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | PASS_3OS | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-43 | 27 |
+| 27 | Capability matrix and freeze | Codex | Claude | High | AUTO_WITH_REVIEW | feat/m0-d27-matrix | ff5933353b1d3414ee74c3f1cdf0460b22ec5af6 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-44 | 28 |
+| 28 | Docs About and limitations | Claude | Codex | Medium | AUTO_WITH_REVIEW | feat/m0-d28-docs | f861379abfc1f48c46fbc584fd371c40b6cf9974 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | LEGAL_DRAFT_ONLY | PR-45 | 29 |
+| 29 | Adversarial review | Codex | Claude | High | AUTO_WITH_REVIEW | feat/m0-d29-adversarial | f346430457587901d74370df5e87c1c20a05fc32 | IMPLEMENTED_UNREVIEWED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | NOT_REQUIRED | PR-46 | 30 |
 | 30 | EAC and fsnap freeze gate | Codex | Human | Release-critical | HUMAN_APPROVAL | feat/m0-d30-gate | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NOT_STARTED | NONE | 0 | REQUIRED | NOT_STARTED | M1 |
 
 ## Milestone gates

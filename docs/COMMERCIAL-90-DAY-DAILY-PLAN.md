@@ -14,7 +14,7 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` pending
 |------|---------|-------|------|
 | 1 | 18 Jul | Freeze `COMMERCIAL-V1-SCOPE.md`; buat gap audit | [x] |
 | 2 | 19 Jul | Gap audit Windows/Linux/macOS blockers | [x] |
-| 3 | 20 Jul | Operator: unmount tiny11 → smoke `disk10s1` | [ ] |
+| 3 | 20 Jul | Operator: unmount tiny11 → smoke `disk10s1` | [x] |
 | 4 | 21 Jul | Broker CI tests `PhysicalDrive0` + shell deny | [x] |
 | 5 | 22 Jul | `macos-elevation-operator-guide.md` | [x] |
 | 6 | 23 Jul | Windows bounded smoke example + allowlist template | [x] |

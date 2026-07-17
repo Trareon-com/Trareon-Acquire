@@ -9,7 +9,7 @@ Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 pr
 |------|--------|-------------------------------|
 | File-backed acquire + verifier | **PASS** | — |
 | macOS raw lab (tiny11) | **PASS** (bounded + full) | Perlu media ke-2 untuk klaim lebar |
-| macOS `disk10s1` mounted | **NotValidated** | Operator unmount (Hari 3) |
+| macOS `disk10s1` mounted | **PASS while unmounted** (1 MiB) | Remount still busy historically |
 | Windows raw acquire | **NotValidated** | Adapter + lab USB (Hari 8–14) |
 | Linux loop acquire | **NotValidated** | Root lab session (Hari 15–20) |
 | Real elevation helper | **Stub only** | Hari 40+; until then `sudo`/UAC manual |
@@ -27,6 +27,7 @@ Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 pr
 | Broker stub + allowlist bind | Implemented |
 | Helper binary | Not implemented |
 | Intel Mac | NotValidated |
+| `disk10s1` unmounted bounded sample | **PASS** (1 MiB, SHA `445808af…`) |
 
 ## Windows (gap)
 
@@ -59,7 +60,6 @@ Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 pr
 
 ## Priority order (next 7 days)
 
-1. Operator Hari 3: `disk10s1` smoke (`./scripts/operator-disk10s1-smoke.sh`)
-2. Windows lab inventory fill + allowlist approval (Hari 8–9)
-3. Windows elevated open + bounded 1 MiB (Hari 10–11)
-4. Linux loop Hari 15–17
+1. Windows lab inventory fill + allowlist approval (Hari 8–9)
+2. Windows elevated open + bounded 1 MiB (Hari 10–11)
+3. Linux loop Hari 15–17

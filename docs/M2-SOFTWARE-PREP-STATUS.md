@@ -23,13 +23,10 @@ Tip: `main` after Slint cutover + commercial week-1 merge
 - Bounded raw sample **1 MiB** PASS (SHA `41fb8d9…`) + independent verify
 - Bounded raw sample **64 MiB** PASS (SHA `a0ff343…`) + independent verify
 - Full-disk **PASS** (SHA `23e039c…`, 61524148224 bytes) + independent verify on Untitled
-- 2026-07-17 recheck: `disk10s1` present, **unmounted**, unelevated open `EACCES`;
-  operator script `scripts/operator-disk10s1-smoke.sh` ready (needs interactive sudo)
+- 2026-07-17 recheck: `disk10s1` present, **unmounted**, unelevated open `EACCES`
+- Bounded raw sample **1 MiB of unmounted `disk10s1`** PASS (SHA `445808af…`) + independent verify
+  (Terminal `sudo`; osascript admin alone hit TCC `EPERM`)
 
-## Still blocked / NotValidated (HUMAN_APPROVAL_REQUIRED)
-
-- Elevated `disk10s1` open/sample (optional; volume currently unmounted)
-- Real OS elevation helper (M2-P04; stub remains)
 - Windows narrow-storage lab host inventory fill + media allowlist approval (M2-P01 / Hari 8–9)
 - Linux physical loop fault session (M2-P02)
 - Writable staging on NTFS volume (RO mount)

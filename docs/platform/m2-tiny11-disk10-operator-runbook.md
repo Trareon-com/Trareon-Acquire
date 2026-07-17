@@ -70,23 +70,17 @@ Recorded: `RAW_BOUNDED_OK` bytes=`1048576`, SHA
 `41fb8d926780c7eb45521713b3f5df286c2e06d1627df47ac03934059ff4c313`.
 Package naming (current example): `/tmp/trareon-raw-bounded-lab/bounded-1048576.fsnap`.
 
-## F. Larger bound (64 MiB — next optional gate, still not full disk)
-
-Same allowlist; larger `max_bytes` only. Does **not** image ~57 GiB.
+## F. Larger bound (64 MiB — PASS, still not full disk)
 
 ```bash
 cd "/Users/user/Projects/Trareon/Trareon Acquire"
 sudo cargo run -p trareon-core --example lab_raw_bounded_smoke -- \
   /dev/rdisk10 fixtures/lab-allowlists/tiny11-2311-disk10.json 67108864
-```
-
-Expect `RAW_BOUNDED_OK` with `bytes=67108864`. Then:
-
-```bash
 cargo run -q -p trareon-verifier -- verify /tmp/trareon-raw-bounded-lab/bounded-67108864.fsnap
 ```
 
-Paste both command outputs into chat or the lab report.
+Recorded: `RAW_BOUNDED_OK` bytes=`67108864`, SHA
+`a0ff3432080bcd12f2e34f2a9ebb0c7b1388ae811ca7f45f4953eefc767cfe5f`, verifier `VALID`.
 
 ## G. Partition node after unmount (optional)
 

@@ -30,8 +30,14 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
    - Command: `lab_raw_bounded_smoke /dev/rdisk10 … 1048576`
    - Result: `RAW_BOUNDED_OK` bytes=`1048576`
    - SHA-256: `41fb8d926780c7eb45521713b3f5df286c2e06d1627df47ac03934059ff4c313`
-   - Package: `/tmp/trareon-raw-bounded-lab/bounded.fsnap` (not committed)
+   - Package: `/tmp/trareon-raw-bounded-lab/bounded-1048576.fsnap` (not committed)
    - Independent re-verify: `trareon-verifier verify` → `VALID` same SHA/size
+7. **Bounded raw content smoke (operator `sudo`, 64 MiB):**
+   - Command: `lab_raw_bounded_smoke /dev/rdisk10 … 67108864`
+   - Result: `RAW_BOUNDED_OK` bytes=`67108864`
+   - SHA-256: `a0ff3432080bcd12f2e34f2a9ebb0c7b1388ae811ca7f45f4953eefc767cfe5f`
+   - Package: `/tmp/trareon-raw-bounded-lab/bounded-67108864.fsnap` (not committed)
+   - Independent verify (operator + agent re-check): `VALID` same SHA/size
 
 ## Capability claims
 
@@ -42,6 +48,7 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
 | Elevated open of `disk10` / `rdisk10` | PASS |
 | Elevated open of mounted `disk10s1` | Busy while mounted |
 | Bounded raw content sample (1 MiB of `rdisk10`) | **PASS** (lab smoke; not full disk) |
+| Bounded raw content sample (64 MiB of `rdisk10`) | **PASS** (lab smoke; not full disk) |
 | Full-disk raw acquire of `rdisk10` | **NotValidated** / not requested |
 | Writable staging on this volume | **NotValidated** (RO mount) |
 
@@ -55,11 +62,10 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
 ## Agent elevation attempt (2026-07-17)
 
 - `sudo -n` open-only probe: **failed** (`sudo: a password is required`) — agent cannot enter interactive admin password.
-- Operator-run elevated steps (open + 1 MiB bounded acquire) are authoritative for this report.
+- Operator-run elevated steps (open + 1 MiB + 64 MiB bounded acquire) are authoritative for this report.
 
 ## Next
 
-- Optional next gate: **64 MiB** bounded sample (runbook §F) — still not full disk
 - Optional: unmount volume then probe `/dev/disk10s1`
 - Full-disk acquire only with a new human gate
 - Restore GitHub Actions billing for normal CI

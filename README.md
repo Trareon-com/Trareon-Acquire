@@ -13,13 +13,18 @@ It is **not** validated for Official Production evidence on real devices.
 Capability without exact hardware evidence remains `NotValidated`.
 Milestone review: [`docs/M0-MILESTONE-REVIEW.md`](docs/M0-MILESTONE-REVIEW.md).
 
+**Commercial (zero-cash):** sellable **unsigned** Founder builds under GPLv3 when
+Gates 1–2 open. Windows raw lab is deferred to
+[`docs/platform/WINDOWS-LAB-OPERATOR-PACK.md`](docs/platform/WINDOWS-LAB-OPERATOR-PACK.md).
+Waitlist/Founder page **drafts** live under `docs/commercial/` (not live signup).
+
 ## What works today (M0 foundation)
 
 | Area | Status |
 |---|---|
 | Portable Rust core (`trareon-core`) | Implemented — file-backed acquire, audit chain, `.fsnap` create/verify |
 | Independent verifier CLI (`trareon-verifier`) | Implemented — golden fixtures + fail-closed checks |
-| Desktop shell (**Slint + Rust**, GPLv3) | **Primary** — foundation demo with paths, cancel, verify |
+| Desktop shell (**Slint + Rust**, GPLv3) | **Primary** — Guided/Standard/Expert, cancel, verify, CoC export |
 | Desktop shell (Tauri + Svelte) | **Removed from build** — archived under `apps/trareon-acquire/` |
 | Cross-platform CI (Ubuntu / Windows / macOS) | Hosted CI green for the foundation slice |
 | DevSecOps gates (`cargo deny`, npm audit, secret scan) | Implemented on `main` |
@@ -32,7 +37,7 @@ Milestone review: [`docs/M0-MILESTONE-REVIEW.md`](docs/M0-MILESTONE-REVIEW.md).
 | macOS raw-device privilege probe | Feasibility spike (Day 25 / M4 Pro); open `/dev/rdisk0` denied without elevation |
 | Production release / signing / certification | **Out of scope** — Lab Use Only EAC only |
 
-Authoritative status tracking: [`docs/ai-operations/MASTER-CHECKLIST.md`](docs/ai-operations/MASTER-CHECKLIST.md).  
+Authoritative status tracking: [`docs/ai-operations/MASTER-CHECKLIST.md`](docs/ai-operations/MASTER-CHECKLIST.md).
 Shell / license decision: [`docs/ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md`](docs/ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md).
 
 ## Repository layout

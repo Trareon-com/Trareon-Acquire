@@ -1,13 +1,17 @@
 # Commercial launch status
 
-Last updated: 2026-07-17 (Hari 3 disk10s1 PASS)
+Last updated: 2026-07-17 (non-Windows commercial finish pack)
 Plan: [`COMMERCIAL-90-DAY-DAILY-PLAN.md`](COMMERCIAL-90-DAY-DAILY-PLAN.md)
 
 ## Current day
 
-**Hari 3 closed** — unmounted `/dev/disk10s1` bounded 1 MiB smoke PASS +
-independent verify. Next blocker is Windows lab host work (Hari 8 inventory fill
-→ allowlist approval → elevated smoke).
+**Software finish pack landed** — unsigned install docs, self-test, founder
+build helper, Linux lab software prep, UI preflight/About, and commercial
+drafts are in-repo. **All Windows hardware days are deferred** to
+[`platform/WINDOWS-LAB-OPERATOR-PACK.md`](platform/WINDOWS-LAB-OPERATOR-PACK.md).
+
+Remaining blockers are human/business gates (waitlist, payment, demo video)
+plus the Windows pack and Linux root loop attach.
 
 ## Week 1 deliverables
 
@@ -21,17 +25,26 @@ independent verify. Next blocker is Windows lab host work (Hari 8 inventory fill
 | Broker `PhysicalDrive0` deny test | Done |
 | Week-1 review, merge, and matrix update | Done |
 | `disk10s1` operator smoke | **PASS** (1 MiB, SHA `445808af…`) |
-| Windows lab inventory scaffold (Hari 8) | Done (fill on Windows host) |
+| Windows lab inventory scaffold (Hari 8) | Done → collected in operator pack |
+| Linux lab software prep | Done (inventory + example + template) |
+| Unsigned install docs | Done (`docs/install/`) |
+| Self-test / founder-build scripts | Done |
 
 ## Gates
 
 | Gate | Target day | Status |
 |------|------------|--------|
 | Gate 0 public foundation | Done (M0/M1) | PASS |
-| Gate 1 waitlist | 39 | Not started |
-| Gate 2 Founder preorder | 53 | Not started |
+| Gate 1 waitlist | 39 | **Human** — software ready; not opened |
+| Gate 2 Founder preorder | 53 | **Human** — legal draft + ledger template ready |
 | Gate 3 external spend (signing) | 80+ | Blocked (zero-cash) |
 | Gate 4 paid release | 82+ | Not started |
+
+## Deferred: Windows lab
+
+See [`platform/WINDOWS-LAB-OPERATOR-PACK.md`](platform/WINDOWS-LAB-OPERATOR-PACK.md)
+for Hari 8–14 / 22 / 64 / 88 in one checklist. Do not claim Windows raw PASS
+until that pack is executed on a Windows host.
 
 ## Hari 3 result (disk10s1)
 
@@ -39,28 +52,12 @@ independent verify. Next blocker is Windows lab host work (Hari 8 inventory fill
 source=/dev/disk10s1 bound=1048576
 sha256=445808af80ff3a67e29fcd10131b690fc27d2243297186524b5cd7de4d3a63ff
 verifier=VALID
-package=/tmp/trareon-raw-bounded-lab/bounded-1048576.fsnap  (not committed)
 ```
-
-Re-run (if remounted, unmount first):
-
-```bash
-cd "/Users/user/Projects/Trareon/Trareon Acquire"
-./scripts/operator-disk10s1-smoke.sh
-```
-
-## Windows next (Hari 8–11)
-
-1. Fill [`docs/platform/windows-lab-inventory.md`](platform/windows-lab-inventory.md) on the Windows lab host.
-2. Accept [`docs/ai-operations/DECISIONS/2026-07-17-windows-lab-media-decision-request.md`](ai-operations/DECISIONS/2026-07-17-windows-lab-media-decision-request.md).
-3. Author media-specific allowlist from `fixtures/lab-allowlists/windows-usb-template.json`.
-4. Elevated open-only, then `lab_windows_bounded_smoke` 1 MiB + verify.
 
 ## Session log
 
 | Date | Note |
 |------|------|
-| 2026-07-17 | Hari 1–6 docs + Windows smoke example + broker test; CI expected green on PR |
-| 2026-07-17 | Week-1 branch merged; Slint replaced Tauri as the primary desktop shell |
-| 2026-07-17 | Hari 8 inventory + Windows media decision request; disk10s1 unmounted/ready |
-| 2026-07-17 | Hari 3 disk10s1 1 MiB PASS + verify (Terminal sudo) |
+| 2026-07-17 | Hari 1–6 docs + Windows smoke example + broker test |
+| 2026-07-17 | Slint cutover; docs sync; Hari 8 scaffold; disk10s1 PASS |
+| 2026-07-17 | Non-Windows finish pack; Windows work collected in operator pack |

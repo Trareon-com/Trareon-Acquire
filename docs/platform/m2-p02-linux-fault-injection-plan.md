@@ -35,6 +35,13 @@ LOOP=$(sudo losetup -f --show -r "$IMG")   # read-only loop
 # never claim Linux raw-acquire PASS from probes alone
 ```
 
+## Software added
+
+- Inventory scaffold: `docs/platform/linux-lab-inventory.md`
+- Decision request: `docs/ai-operations/DECISIONS/2026-07-17-linux-loop-lab-decision-request.md`
+- Allowlist template: `fixtures/lab-allowlists/linux-loop-template.json`
+- Example: `lab_linux_loop_bounded_smoke`
+
 ## Non-goals
 
 Claiming Linux raw-acquire PASS from probes alone; using the host system disk.

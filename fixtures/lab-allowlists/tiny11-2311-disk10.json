@@ -1,0 +1,23 @@
+{
+  "schema": "trareon.lab-allowlist/1",
+  "human_approved": true,
+  "approved_by": "operator (chat 2026-07-17): designated /Volumes/tiny11 2311",
+  "entries": [
+    {
+      "source_identity": "/dev/disk10",
+      "notes": "Removable whole disk for volume tiny11 2311; never system disk0"
+    },
+    {
+      "source_identity": "/dev/rdisk10",
+      "notes": "Raw character node for disk10"
+    },
+    {
+      "source_identity": "/dev/disk10s1",
+      "notes": "Mounted partition; Mount Point /Volumes/tiny11 2311"
+    },
+    {
+      "source_identity": "/Volumes/tiny11 2311",
+      "notes": "Mounted lab volume (filesystem path; not a raw acquire source by itself)"
+    }
+  ]
+}

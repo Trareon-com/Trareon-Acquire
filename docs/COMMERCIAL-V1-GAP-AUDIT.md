@@ -1,6 +1,6 @@
 # Commercial v1 — gap audit (Day 2)
 
-Date: 2026-07-17  
+Date: 2026-07-17
 Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 probes
 
 ## Summary
@@ -13,7 +13,7 @@ Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 pr
 | Windows raw acquire | **NotValidated** | Adapter + lab USB (Hari 8–14) |
 | Linux loop acquire | **NotValidated** | Root lab session (Hari 15–20) |
 | Real elevation helper | **Stub only** | Hari 40+; until then `sudo`/UAC manual |
-| UI cancel wired | **Partial** | Hari 24 |
+| UI cancel wired | **PASS** (Slint → `cancel_flag`) | Hari 24 closed early |
 | Signing/notarization | **Deferred** | Zero-cash; unsigned + docs |
 | Waitlist / Founder page | **Not started** | Hari 39–53 |
 
@@ -34,7 +34,7 @@ Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 pr
 |------|-------|
 | UAC probe `PhysicalDrive0` | Day 24 PASS (open only) |
 | `PhysicalDriveN` content acquire | **Not started** |
-| Allowlist for removable USB | Template only (`fixtures/lab-allowlists/windows-usb-template.json`) |
+| Allowlist for removable USB | Template + Hari 8 inventory/decision request (approval pending) |
 | Bounded smoke example | Added `lab_windows_bounded_smoke` (operator elevated) |
 | Split/resume on raw | Not tested |
 
@@ -59,7 +59,7 @@ Baseline evidence: `docs/platform/m2-lab-tiny11-2311-disk10.md`, Days 23–25 pr
 
 ## Priority order (next 7 days)
 
-1. Operator Hari 3: `disk10s1` smoke  
-2. Windows lab setup Hari 8–11  
-3. Linux loop Hari 15–17  
-4. UI cancel Hari 24 (can slip if Windows critical path slips)
+1. Operator Hari 3: `disk10s1` smoke (`./scripts/operator-disk10s1-smoke.sh`)
+2. Windows lab inventory fill + allowlist approval (Hari 8–9)
+3. Windows elevated open + bounded 1 MiB (Hari 10–11)
+4. Linux loop Hari 15–17

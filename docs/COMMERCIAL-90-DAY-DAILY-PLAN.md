@@ -1,7 +1,7 @@
 # Commercial launch — 90-day daily plan
 
-Start: **2026-07-18** (Hari 1) · End: **2026-10-15** (Hari 90)  
-Scope: [`COMMERCIAL-V1-SCOPE.md`](COMMERCIAL-V1-SCOPE.md) · Cash: [`ZERO-CASH-LAUNCH-PLAN.md`](ZERO-CASH-LAUNCH-PLAN.md)  
+Start: **2026-07-18** (Hari 1) · End: **2026-10-15** (Hari 90)
+Scope: [`COMMERCIAL-V1-SCOPE.md`](COMMERCIAL-V1-SCOPE.md) · Cash: [`ZERO-CASH-LAUNCH-PLAN.md`](ZERO-CASH-LAUNCH-PLAN.md)
 Progress tracker: [`COMMERCIAL-LAUNCH-STATUS.md`](COMMERCIAL-LAUNCH-STATUS.md)
 
 Legend: `[x]` done · `[~]` in progress · `[ ]` pending
@@ -19,7 +19,7 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` pending
 | 5 | 22 Jul | `macos-elevation-operator-guide.md` | [x] |
 | 6 | 23 Jul | Windows bounded smoke example + allowlist template | [x] |
 | 7 | 24 Jul | Review minggu 1; merge; update matrix | [x] |
-| 8 | 25 Jul | Windows lab inventory + allowlist decision | [ ] |
+| 8 | 25 Jul | Windows lab inventory + allowlist decision | [~] |
 | 9 | 26 Jul | Allowlist JSON Windows USB | [ ] |
 | 10 | 27 Jul | Windows elevated open probe non-system drive | [ ] |
 | 11 | 28 Jul | Windows bounded 1 MiB + verifier | [ ] |
@@ -35,8 +35,8 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` pending
 | 21 | 7 Agu | macOS cancel mid-acquire raw | [ ] |
 | 22 | 8 Agu | Windows cancel mid-acquire | [ ] |
 | 23 | 9 Agu | Linux cancel mid-acquire | [ ] |
-| 24 | 10 Agu | UI cancel → `cancel_flag` E2E | [ ] |
-| 25 | 11 Agu | UI verifier result display | [ ] |
+| 24 | 10 Agu | UI cancel → `cancel_flag` E2E | [x] |
+| 25 | 11 Agu | UI verifier result display | [x] |
 | 26 | 12 Agu | UI allowlist + elevation preflight | [ ] |
 | 27 | 13 Agu | CI regression 3 OS | [ ] |
 | 28 | 14 Agu | Capability matrix 3 OS evidence | [ ] |

@@ -3,6 +3,7 @@
 mod acquisition;
 mod audit;
 mod broker;
+mod checkpoint;
 mod domain;
 mod package;
 pub mod platform;
@@ -10,7 +11,12 @@ pub mod platform;
 pub use acquisition::{AcquireRequest, AcquisitionSummary, SegmentInfo, acquire_file};
 pub use audit::{AuditEvent, AuditJournal};
 pub use broker::{
-    BrokerOperation, BrokerRequest, BrokerResponse, evaluate_broker_request, plan_digest,
+    BrokerOperation, BrokerRequest, BrokerResponse, ElevationHelper, StubElevationHelper,
+    evaluate_broker_request, plan_digest,
+};
+pub use checkpoint::{
+    AcquisitionCheckpoint, clear_checkpoint, default_checkpoint_path, load_checkpoint,
+    write_checkpoint,
 };
 pub use domain::{AcquisitionId, AcquisitionState, CaseId, CoreError};
 pub use package::{

@@ -118,6 +118,30 @@ pub fn plan_digest(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
 
+/// Elevation helper contract for a future privileged broker process.
+///
+/// Implementations must not shell out and must not claim OS elevation until a
+/// reviewed lab helper exists. The stub always returns `NotImplemented`.
+pub trait ElevationHelper: Send + Sync {
+    fn elevate_for(&self, request: &BrokerRequest) -> Result<BrokerResponse, CoreError>;
+}
+
+/// Spike-only helper: protocol-aware, never elevates.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct StubElevationHelper;
+
+impl ElevationHelper for StubElevationHelper {
+    fn elevate_for(&self, request: &BrokerRequest) -> Result<BrokerResponse, CoreError> {
+        match evaluate_broker_request(request)? {
+            BrokerResponse::Accepted { request_id } => Ok(BrokerResponse::NotImplemented {
+                request_id,
+                reason: "StubElevationHelper does not perform OS elevation".to_string(),
+            }),
+            other => Ok(other),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -169,5 +193,12 @@ mod tests {
         request.range_end = Some(10);
         let response = evaluate_broker_request(&request).unwrap();
         assert!(matches!(response, BrokerResponse::Denied { .. }));
+    }
+
+    #[test]
+    fn stub_elevation_helper_never_claims_privilege() {
+        let helper = StubElevationHelper;
+        let response = helper.elevate_for(&valid_request()).unwrap();
+        assert!(matches!(response, BrokerResponse::NotImplemented { .. }));
     }
 }

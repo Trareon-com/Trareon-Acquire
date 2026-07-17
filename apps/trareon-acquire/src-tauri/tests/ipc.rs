@@ -9,8 +9,9 @@ fn foundation_demo_produces_verified_complete_package() {
     let output_dir = dir.path().join("output");
     fs::write(&source, b"synthetic training fixture, not real evidence").unwrap();
 
-    let result = run_foundation_demo_inner(source.to_str().unwrap(), output_dir.to_str().unwrap())
-        .expect("foundation demo should succeed on a synthetic fixture");
+    let result =
+        run_foundation_demo_inner(source.to_str().unwrap(), output_dir.to_str().unwrap(), None)
+            .expect("foundation demo should succeed on a synthetic fixture");
 
     assert_eq!(result.status, "verified_complete");
     assert!(trareon_core::verify_fsnap(std::path::Path::new(&result.package_path)).is_ok());

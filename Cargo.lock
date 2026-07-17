@@ -3582,6 +3582,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "trareon-analysis"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "trareon-core",
+]
+
+[[package]]
 name = "trareon-core"
 version = "0.1.0"
 dependencies = [

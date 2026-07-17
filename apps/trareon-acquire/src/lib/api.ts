@@ -16,3 +16,7 @@ export function runFoundationDemo(
     outputDir,
   });
 }
+
+export function cancelFoundationDemo(): Promise<void> {
+  return invoke<void>("cancel_foundation_demo");
+}

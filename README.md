@@ -19,8 +19,8 @@ Milestone review: [`docs/M0-MILESTONE-REVIEW.md`](docs/M0-MILESTONE-REVIEW.md).
 |---|---|
 | Portable Rust core (`trareon-core`) | Implemented — file-backed acquire, audit chain, `.fsnap` create/verify |
 | Independent verifier CLI (`trareon-verifier`) | Implemented — golden fixtures + fail-closed checks |
-| Desktop shell (**Slint + Rust**, GPLv3) | **Selected** — foundation synthetic demo in `apps/acquire-slint` |
-| Desktop shell (Tauri + Svelte) | **Deprecated** — retained until Slint cutover complete |
+| Desktop shell (**Slint + Rust**, GPLv3) | **Primary** — foundation demo with paths, cancel, verify |
+| Desktop shell (Tauri + Svelte) | **Removed from build** — archived under `apps/trareon-acquire/` |
 | Cross-platform CI (Ubuntu / Windows / macOS) | Hosted CI green for the foundation slice |
 | DevSecOps gates (`cargo deny`, npm audit, secret scan) | Implemented on `main` |
 | Bounded property tests / fuzz corpus docs | Implemented on `main` (Day 22); full `cargo-fuzz` still deferred |
@@ -41,7 +41,7 @@ Shell / license decision: [`docs/ai-operations/DECISIONS/2026-07-17-acquire-slin
 crates/trareon-core/          # Domain, acquisition, audit, .fsnap package API
 crates/trareon-verifier/      # Independent CLI: `trareon-verifier verify PATH`
 apps/acquire-slint/           # Slint desktop shell (primary UI)
-apps/trareon-acquire/          # Deprecated Tauri 2 + Svelte demo (pending removal)
+apps/trareon-acquire/          # Archived Tauri+Svelte demo (not built)
 fixtures/fsnap-v0.1/          # Synthetic golden packages (no real evidence)
 schemas/                      # Manifest JSON Schema
 docs/                         # Roadmap, demo guide, contracts, AI ops
@@ -54,7 +54,6 @@ never depends on the UI.
 
 - Rust toolchain pinned in [`rust-toolchain.toml`](rust-toolchain.toml) (`1.95.0`)
 - Linux GUI builds need Slint system libraries (see `.github/workflows/ci.yml`)
-- Node.js is only required for the **deprecated** Tauri shell
 
 ## Quick start
 
@@ -72,14 +71,20 @@ cargo clippy -p acquire-slint --all-targets --features gui -- -D warnings
 
 ```bash
 cargo run -p acquire-slint --features gui
-# Click "Run synthetic acquire" — writes under $TMPDIR/trareon-acquire-slint-demo/
+```
+
+In the UI: **Fill synthetic demo paths** (or Browse), confirm synthetic checkbox, **Run**.
+**Cancel** cooperatively stops an in-flight acquire via the core `cancel_flag`.
+
+```bash
+# After a successful run (default fill paths):
 cargo run -p trareon-verifier --locked -- verify "$TMPDIR/trareon-acquire-slint-demo/foundation.fsnap"
 ```
 
-Or headless synthetic package (no GUI):
+Or headless (no GUI):
 
 ```bash
-cargo test -p acquire-slint --features gui synthetic_demo -- --nocapture
+cargo test -p acquire-slint --features gui foundation_demo -- --nocapture
 ```
 
 ### Verify a golden fixture
@@ -112,8 +117,8 @@ cargo run -p trareon-verifier --locked -- verify fixtures/fsnap-v0.1/valid
 - **File-backed / synthetic only** in this slice — no raw-disk, elevated
   broker, live/RAM, mobile, or cloud acquisition.
 - **No production evidence claim** — do not use on real case media.
-- UI cancellation is not yet wired to the core `cancel_flag` (cancel exists
-  in core tests only).
+- UI cancellation is wired in the Slint shell to the core `cancel_flag`
+  (background acquire thread).
 - Split-RAW segmentation exists in the core but is not yet packaged into
   multi-segment `.fsnap` output.
 - Formal accessibility audit tooling has not been run (manual ARIA review only).

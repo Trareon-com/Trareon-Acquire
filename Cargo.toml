@@ -4,7 +4,6 @@ members = [
   "crates/trareon-verifier",
   "crates/trareon-analysis",
   "apps/acquire-slint",
-  "apps/trareon-acquire/src-tauri",
 ]
 resolver = "2"
 

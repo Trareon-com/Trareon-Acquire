@@ -34,47 +34,9 @@ feature-depth = 1
 # More documentation for the advisories section can be found here:
 # https://embarkstudios.github.io/cargo-deny/checks/advisories/cfg.html
 [advisories]
-# Keep Tauri Linux glib ignore even when host/target matrix omits it briefly.
+# Historical Tauri-only ignores may linger briefly across lockfile churn.
 unused-ignored-advisory = "allow"
-# The path where the advisory databases are cloned/fetched into
-#db-path = "$CARGO_HOME/advisory-dbs"
-# The url(s) of the advisory databases to use
-#db-urls = ["https://github.com/rustsec/advisory-db"]
-# A list of advisory IDs to ignore. Note that ignored advisories will still
-# output a note when they are encountered.
 ignore = [
-    # unic-* (RUSTSEC-2025-0080/0098/0100): transitive via tauri-utils ->
-    # urlpattern -> unic-ucd-ident. Unmaintained-crate advisories, not
-    # known vulnerabilities; no safe upgrade exists upstream yet and no
-    # unic-* crate is used directly by trareon-core/trareon-verifier/the
-    # Tauri app. Tracked here instead of hidden; revisit when tauri-utils
-    # drops the unic-* dependency chain or ships a fixed urlpattern.
-    { id = "RUSTSEC-2025-0080", reason = "unmaintained transitive dep of tauri-utils via urlpattern; no safe upgrade available upstream" },
-    { id = "RUSTSEC-2025-0098", reason = "unmaintained transitive dep of tauri-utils via urlpattern; no safe upgrade available upstream" },
-    { id = "RUSTSEC-2025-0100", reason = "unmaintained transitive dep of tauri-utils via urlpattern; no safe upgrade available upstream" },
-    { id = "RUSTSEC-2025-0075", reason = "unmaintained transitive dep of tauri-utils via urlpattern (unic-char-range); no safe upgrade available upstream" },
-    { id = "RUSTSEC-2025-0081", reason = "unmaintained transitive dep of tauri-utils via urlpattern (unic-char-property); no safe upgrade available upstream" },
-    # gtk-rs GTK3 bindings (RUSTSEC-2024-0411..0420): Tauri 2's default
-    # Linux backend depends on the gtk-rs 0.18 GTK3 bindings, which
-    # upstream marked unmaintained while the ecosystem moves to GTK4.
-    # This is a known, widely-tracked situation for Tauri 2.x apps on
-    # Linux, not specific to this project; no unaffected drop-in
-    # replacement exists yet without a Tauri major-version bump. No
-    # known CVE, only "unmaintained" advisories.
-    { id = "RUSTSEC-2024-0411", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
-    { id = "RUSTSEC-2024-0412", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
-    { id = "RUSTSEC-2024-0413", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
-    { id = "RUSTSEC-2024-0414", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
-    { id = "RUSTSEC-2024-0415", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
-    { id = "RUSTSEC-2024-0416", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
-    { id = "RUSTSEC-2024-0417", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
-    { id = "RUSTSEC-2024-0418", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
-    { id = "RUSTSEC-2024-0419", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
-    { id = "RUSTSEC-2024-0420", reason = "gtk-rs GTK3 bindings unmaintained; inherited from Tauri 2's default Linux backend, no CVE" },
-    # GHSA-wrw7-89jp-8q8g — Dependabot alert #1. Fixed only in glib>=0.20;
-    # gtk 0.18 (Tauri 2 Linux) cannot take that bump. Linux-only transitive;
-    # app never calls VariantStrIter. Revisit when Tauri app is removed.
-    { id = "RUSTSEC-2024-0429", reason = "glib 0.18.x unsoundness (GHSA-wrw7-89jp-8q8g); Tauri 2 gtk0.18 chain; no gtk3-compatible patched glib; re-evaluate when Tauri shell is removed" },
     { id = "RUSTSEC-2024-0370", reason = "proc-macro-error unmaintained; transitive build-time dependency, no CVE, no safe upgrade available upstream" },
     # Slint 1.17 transitive (winit/wayland/image/font stack). No direct use of
     # quick-xml on untrusted input in Acquire; paste/rustybuzz/ttf-parser are

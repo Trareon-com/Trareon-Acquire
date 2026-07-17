@@ -1,30 +1,116 @@
-import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { Button, VerticalBox, HorizontalBox, LineEdit, CheckBox } from "std-widgets.slint";
 
 export component AppWindow inherits Window {
     title: "Trareon Acquire";
-    preferred-width: 720px;
-    preferred-height: 420px;
+    preferred-width: 760px;
+    preferred-height: 560px;
 
+    in-out property <string> case-identity: "";
+    in-out property <string> source-path: "";
+    in-out property <string> output-dir: "";
+    in-out property <bool> confirmed-synthetic: false;
     in-out property <string> status-line: "Ready — Lab Use Only (Engineering Alpha)";
     in-out property <string> last-package: "(none)";
+    in-out property <string> evidence-sha256: "(none)";
+    in-out property <string> evidence-size: "(none)";
     in-out property <bool> busy: false;
+    // Computed in UI so typing in LineEdit enables Run without a round-trip.
+    property <bool> can-run: root.confirmed-synthetic && root.source-path != "" && root.output-dir != "" && !root.busy;
 
-    callback run-synthetic-clicked();
-    callback clear-status-clicked();
+    callback browse-source-clicked();
+    callback browse-output-clicked();
+    callback run-clicked();
+    callback cancel-clicked();
+    callback clear-clicked();
+    callback fill-synthetic-clicked();
 
     VerticalBox {
         padding: 16px;
-        spacing: 12px;
+        spacing: 10px;
 
         Text {
-            text: "Trareon Acquire";
+            text: "Trareon Acquire — Foundation Demo";
             font-size: 22px;
             font-weight: 700;
         }
 
         Text {
-            text: "GPLv3 · Slint shell · file-backed foundation demo";
+            text: "Engineering Alpha — Lab Use Only. Not validated for production evidence.";
             font-size: 13px;
+            wrap: word-wrap;
+        }
+
+        Text {
+            text: "Case identity (operator note only — not in audit/verify)";
+            font-size: 12px;
+        }
+        LineEdit {
+            text <=> root.case-identity;
+            enabled: !root.busy;
+            placeholder-text: "e.g. TRN-2026-0001";
+        }
+
+        Text { text: "Source path"; font-size: 12px; }
+        HorizontalBox {
+            spacing: 8px;
+            LineEdit {
+                horizontal-stretch: 1;
+                text <=> root.source-path;
+                enabled: !root.busy;
+                placeholder-text: "/path/to/synthetic-source.img";
+            }
+            Button {
+                text: "Browse…";
+                enabled: !root.busy;
+                clicked => { root.browse-source-clicked(); }
+            }
+        }
+
+        Text { text: "Output directory"; font-size: 12px; }
+        HorizontalBox {
+            spacing: 8px;
+            LineEdit {
+                horizontal-stretch: 1;
+                text <=> root.output-dir;
+                enabled: !root.busy;
+                placeholder-text: "/path/to/output";
+            }
+            Button {
+                text: "Browse…";
+                enabled: !root.busy;
+                clicked => { root.browse-output-clicked(); }
+            }
+        }
+
+        CheckBox {
+            text: "I confirm the source is a synthetic or training file, not real evidence.";
+            checked <=> root.confirmed-synthetic;
+            enabled: !root.busy;
+        }
+
+        HorizontalBox {
+            spacing: 8px;
+            Button {
+                text: root.busy ? "Running…" : "Run";
+                primary: true;
+                enabled: root.can-run;
+                clicked => { root.run-clicked(); }
+            }
+            Button {
+                text: "Cancel";
+                enabled: root.busy;
+                clicked => { root.cancel-clicked(); }
+            }
+            Button {
+                text: "Fill synthetic demo paths";
+                enabled: !root.busy;
+                clicked => { root.fill-synthetic-clicked(); }
+            }
+            Button {
+                text: "Clear";
+                enabled: !root.busy;
+                clicked => { root.clear-clicked(); }
+            }
         }
 
         Text {
@@ -32,26 +118,19 @@ export component AppWindow inherits Window {
             font-size: 14px;
             wrap: word-wrap;
         }
-
         Text {
-            text: "Last package: " + root.last-package;
-            font-size: 13px;
+            text: "Package: " + root.last-package;
+            font-size: 12px;
             wrap: word-wrap;
         }
-
-        HorizontalBox {
-            spacing: 8px;
-            Button {
-                text: "Run synthetic acquire";
-                primary: true;
-                enabled: !root.busy;
-                clicked => { root.run-synthetic-clicked(); }
-            }
-            Button {
-                text: "Clear status";
-                enabled: !root.busy;
-                clicked => { root.clear-status-clicked(); }
-            }
+        Text {
+            text: "SHA-256: " + root.evidence-sha256;
+            font-size: 12px;
+            wrap: word-wrap;
+        }
+        Text {
+            text: "Size: " + root.evidence-size + " bytes";
+            font-size: 12px;
         }
     }
 }

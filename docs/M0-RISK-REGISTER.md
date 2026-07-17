@@ -12,8 +12,8 @@ discrepancy register, milestone review.
 | R04 | Path escape / extra files in package | High | Low (tested) | Mitigated | Containment + allow-list checks |
 | R05 | Privilege / shell escape via Tauri | High | Low (boundary review) | Mitigated for current grant | `core:default` only; no shell plugin; re-check on any capability change |
 | R06 | Supply-chain / unmaintained crates | Medium | Known | Accepted with disclosure | `deny.toml` explicit allow-list per advisory ID |
-| R07 | Raw-device acquire without privileged broker | High | High if assumed | Open / `NotValidated` for acquire | Days 23–25 confirm privilege boundaries (Linux group, Windows UAC, macOS operator/SIP); broker still not implemented |
-| R08 | Split-RAW not in `.fsnap` | Medium | Certain | Open limitation | Documented; Analysis freeze excludes multi-segment |
+| R07 | Raw-device acquire without privileged broker | High | High if assumed | Open / `NotValidated` for acquire | Days 23–25 boundaries confirmed; protocol spike in `broker.rs` (no elevation helper yet) |
+| R08 | Split-RAW packaging defects | Medium | Low | Mitigated in core | `create_fsnap_from_segments` + verify; Analysis single-file goldens unchanged |
 | R09 | Missing independent Codex reviews | Medium (process) | Certain | Open | `Review` cells `NOT_STARTED`; EAC is Lab Use Only, not process-complete |
 | R10 | Peak RSS / memory ceiling unknown | Medium | Unknown | `NotValidated` | Day 26 measured wall time / hashes only |
 | R11 | Full fuzz campaign not run | Medium | Certain | `NotValidated` | Bounded property suite only |

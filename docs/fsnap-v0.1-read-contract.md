@@ -70,6 +70,19 @@ test suite) with:
 cargo test -p trareon-verifier --test generate_fixtures -- --ignored --nocapture
 ```
 
+## Split-RAW multi-segment packages
+
+Optional manifest field `evidence_segments` (array of
+`{relative_path,size,sha256}`, min two items) packages ordered split-RAW
+files as `acquisitions/0001/evidence.NNN.raw`.
+
+- `evidence_relative_path` must equal the first segment path.
+- `evidence_size` / `evidence_sha256` are the concatenation of segments in
+  listed order (must match acquisition stream hash).
+- Classic single-file packages omit `evidence_segments` and keep
+  `acquisitions/0001/evidence.raw` (Analysis golden fixtures unchanged).
+- Create via `create_fsnap_from_segments`; verify via `verify_fsnap`.
+
 ## Non-goals of this Analysis freeze
 
 - No Official Production / court-admissibility / certification promise.
@@ -77,6 +90,3 @@ cargo test -p trareon-verifier --test generate_fixtures -- --ignored --nocapture
   versions — `unsupported_version` is rejected outright, not migrated.
 - No partial-read API — the contract is all-or-nothing per package.
 - No support for reading a package while it is being written concurrently.
-- Split-RAW multi-segment evidence packaging is **out of freeze scope**;
-  `create_fsnap`/`verify_fsnap` still assume a single `evidence.raw` file
-  (see `docs/WEEK-01-DISCREPANCY-REGISTER.md`).

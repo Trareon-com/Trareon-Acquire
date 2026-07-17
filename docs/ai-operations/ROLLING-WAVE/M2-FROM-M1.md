@@ -15,7 +15,7 @@ human allowlist approval.
 - [x] Bounded raw content sample (`lab_raw_bounded_smoke`, 1 MiB) under sudo — SHA `41fb8d9…` PASS + independent verify
 - [x] Optional larger bound (64 MiB) on same allowlist — SHA `a0ff343…` PASS + independent verify (still not full disk)
 - [ ] Allowlisted lab media + write-block process approved for **additional** devices as needed
-- [ ] Full-disk acquire **run** of `rdisk10` → Untitled (gate PROVIDED; operator sudo pending — runbook §H)
+- [x] Full-disk acquire `rdisk10` → Untitled — SHA `23e039c…` PASS + independent verify (lab only; not Lab Beta exit)
 - [ ] GitHub Actions billing/spending limit restored so PR checks can run
 
 ## Software prep (landed)

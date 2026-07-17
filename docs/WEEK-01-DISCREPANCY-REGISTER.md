@@ -64,7 +64,7 @@ trail. As of this register:
 | M1 | UI cancel + checkpoint/resume + Analysis importer | PR #53 merged | Initial slice; split resume + exit bundle follow on `feat/m1-exit-complete` |
 | M1 exit | Failure matrix, split resume, 6-golden Analysis, a11y checklist, M2 prompts | PR #54 | File-backed Engineering Alpha exit; raw acquire still NotValidated |
 | M2 prep | Lab allowlist policy + plans P01–P05 + decision request | PR #55 | HUMAN_APPROVAL_REQUIRED before raw/loop content acquire |
-| M2 lab | tiny11 disk10 allowlist + elevated open + 1 MiB/64 MiB bounded raw PASS | PRs #56–#60 + operator sudo | Full-disk still NotValidated; Lab Beta exit not claimed |
+| M2 lab | tiny11 disk10 allowlist + bounded + **full-disk** raw PASS | PRs #56–#63 + operator sudo | Lab Beta exit not claimed; Windows/Linux separate |
 
 ## P0/P1 status
 

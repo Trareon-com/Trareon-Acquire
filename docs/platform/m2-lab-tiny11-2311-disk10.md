@@ -38,6 +38,12 @@ Allowlist: `fixtures/lab-allowlists/tiny11-2311-disk10.json`
 - No commit of acquired evidence bytes
 - No Official Production / Lab Beta exit claim
 
+## Agent elevation attempt (2026-07-17)
+
+- `sudo -n` open-only probe: **failed** (`sudo: a password is required`) — agent cannot enter interactive admin password.
+- Raw content acquire remains **NotValidated**.
+- PR #56 merged to `main` (`c8799fc`) with `--admin` because Actions jobs did not start (org billing/spending limit), not because tests failed.
+
 ## Next
 
 Operator runbook: [`m2-tiny11-disk10-operator-runbook.md`](m2-tiny11-disk10-operator-runbook.md)

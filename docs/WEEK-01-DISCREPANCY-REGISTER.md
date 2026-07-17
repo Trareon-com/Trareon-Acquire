@@ -53,7 +53,7 @@ trail. As of this register:
 | 23–25 | Platform raw-device feasibility (Linux/Windows/macOS) | Not started | `MANUAL_START` + physical devices required |
 | 26 | Performance baseline | Implemented via PR #43 (merged) — harness + synthetic timings + CI smoke; no optimization | Peak RSS `NotValidated`; Day 25 entry gate not formally met |
 | 27 | Capability matrix + fsnap freeze candidate | Implemented — `docs/CAPABILITY-MATRIX-M0.md`; read contract marked freeze candidate | Hard freeze blocked: split-RAW packaging, Codex reviews, Days 23–25 devices, Day 30 human gate |
-| 28–30 | Docs About/limitations, adversarial review, EAC freeze gate | Not started / in progress separately | Day 30 requires `HUMAN_APPROVAL` |
+| 28–30 | Docs About/limitations, adversarial review, EAC freeze gate | Day 28 docs+About in progress on `feat/m0-d28-docs`; Day 29–30 not finished | Day 30 requires `HUMAN_APPROVAL`; legal text is draft only |
 
 ## P0/P1 status
 

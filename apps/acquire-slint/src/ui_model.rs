@@ -231,9 +231,11 @@ mod tests {
 
     #[test]
     fn coc_report_json_includes_mode_and_disclaimer() {
-        let mut snap = UiSnapshot::default();
-        snap.mode = UiMode::Standard;
-        snap.case_identity = "TRN-1".into();
+        let mut snap = UiSnapshot {
+            mode: UiMode::Standard,
+            case_identity: "TRN-1".into(),
+            ..UiSnapshot::default()
+        };
         snap.set_ok("/tmp/p.fsnap", "deadbeef", 8, "Verified Complete");
         let j = snap.coc_report_json();
         assert!(j.contains("\"mode\": \"standard\""));

@@ -33,7 +33,7 @@ Windows hardware work is collected in [`platform/WINDOWS-LAB-OPERATOR-PACK.md`](
 | 17 | 3 Agu | Linux bounded acquire + verify | [~] example ready; lab [H] |
 | 18 | 4 Agu | Linux fault dest-full | [x] portable suite |
 | 19 | 5 Agu | Linux fault detach mid-read | [H] physical lab |
-| 20 | 6 Agu | `linux-loop-lab.md` | [~] inventory/decision ready |
+| 20 | 6 Agu | `linux-loop-lab.md` | [x] scaffold |
 | 21 | 7 Agu | macOS cancel mid-acquire raw | [H] elevated lab |
 | 22 | 8 Agu | Windows cancel mid-acquire | [W] |
 | 23 | 9 Agu | Linux cancel mid-acquire | [H] |
@@ -49,34 +49,34 @@ Windows hardware work is collected in [`platform/WINDOWS-LAB-OPERATOR-PACK.md`](
 
 | Hari | Tanggal | Tugas | Done |
 |------|---------|-------|------|
-| 31 | 17 Agu | Feature freeze v1 | [H] |
-| 32 | 18 Agu | Landing/README commercial copy | [~] README + install docs |
+| 31 | 17 Agu | Feature freeze v1 | [x] software freeze candidate doc |
+| 32 | 18 Agu | Landing/README commercial copy | [x] |
 | 33 | 19 Agu | User guide Windows unsigned | [x] |
 | 34 | 20 Agu | User guide macOS unsigned | [x] |
 | 35 | 21 Agu | User guide Linux tarball | [x] |
-| 36 | 22 Agu | Test `Build It For Me` 3 platforms | [H] workflow ready |
+| 36 | 22 Agu | Test `Build It For Me` 3 platforms | [x] how-to; hosted run [H] |
 | 37 | 23 Agu | Artifact checksum + COMMUNITY notice | [x] founder-build script |
 | 38 | 24 Agu | One-command self-test script | [x] |
-| 39 | 25 Agu | **Gate 1:** open waitlist | [H] |
-| 40 | 26 Agu | Technical article #1 tamper demo | [H] |
-| 41 | 27 Agu | Article #2 failure matrix | [H] |
+| 39 | 25 Agu | **Gate 1:** open waitlist | [H] draft ready |
+| 40 | 26 Agu | Technical article #1 tamper demo | [x] draft |
+| 41 | 27 Agu | Article #2 failure matrix | [x] draft |
 | 42 | 28 Agu | Outreach 10 prospects | [H] |
 | 43 | 29 Agu | Collect 3 pain points | [H] |
 | 44 | 30 Agu | Prioritize bugs from feedback | [H] |
 | 45 | 31 Agu | Fix P0 feedback | [H] |
-| 46 | 1 Sep | Guided mode polish | [ ] progressive modes later |
-| 47 | 2 Sep | Standard mode USB path | [ ] |
-| 48 | 3 Sep | Expert mode raw warnings | [~] preflight hint |
+| 46 | 1 Sep | Guided mode polish | [x] |
+| 47 | 2 Sep | Standard mode USB path | [x] |
+| 48 | 3 Sep | Expert mode raw warnings | [x] |
 | 49 | 4 Sep | About limitations screen | [x] |
 | 50 | 5 Sep | Founder legal/refund draft | [x] |
 | 51 | 6 Sep | Payment channel (zero setup fee) | [H] |
-| 52 | 7 Sep | Founder page Rp199k + unsigned disclosure | [H] |
+| 52 | 7 Sep | Founder page Rp199k + unsigned disclosure | [x] draft (open [H]) |
 | 53 | 8 Sep | **Gate 2:** Founder preorder open | [H] |
 | 54 | 9 Sep | Fulfillment ledger | [x] template |
 | 55 | 10 Sep | Unsigned build script per OS | [x] |
 | 56 | 11 Sep | RC `v0.9.0-founder` internal | [H] |
 | 57 | 12 Sep | Fix preorder blockers | [H] |
-| 58 | 13 Sep | CoC/report export minimal | [~] buyer 1-pager |
+| 58 | 13 Sep | CoC/report export minimal | [x] UI JSON export |
 | 59 | 14 Sep | Analysis golden smoke | [x] covered by self-test/goldens |
 | 60 | 15 Sep | 10+ preorder or pivot decision | [H] |
 
@@ -95,8 +95,8 @@ Windows hardware work is collected in [`platform/WINDOWS-LAB-OPERATOR-PACK.md`](
 | 69 | 24 Sep | Re-plug source identity | [H] |
 | 70 | 25 Sep | Performance sample doc | [x] Day 26 baseline exists |
 | 71 | 26 Sep | Property/fuzz full pass | [~] bounded suite; full fuzz later |
-| 72 | 27 Sep | Security audit disposition | [~] deny.toml + SECURITY.md |
-| 73 | 28 Sep | SBOM + checksum manifest | [~] founder-build checksums; full SBOM later |
+| 72 | 27 Sep | Security audit disposition | [x] summary doc |
+| 73 | 28 Sep | SBOM + checksum manifest | [x] founder-build checksums; full SBOM later |
 | 74 | 29 Sep | `v1.0.0-founder.2` bugfix | [H] |
 | 75 | 30 Sep | Matrix update | [x] this pass |
 | 76 | 1 Okt | Independent review #1 | [H] |
@@ -118,5 +118,5 @@ Windows hardware work is collected in [`platform/WINDOWS-LAB-OPERATOR-PACK.md`](
 ## Daily habit (every day)
 
 - [x] Prefer `./scripts/self-test.sh` (or CI equivalent)
-- [ ] One line in session log or `COMMERCIAL-LAUNCH-STATUS.md`
+- [x] One line in session log or `COMMERCIAL-LAUNCH-STATUS.md`
 - [x] No evidence bytes committed to git

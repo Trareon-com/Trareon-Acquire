@@ -1,6 +1,6 @@
 #[cfg(feature = "gui")]
 fn main() -> Result<(), slint::PlatformError> {
-    use acquire_slint::{AppWindow, UiSnapshot, run_foundation_demo};
+    use acquire_slint::{AppWindow, UiMode, UiSnapshot, run_foundation_demo, write_coc_summary};
     use slint::ComponentHandle;
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicBool, Ordering};
@@ -8,6 +8,9 @@ fn main() -> Result<(), slint::PlatformError> {
     use std::thread;
 
     fn apply(ui: &AppWindow, snap: &UiSnapshot) {
+        ui.set_mode_index(snap.mode.index());
+        ui.set_mode_guidance(snap.mode.guidance().into());
+        ui.set_show_path_editors(snap.show_path_editors());
         ui.set_case_identity(snap.case_identity.clone().into());
         ui.set_source_path(snap.source_path.clone().into());
         ui.set_output_dir(snap.output_dir.clone().into());
@@ -31,6 +34,19 @@ fn main() -> Result<(), slint::PlatformError> {
     let snapshot = Arc::new(Mutex::new(UiSnapshot::default()));
     let cancel_flag = Arc::new(AtomicBool::new(false));
     apply(&ui, &snapshot.lock().expect("snapshot lock"));
+
+    {
+        let ui_weak = ui.as_weak();
+        let snap = Arc::clone(&snapshot);
+        ui.on_mode_changed(move |idx| {
+            if let Some(ui) = ui_weak.upgrade() {
+                let mut s = snap.lock().expect("snapshot lock");
+                sync_fields_from_ui(&ui, &mut s);
+                s.mode = UiMode::from_index(idx);
+                apply(&ui, &s);
+            }
+        });
+    }
 
     {
         let ui_weak = ui.as_weak();
@@ -103,6 +119,12 @@ fn main() -> Result<(), slint::PlatformError> {
                     apply(&ui, &s);
                     return;
                 }
+                let preflight = s.preflight_hint();
+                if preflight.contains("DENY") {
+                    s.set_err(preflight);
+                    apply(&ui, &s);
+                    return;
+                }
                 cancel.store(false, Ordering::SeqCst);
                 s.set_busy(true);
                 s.status_line = "Running foundation demo…".into();
@@ -157,6 +179,30 @@ fn main() -> Result<(), slint::PlatformError> {
                     s.status_line = "Cancelling…".into();
                     apply(&ui, &s);
                 }
+            }
+        });
+    }
+
+    {
+        let ui_weak = ui.as_weak();
+        let snap = Arc::clone(&snapshot);
+        ui.on_export_coc_clicked(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                let mut s = snap.lock().expect("snapshot lock");
+                sync_fields_from_ui(&ui, &mut s);
+                if s.last_package == "(none)" {
+                    s.set_err("No package to export — Run a successful demo first.");
+                    apply(&ui, &s);
+                    return;
+                }
+                let path = PathBuf::from(&s.output_dir).join("ui-coc-summary.json");
+                match write_coc_summary(&path, &s.coc_report_json()) {
+                    Ok(()) => {
+                        s.status_line = format!("CoC summary written: {}", path.display());
+                    }
+                    Err(err) => s.set_err(format!("CoC export failed: {err}")),
+                }
+                apply(&ui, &s);
             }
         });
     }

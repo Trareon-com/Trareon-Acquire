@@ -2,7 +2,7 @@
 
 pub mod ui_model;
 
-pub use ui_model::UiSnapshot;
+pub use ui_model::{UiMode, UiSnapshot};
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -59,6 +59,14 @@ pub fn run_foundation_demo(
     })
 }
 
+/// Write a minimal operator CoC/report JSON next to a package (Hari 58).
+pub fn write_coc_summary(path: &Path, body: &str) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    std::fs::write(path, body).map_err(|e| e.to_string())
+}
+
 /// Convenience: write a small synthetic source, then run the foundation demo.
 pub fn run_synthetic_demo(out_dir: &Path) -> Result<PathBuf, String> {
     std::fs::create_dir_all(out_dir).map_err(|e| e.to_string())?;
@@ -102,5 +110,13 @@ mod tests {
         let flag = Arc::new(AtomicBool::new(true));
         let err = run_foundation_demo(&source, &out, Some(flag)).unwrap_err();
         assert!(err.to_lowercase().contains("cancel"));
+    }
+
+    #[test]
+    fn write_coc_summary_creates_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("coc.json");
+        write_coc_summary(&path, "{\"ok\":true}\n").unwrap();
+        assert_eq!(std::fs::read_to_string(path).unwrap(), "{\"ok\":true}\n");
     }
 }

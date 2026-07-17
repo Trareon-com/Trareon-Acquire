@@ -1,8 +1,60 @@
 //! Presentation helpers for the Acquire Slint shell (testable without a display).
 
+/// Operator progressive-disclosure mode (Hari 46–48).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UiMode {
+    /// Synthetic-only path: prefer Fill demo; hide path browsing.
+    Guided,
+    /// Standard file paths + browse (foundation demo).
+    Standard,
+    /// Raw-path warnings and elevation/allowlist preflight always emphasized.
+    Expert,
+}
+
+impl UiMode {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Guided => "guided",
+            Self::Standard => "standard",
+            Self::Expert => "expert",
+        }
+    }
+
+    pub fn from_index(i: i32) -> Self {
+        match i {
+            0 => Self::Guided,
+            2 => Self::Expert,
+            _ => Self::Standard,
+        }
+    }
+
+    pub fn index(self) -> i32 {
+        match self {
+            Self::Guided => 0,
+            Self::Standard => 1,
+            Self::Expert => 2,
+        }
+    }
+
+    pub fn guidance(self) -> &'static str {
+        match self {
+            Self::Guided => {
+                "Guided: press Fill synthetic demo paths → confirm → Run. Cancel anytime. No raw disks."
+            }
+            Self::Standard => {
+                "Standard: set file source + output (or Browse). Removable USB raw acquire is lab-gated separately."
+            }
+            Self::Expert => {
+                "Expert: raw/block paths need human-approved allowlist + elevation. System disks are hard-denied. Foundation Run remains file-backed."
+            }
+        }
+    }
+}
+
 /// Snapshot shown in the foundation Slint window.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UiSnapshot {
+    pub mode: UiMode,
     pub case_identity: String,
     pub source_path: String,
     pub output_dir: String,
@@ -17,6 +69,7 @@ pub struct UiSnapshot {
 impl Default for UiSnapshot {
     fn default() -> Self {
         Self {
+            mode: UiMode::Guided,
             case_identity: String::new(),
             source_path: String::new(),
             output_dir: String::new(),
@@ -38,19 +91,25 @@ impl UiSnapshot {
             && !self.busy
     }
 
-    /// Elevation / allowlist preflight hint (Hari 26). Presentation-only.
+    pub fn show_path_editors(&self) -> bool {
+        !matches!(self.mode, UiMode::Guided)
+    }
+
+    /// Elevation / allowlist preflight hint (Hari 26 / Expert).
     pub fn preflight_hint(&self) -> String {
         let path = self.source_path.trim().to_ascii_lowercase();
-        if path.is_empty() {
-            return String::new();
+        let blockish = !path.is_empty()
+            && (path.contains(r"\\.\physicaldrive")
+                || path.contains("/dev/rdisk")
+                || path.contains("/dev/disk")
+                || path.starts_with("/dev/loop")
+                || path.starts_with("/dev/nvme")
+                || path.starts_with("/dev/sd"));
+
+        if matches!(self.mode, UiMode::Expert) && !blockish {
+            return "EXPERT: type a raw path only with an approved allowlist; Run here is still file-backed.".into();
         }
-        let blockish = path.contains(r"\\.\physicaldrive")
-            || path.contains("/dev/rdisk")
-            || path.contains("/dev/disk")
-            || path.starts_with("/dev/loop")
-            || path.starts_with("/dev/nvme")
-            || path.starts_with("/dev/sd");
-        if !blockish {
+        if path.is_empty() || !blockish {
             return String::new();
         }
         if path.contains("physicaldrive0")
@@ -95,6 +154,24 @@ impl UiSnapshot {
         self.evidence_size = "(none)".into();
         self.busy = false;
     }
+
+    /// Minimal CoC/report card JSON (operator note + core results). Not forensic CoC.
+    pub fn coc_report_json(&self) -> String {
+        format!(
+            "{{\n  \"schema\": \"trareon.ui-coc-summary/1\",\n  \"mode\": \"{}\",\n  \"case_identity_operator_note\": {},\n  \"status\": {},\n  \"package\": {},\n  \"evidence_sha256\": {},\n  \"evidence_size\": {},\n  \"disclaimer\": \"Operator note is outside the cryptographic audit; Lab Use Only.\"\n}}\n",
+            self.mode.as_str(),
+            json_str(&self.case_identity),
+            json_str(&self.status_line),
+            json_str(&self.last_package),
+            json_str(&self.evidence_sha256),
+            json_str(&self.evidence_size),
+        )
+    }
+}
+
+fn json_str(s: &str) -> String {
+    let escaped = s.replace('\\', "\\\\").replace('"', "\\\"");
+    format!("\"{escaped}\"")
 }
 
 #[cfg(test)]
@@ -127,7 +204,10 @@ mod tests {
 
     #[test]
     fn preflight_warns_on_block_device_and_denies_system_disk() {
-        let mut snap = UiSnapshot::default();
+        let mut snap = UiSnapshot {
+            mode: UiMode::Standard,
+            ..UiSnapshot::default()
+        };
         assert!(snap.preflight_hint().is_empty());
         snap.source_path = "/tmp/synth.img".into();
         assert!(snap.preflight_hint().is_empty());
@@ -135,5 +215,29 @@ mod tests {
         assert!(snap.preflight_hint().contains("allowlist"));
         snap.source_path = r"\\.\PhysicalDrive0".into();
         assert!(snap.preflight_hint().contains("DENY"));
+    }
+
+    #[test]
+    fn guided_hides_path_editors_expert_always_hints() {
+        let mut snap = UiSnapshot::default();
+        assert_eq!(snap.mode, UiMode::Guided);
+        assert!(!snap.show_path_editors());
+        snap.mode = UiMode::Standard;
+        assert!(snap.show_path_editors());
+        snap.mode = UiMode::Expert;
+        snap.source_path.clear();
+        assert!(snap.preflight_hint().contains("EXPERT"));
+    }
+
+    #[test]
+    fn coc_report_json_includes_mode_and_disclaimer() {
+        let mut snap = UiSnapshot::default();
+        snap.mode = UiMode::Standard;
+        snap.case_identity = "TRN-1".into();
+        snap.set_ok("/tmp/p.fsnap", "deadbeef", 8, "Verified Complete");
+        let j = snap.coc_report_json();
+        assert!(j.contains("\"mode\": \"standard\""));
+        assert!(j.contains("TRN-1"));
+        assert!(j.contains("Lab Use Only"));
     }
 }

@@ -37,10 +37,13 @@ workstation, not live evidence acquisition from raw disks.
 1. Build/test locally (`cargo test --workspace --locked --exclude acquire-slint`
    and `cargo test -p acquire-slint --features gui --locked`).
 2. Launch the Slint demo (`cargo run -p acquire-slint --features gui`).
-3. Acquire a synthetic source; confirm checkbox.
-4. Optionally Cancel an in-flight Run (cooperative cancel; incomplete checkpoint may remain on disk for resume tooling).
-5. Independently verify the package with `trareon-verifier`.
-6. Optionally import a verified package into Analysis indexes with `trareon-analysis import PACKAGE --index-dir DIR` (index must be outside the package).
+3. Pick a mode: **Guided** (Fill synthetic), **Standard** (browse paths), or
+   **Expert** (raw-path warnings; Run remains file-backed).
+4. Acquire a synthetic source; confirm checkbox.
+5. Optionally Cancel an in-flight Run (cooperative cancel; incomplete checkpoint may remain on disk for resume tooling).
+6. Optionally **Export CoC JSON** (operator note + status — outside crypto audit).
+7. Independently verify the package with `trareon-verifier`.
+8. Optionally import a verified package into Analysis indexes with `trareon-analysis import PACKAGE --index-dir DIR` (index must be outside the package).
 
 ## Not supported yet
 

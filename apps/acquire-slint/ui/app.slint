@@ -2,9 +2,12 @@ import { Button, VerticalBox, HorizontalBox, LineEdit, CheckBox } from "std-widg
 
 export component AppWindow inherits Window {
     title: "Trareon Acquire";
-    preferred-width: 760px;
-    preferred-height: 560px;
+    preferred-width: 780px;
+    preferred-height: 640px;
 
+    in-out property <int> mode-index: 0;
+    in-out property <string> mode-guidance: "";
+    in-out property <bool> show-path-editors: false;
     in-out property <string> case-identity: "";
     in-out property <string> source-path: "";
     in-out property <string> output-dir: "";
@@ -15,7 +18,6 @@ export component AppWindow inherits Window {
     in-out property <string> evidence-size: "(none)";
     in-out property <string> preflight-hint: "";
     in-out property <bool> busy: false;
-    // Computed in UI so typing in LineEdit enables Run without a round-trip.
     property <bool> can-run: root.confirmed-synthetic && root.source-path != "" && root.output-dir != "" && !root.busy;
 
     callback browse-source-clicked();
@@ -24,6 +26,8 @@ export component AppWindow inherits Window {
     callback cancel-clicked();
     callback clear-clicked();
     callback fill-synthetic-clicked();
+    callback export-coc-clicked();
+    callback mode-changed(int);
 
     VerticalBox {
         padding: 16px;
@@ -41,6 +45,34 @@ export component AppWindow inherits Window {
             wrap: word-wrap;
         }
 
+        Text { text: "Mode"; font-size: 12px; }
+        HorizontalBox {
+            spacing: 8px;
+            Button {
+                text: "Guided";
+                enabled: !root.busy;
+                primary: root.mode-index == 0;
+                clicked => { root.mode-changed(0); }
+            }
+            Button {
+                text: "Standard";
+                enabled: !root.busy;
+                primary: root.mode-index == 1;
+                clicked => { root.mode-changed(1); }
+            }
+            Button {
+                text: "Expert";
+                enabled: !root.busy;
+                primary: root.mode-index == 2;
+                clicked => { root.mode-changed(2); }
+            }
+        }
+        Text {
+            text: root.mode-guidance;
+            font-size: 12px;
+            wrap: word-wrap;
+        }
+
         Text {
             text: "Case identity (operator note only — not in audit/verify)";
             font-size: 12px;
@@ -51,35 +83,37 @@ export component AppWindow inherits Window {
             placeholder-text: "e.g. TRN-2026-0001";
         }
 
-        Text { text: "Source path"; font-size: 12px; }
-        HorizontalBox {
-            spacing: 8px;
-            LineEdit {
-                horizontal-stretch: 1;
-                text <=> root.source-path;
-                enabled: !root.busy;
-                placeholder-text: "/path/to/synthetic-source.img";
+        if root.show-path-editors: VerticalBox {
+            spacing: 10px;
+            Text { text: "Source path"; font-size: 12px; }
+            HorizontalBox {
+                spacing: 8px;
+                LineEdit {
+                    horizontal-stretch: 1;
+                    text <=> root.source-path;
+                    enabled: !root.busy;
+                    placeholder-text: "/path/to/synthetic-source.img";
+                }
+                Button {
+                    text: "Browse…";
+                    enabled: !root.busy;
+                    clicked => { root.browse-source-clicked(); }
+                }
             }
-            Button {
-                text: "Browse…";
-                enabled: !root.busy;
-                clicked => { root.browse-source-clicked(); }
-            }
-        }
-
-        Text { text: "Output directory"; font-size: 12px; }
-        HorizontalBox {
-            spacing: 8px;
-            LineEdit {
-                horizontal-stretch: 1;
-                text <=> root.output-dir;
-                enabled: !root.busy;
-                placeholder-text: "/path/to/output";
-            }
-            Button {
-                text: "Browse…";
-                enabled: !root.busy;
-                clicked => { root.browse-output-clicked(); }
+            Text { text: "Output directory"; font-size: 12px; }
+            HorizontalBox {
+                spacing: 8px;
+                LineEdit {
+                    horizontal-stretch: 1;
+                    text <=> root.output-dir;
+                    enabled: !root.busy;
+                    placeholder-text: "/path/to/output";
+                }
+                Button {
+                    text: "Browse…";
+                    enabled: !root.busy;
+                    clicked => { root.browse-output-clicked(); }
+                }
             }
         }
 
@@ -113,6 +147,11 @@ export component AppWindow inherits Window {
                 text: "Fill synthetic demo paths";
                 enabled: !root.busy;
                 clicked => { root.fill-synthetic-clicked(); }
+            }
+            Button {
+                text: "Export CoC JSON";
+                enabled: !root.busy && root.last-package != "(none)";
+                clicked => { root.export-coc-clicked(); }
             }
             Button {
                 text: "Clear";

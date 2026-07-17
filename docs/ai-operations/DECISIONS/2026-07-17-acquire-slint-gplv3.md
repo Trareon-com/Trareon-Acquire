@@ -34,5 +34,5 @@ GPLv3 **allows selling** binaries. Recipients of binaries must be able to get co
 - [x] Add `apps/acquire-slint` foundation shell
 - [x] Wire Slint demo: path pickers, synthetic confirm, cancel_flag, verify display
 - [x] Remove Tauri/Svelte from workspace + CI (archived under `apps/trareon-acquire/`)
-- [ ] Progressive Guided/Standard/Expert modes on Slint
+- [x] Progressive Guided/Standard/Expert modes on Slint
 - [x] Update commercial / user docs for “source with binary” obligation

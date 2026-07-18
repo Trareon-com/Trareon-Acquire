@@ -6,6 +6,15 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 
+[features]
+default = ["ewf"]
+# Real EWF1/EWF2 writer via ewf-image (Path B). Keep UI label E01-lite until oracle green.
+ewf = ["dep:ewf-image"]
+# Optional: call libewf `ewfverify` when installed.
+libewf-oracle = []
+# Optional: ZFF via external `zffacquire` tool.
+zff = []
+
 [dependencies]
 chrono.workspace = true
 hex.workspace = true
@@ -23,6 +32,7 @@ image.workspace = true
 ed25519-dalek.workspace = true
 rand_core.workspace = true
 zip.workspace = true
+ewf-image = { version = "0.2", optional = true }
 
 [dev-dependencies]
 tempfile.workspace = true

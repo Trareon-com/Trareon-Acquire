@@ -14,11 +14,14 @@ path = "src/main.rs"
 required-features = ["gui"]
 
 [features]
-default = ["gui"]
+default = ["gui", "ewf", "zff", "libewf-oracle"]
 gui = ["dep:slint", "dep:slint-build", "dep:rfd"]
+ewf = ["trareon-core/ewf"]
+zff = ["trareon-core/zff"]
+libewf-oracle = ["trareon-core/libewf-oracle"]
 
 [dependencies]
-trareon-core = { path = "../../crates/trareon-core" }
+trareon-core = { path = "../../crates/trareon-core", default-features = false }
 trareon-ata = { path = "../../crates/trareon-ata" }
 trareon-analysis = { path = "../../crates/trareon-analysis" }
 trareon-verifier = { path = "../../crates/trareon-verifier" }

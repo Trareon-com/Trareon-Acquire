@@ -639,12 +639,10 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.on_source_kind_changed(move |idx| {
             if let Some(ui) = ui_weak.upgrade() {
                 ui.set_source_kind_index(idx);
-                ui.set_source_kind_caption(shell_ops::source_kind_caption(idx).into());
-                if idx == 2 {
-                    ui.set_panel_detail(
-                        "RAM live adapter Unavailable until live-gate (avml/Fuji patterns documented)."
-                            .into(),
-                    );
+                let caption = shell_ops::source_kind_caption(idx);
+                ui.set_source_kind_caption(caption.clone().into());
+                if idx == 2 || idx == 3 {
+                    ui.set_panel_detail(caption.into());
                 }
             }
         });

@@ -12,13 +12,14 @@ use crate::{
 
 pub fn format_label(index: i32) -> &'static str {
     match index {
-        1 => "E01-lite (subset — not libewf)",
+        1 => "E01-lite label (ewf-image writer; oracle pending)",
         2 => "AFF4-lite (subset)",
         3 => "VMDK wrapper (subset)",
         4 => "VHD wrapper (subset)",
         5 => "QCOW2 wrapper (subset)",
         6 => "DMG wrapper (subset)",
         7 => "Split-RAW .fsnap",
+        8 => "ZFF (via zffacquire if installed)",
         _ => "RAW + .fsnap (court path A)",
     }
 }
@@ -31,6 +32,7 @@ pub fn format_from_index(index: i32) -> UiOutputFormat {
         4 => UiOutputFormat::Vhd,
         5 => UiOutputFormat::Qcow2,
         6 => UiOutputFormat::Dmg,
+        8 => UiOutputFormat::Zff,
         _ => UiOutputFormat::RawFsnap,
     }
 }
@@ -219,12 +221,24 @@ pub fn run_quick_profile_text(source: &str, out_dir: &str) -> String {
     }
 }
 
-pub fn source_kind_caption(index: i32) -> &'static str {
+pub fn source_kind_caption(index: i32) -> String {
     match index {
-        1 => "File — path editor / browse",
-        2 => "RAM — live adapter Unavailable until live-gate",
-        3 => "Snapshot — host override required (see sources_ext)",
-        _ => "Disk — host enumerator / PhysicalDrive",
+        1 => "File — path editor / browse".into(),
+        2 => match crate::sources_ext::probe_avml() {
+            crate::sources_ext::LiveAdapterStatus::Available { binary } => {
+                format!("RAM — avml available ({})", binary.display())
+            }
+            crate::sources_ext::LiveAdapterStatus::Unavailable { reason } => reason,
+        },
+        3 => match crate::sources_ext::probe_fuji() {
+            crate::sources_ext::LiveAdapterStatus::Available { binary } => {
+                format!("Snapshot/macOS — fuji helper ({})", binary.display())
+            }
+            crate::sources_ext::LiveAdapterStatus::Unavailable { reason } => {
+                format!("Snapshot — {reason}")
+            }
+        },
+        _ => "Disk — host enumerator / PhysicalDrive".into(),
     }
 }
 

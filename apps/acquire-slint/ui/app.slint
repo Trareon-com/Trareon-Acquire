@@ -987,6 +987,7 @@ export component AppWindow inherits Window {
                                         PrefChip { label: "fsnap"; active: root.format-index == 0; clicked => { root.format-changed(0); } }
                                         PrefChip { label: "E01-lite"; active: root.format-index == 1; clicked => { root.format-changed(1); } }
                                         PrefChip { label: "AFF4"; active: root.format-index == 2; clicked => { root.format-changed(2); } }
+                                        PrefChip { label: "ZFF"; active: root.format-index == 8; clicked => { root.format-changed(8); } }
                                         PrefChip { label: "split"; active: root.format-index == 7; clicked => { root.format-changed(7); } }
                                     }
                                     CheckBox { text: Strings.write-sha512; checked <=> root.write-sha512; enabled: !root.busy; }

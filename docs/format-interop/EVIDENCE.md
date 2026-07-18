@@ -15,15 +15,16 @@ See [PATH-A-RAW.md](PATH-A-RAW.md).
 | Autopsy | | [ ] pass [ ] fail | | Open raw evidence file from `.fsnap` |
 | FTK / FTK Imager | | [ ] pass [ ] fail | | Same raw bytes |
 
-## Path B — EWF (`ewf-image`) — not product-default yet
+## Path B — EWF (`ewf-image`) — writer shipped, oracle pending
 
-Spike decision: **adopt `ewf-image` after MSRV ≥ 1.96**.  
-Current UI label remains **E01-lite**. Details: [EWF-SPIKE.md](EWF-SPIKE.md).
+MSRV is **1.96**. Feature `ewf` (default) routes `write_e01` through `ewf-image`.  
+UI label remains **E01-lite** until the rows below are green. Details: [EWF-SPIKE.md](EWF-SPIKE.md).
 
 | Check | Result |
 |---|---|
-| `scripts/ewf-spike.sh` local write | [ ] run recorded |
-| `ewfverify` (libewf) | [ ] pending |
+| `cargo test -p trareon-core --lib format::ewf` | software green (unit) |
+| `scripts/ewf-spike.sh` local write | [x] previously recorded |
+| `ewfverify` (libewf) via feature `libewf-oracle` | [ ] pending human/lab install |
 | Autopsy open EWF | [ ] pending |
 | FTK open EWF | [ ] pending |
 | UI label without `-lite` | **blocked** until above green |

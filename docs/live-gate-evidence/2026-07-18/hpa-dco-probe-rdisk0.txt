@@ -1,0 +1,8 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s
+     Running `/var/folders/3g/54zhdk411tjbgyzwvgskl0600000gn/T/cursor-sandbox-cache/a72d46427c604f06e0f57850dc84bbe0/cargo-target/debug/examples/lab_hpa_dco_probe /dev/rdisk0`
+WRITE_BLOCKER Uncertain { reason: "USB VID/PID enumeration not available; confirm write-blocker manually" }
+HPA_DCO reported=0 accessible=0 hpa=false dco=false native_max=None dco_max=None
+STATUS Unavailable reason=ATA HPA/DCO passthrough not implemented on macos
+NOTE: do not claim full-disk until ATA probe is Ok on this OS
+
+EXIT_CODE=0

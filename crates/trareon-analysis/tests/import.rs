@@ -1,7 +1,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use tempfile::tempdir;
-use trareon_analysis::import_fsnap_readonly;
+use trareon_analysis::{
+    analysis_report_html, browse_listing, import_fsnap_readonly, timeline_from_audit,
+};
 
 fn fixtures_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -12,18 +14,26 @@ fn fixtures_root() -> PathBuf {
 
 fn package_fingerprint(package: &Path) -> Vec<(String, Vec<u8>)> {
     let mut entries = Vec::new();
-    for entry in fs::read_dir(package).unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-        if path.is_file() {
+    collect_files(package, package, &mut entries);
+    entries.sort_by(|a, b| a.0.cmp(&b.0));
+    entries
+}
+
+fn collect_files(root: &Path, current: &Path, entries: &mut Vec<(String, Vec<u8>)>) {
+    for entry in fs::read_dir(current).unwrap() {
+        let path = entry.unwrap().path();
+        if path.is_dir() {
+            collect_files(root, &path, entries);
+        } else if path.is_file() {
             entries.push((
-                path.file_name().unwrap().to_string_lossy().to_string(),
-                fs::read(&path).unwrap(),
+                path.strip_prefix(root)
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string(),
+                fs::read(path).unwrap(),
             ));
         }
     }
-    entries.sort_by(|a, b| a.0.cmp(&b.0));
-    entries
 }
 
 #[test]
@@ -72,4 +82,23 @@ fn rejects_index_dir_inside_package() {
     let inside = package.join("nested-index");
     let err = import_fsnap_readonly(&package, &inside).unwrap_err();
     assert!(err.to_string().contains("must not be inside"));
+}
+
+#[test]
+fn browsing_timeline_and_report_leave_package_unchanged() {
+    let package = fixtures_root().join("valid");
+    let before = package_fingerprint(&package);
+    let manifest = trareon_core::verify_fsnap(&package).unwrap();
+    let timeline = timeline_from_audit(&package).unwrap();
+    let listing = browse_listing(&package).unwrap();
+    let report = analysis_report_html(&manifest, &timeline, &listing);
+
+    assert!(!timeline.is_empty());
+    assert!(
+        listing
+            .iter()
+            .any(|entry| entry.relative_path.ends_with("manifest.json"))
+    );
+    assert!(report.contains("Read-only report"));
+    assert_eq!(package_fingerprint(&package), before);
 }

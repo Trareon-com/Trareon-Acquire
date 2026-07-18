@@ -19,11 +19,18 @@ gui = ["dep:slint", "dep:slint-build", "dep:rfd"]
 
 [dependencies]
 trareon-core = { path = "../../crates/trareon-core" }
+trareon-ata = { path = "../../crates/trareon-ata" }
+trareon-analysis = { path = "../../crates/trareon-analysis" }
+trareon-verifier = { path = "../../crates/trareon-verifier" }
+chrono.workspace = true
+ed25519-dalek.workspace = true
+hex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tempfile.workspace = true
 slint = { version = "1.9", optional = true }
 rfd = { version = "0.15", optional = true }
 
 [build-dependencies]
 slint-build = { version = "1.9", optional = true }
-
-[dev-dependencies]
-tempfile = { workspace = true }

@@ -23,6 +23,9 @@ export global Theme {
     in-out property <color> pipeline-bg: #0E151C;
     in-out property <color> badge-bg: #18232E;
     in-out property <color> primary-disabled: #2A221C;
+    in-out property <color> warning: #D09262;
+    in-out property <color> info: #93A3B4;
+    in-out property <color> focus-ring: #E8B089;
 
     public function apply(is-dark: bool) {
         dark = is-dark;
@@ -48,6 +51,9 @@ export global Theme {
             pipeline-bg = #0E151C;
             badge-bg = #18232E;
             primary-disabled = #2A221C;
+            warning = #D09262;
+            info = #93A3B4;
+            focus-ring = #E8B089;
         } else {
             void = #E8EDF2;
             ink = #F7F9FB;
@@ -70,6 +76,9 @@ export global Theme {
             pipeline-bg = #F4F7FA;
             badge-bg = #EEF2F6;
             primary-disabled = #E8DCD2;
+            warning = #A86B3E;
+            info = #5A6A7A;
+            focus-ring = #C4845A;
         }
     }
 }

@@ -1,5 +1,9 @@
 //! Presentation helpers for the Acquire Slint shell (testable without a display).
 
+use crate::identify::{IdentifyRecord, identify_blocks_live};
+use crate::prefs::AcquirePrefs;
+use std::path::Path;
+
 /// Operator progressive-disclosure mode (Hari 46–48).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UiMode {
@@ -66,20 +70,32 @@ impl UiLocale {
 pub const NONE_SENTINEL: &str = "(none)";
 
 /// Snapshot shown in the foundation Slint window.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UiSnapshot {
     pub mode: UiMode,
     pub dark_mode: bool,
     pub locale: UiLocale,
     pub case_identity: String,
+    pub case_id: String,
     pub source_path: String,
     pub output_dir: String,
     pub confirmed_synthetic: bool,
+    pub wb_confirmed: bool,
+    pub oov_ack: bool,
+    pub allowlist_path: String,
+    pub emergency_override_reason: String,
+    pub pre_hash_hex: String,
+    pub free_space_ok: Option<bool>,
+    pub stop_reason: Option<crate::preserve::StopReason>,
+    pub identify_record: IdentifyRecord,
     pub status_line: String,
     pub last_package: String,
     pub evidence_sha256: String,
     pub evidence_size: String,
     pub busy: bool,
+    pub progress_fraction: f64,
+    pub progress_label: String,
+    pub progress_phase: String,
 }
 
 impl Default for UiSnapshot {
@@ -87,22 +103,51 @@ impl Default for UiSnapshot {
         let locale = UiLocale::En;
         Self {
             mode: UiMode::Guided,
-            dark_mode: true,
+            dark_mode: false,
             locale,
             case_identity: String::new(),
+            case_id: String::new(),
             source_path: String::new(),
             output_dir: String::new(),
             confirmed_synthetic: false,
+            wb_confirmed: false,
+            oov_ack: false,
+            allowlist_path: String::new(),
+            emergency_override_reason: String::new(),
+            pre_hash_hex: String::new(),
+            free_space_ok: None,
+            stop_reason: None,
+            identify_record: IdentifyRecord::default(),
             status_line: ready_status(locale).into(),
             last_package: NONE_SENTINEL.into(),
             evidence_sha256: NONE_SENTINEL.into(),
             evidence_size: NONE_SENTINEL.into(),
             busy: false,
+            progress_fraction: 0.0,
+            progress_label: String::new(),
+            progress_phase: String::new(),
         }
     }
 }
 
 impl UiSnapshot {
+    pub fn from_prefs(prefs: &AcquirePrefs) -> Self {
+        let mut snapshot = Self {
+            dark_mode: prefs.dark_mode,
+            output_dir: prefs.last_output_dir.clone(),
+            ..Self::default()
+        };
+        snapshot.set_locale(&prefs.locale);
+        snapshot
+    }
+
+    pub fn about_text(&self) -> String {
+        format!(
+            "Trareon Acquire\nBuild: {}\nLab-use shell — not validated for production evidence.",
+            trareon_core::build_identity()
+        )
+    }
+
     pub fn set_dark_mode(&mut self, dark: bool) {
         self.dark_mode = dark;
     }
@@ -115,11 +160,58 @@ impl UiSnapshot {
         }
     }
 
-    pub fn can_run(&self) -> bool {
+    pub fn can_start_guided(&self) -> bool {
         self.confirmed_synthetic
             && !self.source_path.trim().is_empty()
             && !self.output_dir.trim().is_empty()
             && !self.busy
+    }
+
+    pub fn can_start_expert(&self) -> bool {
+        self.can_start_guided()
+            && !self.case_id.trim().is_empty()
+            && (!self.is_blockish_source() || self.wb_confirmed)
+            && self.free_space_ok != Some(false)
+            && (!self.requires_identify_gate()
+                || !self.emergency_override_reason.trim().is_empty()
+                || (!identify_blocks_live(&self.identify_record) && self.oov_ack))
+    }
+
+    /// True when acquisition needs the identification checklist rather than file-demo checks.
+    pub fn requires_identify_gate(&self) -> bool {
+        matches!(self.mode, UiMode::Expert) || self.is_blockish_source()
+    }
+
+    pub fn is_blockish_source(&self) -> bool {
+        path_looks_blockish(&self.source_path)
+    }
+
+    /// Audit text to append whenever an operator explicitly bypasses the identification gate.
+    pub fn override_audit_line(&self) -> Option<String> {
+        let reason = self.emergency_override_reason.trim();
+        (!reason.is_empty()).then(|| format!("EMERGENCY IDENTIFY OVERRIDE: {reason}"))
+    }
+
+    pub fn can_run(&self) -> bool {
+        if matches!(self.mode, UiMode::Guided) {
+            self.can_start_guided()
+        } else {
+            self.can_start_expert()
+        }
+    }
+
+    pub fn save_draft(&self) {
+        crate::draft::WizardDraft::from_snapshot(self).save();
+    }
+
+    pub fn restore_draft(&mut self) {
+        if let Some(draft) = crate::draft::WizardDraft::load() {
+            draft.apply_to(self);
+        }
+    }
+
+    pub fn clear_draft() {
+        crate::draft::WizardDraft::clear();
     }
 
     pub fn show_path_editors(&self) -> bool {
@@ -156,7 +248,36 @@ impl UiSnapshot {
         {
             return deny_system_disk(self.locale).into();
         }
-        allowlist_hint(self.locale).into()
+        let wb = trareon_ata::probe_write_blocker(std::path::Path::new(&self.source_path));
+        let wb_line = match wb {
+            trareon_ata::WriteBlockerState::Detected { vendor, .. } => {
+                format!("write-blocker: detected ({vendor})")
+            }
+            trareon_ata::WriteBlockerState::NotApplicable => String::new(),
+            trareon_ata::WriteBlockerState::ManualConfirmed { note } => {
+                format!("write-blocker: manual ({note})")
+            }
+            trareon_ata::WriteBlockerState::NotDetected => {
+                "write-blocker: NOT detected — confirm hardware blocker before acquire".into()
+            }
+            trareon_ata::WriteBlockerState::Uncertain { reason } => {
+                format!("write-blocker: uncertain ({reason})")
+            }
+        };
+        let hpa = match trareon_ata::detect_hpa_dco(std::path::Path::new(&self.source_path)) {
+            Ok(r) => match r.status {
+                trareon_ata::DetectionStatus::Ok if r.is_hidden_area() => {
+                    "HPA/DCO: hidden area indicated".into()
+                }
+                trareon_ata::DetectionStatus::Ok => "HPA/DCO: no hidden area in probe".into(),
+                trareon_ata::DetectionStatus::Unavailable { reason } => {
+                    format!("HPA/DCO: {reason}")
+                }
+            },
+            Err(e) => format!("HPA/DCO: {e}"),
+        };
+        let base = allowlist_hint(self.locale);
+        format!("{base} | {wb_line} | {hpa}")
     }
 
     pub fn set_busy(&mut self, busy: bool) {
@@ -182,12 +303,33 @@ impl UiSnapshot {
         self.status_line = detail.into();
     }
 
+    /// Persist an operator pause reason adjacent to the resumable checkpoint.
+    pub fn set_paused(&mut self, checkpoint: &Path) -> Result<(), String> {
+        crate::preserve::write_stop_reason(checkpoint, crate::preserve::StopReason::Paused)?;
+        self.busy = false;
+        self.stop_reason = Some(crate::preserve::StopReason::Paused);
+        self.status_line = "Paused".into();
+        Ok(())
+    }
+
+    /// Persist an operator cancellation reason adjacent to the resumable checkpoint.
+    pub fn set_cancelled(&mut self, checkpoint: &Path) -> Result<(), String> {
+        crate::preserve::write_stop_reason(checkpoint, crate::preserve::StopReason::Cancelled)?;
+        self.busy = false;
+        self.stop_reason = Some(crate::preserve::StopReason::Cancelled);
+        self.status_line = "Cancelled".into();
+        Ok(())
+    }
+
     pub fn clear_results(&mut self) {
         self.status_line = ready_status(self.locale).into();
         self.last_package = NONE_SENTINEL.into();
         self.evidence_sha256 = NONE_SENTINEL.into();
         self.evidence_size = NONE_SENTINEL.into();
         self.busy = false;
+        self.progress_fraction = 0.0;
+        self.progress_label.clear();
+        self.progress_phase.clear();
     }
 
     pub fn msg_need_confirm_paths(&self) -> &'static str {
@@ -346,6 +488,44 @@ fn json_str(s: &str) -> String {
     format!("\"{escaped}\"")
 }
 
+fn path_looks_blockish(path: &str) -> bool {
+    let path = path.trim().to_ascii_lowercase();
+    !path.is_empty()
+        && (path.contains(r"\\.\physicaldrive")
+            || path.contains("/dev/rdisk")
+            || path.contains("/dev/disk")
+            || path.starts_with("/dev/loop")
+            || path.starts_with("/dev/nvme")
+            || path.starts_with("/dev/sd"))
+}
+
+/// Whether source and destination resolve to the same filesystem volume.
+///
+/// A same-volume destination can exhaust the source volume during acquisition and is rejected
+/// before a live acquisition starts.
+pub fn dest_equals_source_volume(source: &Path, destination: &Path) -> bool {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        let source = source.metadata();
+        let destination = destination.metadata();
+        matches!((source, destination), (Ok(source), Ok(destination)) if source.dev() == destination.dev())
+    }
+    #[cfg(windows)]
+    {
+        let source = source.to_string_lossy();
+        let destination = destination.to_string_lossy();
+        source
+            .get(..2)
+            .zip(destination.get(..2))
+            .is_some_and(|(left, right)| left.eq_ignore_ascii_case(right))
+    }
+    #[cfg(not(any(unix, windows)))]
+    {
+        false
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -361,6 +541,32 @@ mod tests {
         assert!(snap.can_run());
         snap.set_busy(true);
         assert!(!snap.can_run());
+    }
+
+    #[test]
+    fn standard_and_expert_reject_orphan_runs() {
+        let mut snap = UiSnapshot {
+            mode: UiMode::Standard,
+            source_path: "/tmp/a.img".into(),
+            output_dir: "/tmp/out".into(),
+            confirmed_synthetic: true,
+            ..UiSnapshot::default()
+        };
+        assert!(!snap.can_run());
+        assert!(!snap.can_start_expert());
+        snap.case_id = "CASE-1".into();
+        assert!(snap.can_run());
+        snap.mode = UiMode::Expert;
+        assert!(!snap.can_start_expert());
+        snap.oov_ack = true;
+        snap.identify_record.oov_ack = true;
+        snap.identify_record.checklist_complete = crate::identify::IdentifyChecklist {
+            power: true,
+            network: true,
+            encryption: true,
+            anti_forensics: true,
+        };
+        assert!(snap.can_start_expert());
     }
 
     #[test]
@@ -417,10 +623,24 @@ mod tests {
     }
 
     #[test]
-    fn prefs_default_dark_en() {
+    fn prefs_default_light_en() {
         let snap = UiSnapshot::default();
-        assert!(snap.dark_mode);
+        assert!(!snap.dark_mode);
         assert_eq!(snap.locale, UiLocale::En);
+    }
+
+    #[test]
+    fn snapshot_uses_persisted_theme_locale_and_output() {
+        let prefs = AcquirePrefs {
+            dark_mode: true,
+            locale: "id".into(),
+            last_output_dir: "/tmp/acquire".into(),
+            ..AcquirePrefs::default()
+        };
+        let snap = UiSnapshot::from_prefs(&prefs);
+        assert!(snap.dark_mode);
+        assert_eq!(snap.locale, UiLocale::Id);
+        assert_eq!(snap.output_dir, "/tmp/acquire");
     }
 
     #[test]
@@ -457,5 +677,52 @@ mod tests {
         assert!(snap.preflight_hint().contains("allowlist"));
         snap.source_path = "/dev/disk0".into();
         assert!(snap.preflight_hint().contains("TOLAK"));
+    }
+
+    #[test]
+    fn expert_gate_requires_write_blocker_capacity_and_identify() {
+        let mut snap = UiSnapshot {
+            mode: UiMode::Expert,
+            case_id: "CASE-1".into(),
+            source_path: "/dev/disk10".into(),
+            output_dir: "/tmp/out".into(),
+            confirmed_synthetic: true,
+            ..UiSnapshot::default()
+        };
+        assert!(!snap.can_start_expert());
+        snap.wb_confirmed = true;
+        snap.free_space_ok = Some(false);
+        assert!(!snap.can_start_expert());
+        snap.free_space_ok = Some(true);
+        snap.emergency_override_reason = "supervisor approved emergency collection".into();
+        assert!(snap.can_start_expert());
+        assert!(snap.override_audit_line().unwrap().contains("EMERGENCY"));
+    }
+
+    #[test]
+    fn pause_and_cancel_write_semantic_stop_reasons() {
+        let temp = tempfile::tempdir().unwrap();
+        let checkpoint = temp.path().join("acquire.checkpoint.json");
+        let mut snap = UiSnapshot::default();
+        snap.set_busy(true);
+        snap.set_paused(&checkpoint).unwrap();
+        assert_eq!(snap.stop_reason, Some(crate::preserve::StopReason::Paused));
+        snap.set_cancelled(&checkpoint).unwrap();
+        assert_eq!(
+            snap.stop_reason,
+            Some(crate::preserve::StopReason::Cancelled)
+        );
+        assert_eq!(
+            std::fs::read_to_string(temp.path().join(".acquire-stop-reason")).unwrap(),
+            "cancelled\n"
+        );
+    }
+
+    #[test]
+    fn same_volume_destination_is_rejected() {
+        let temp = tempfile::tempdir().unwrap();
+        let source = temp.path().join("source.bin");
+        std::fs::write(&source, b"source").unwrap();
+        assert!(dest_equals_source_volume(&source, temp.path()));
     }
 }

@@ -1,5 +1,20 @@
 # Design plan — Trareon Acquire shell (frontend-design skill)
 
+## Perfect Product IA (M14)
+
+Acquire is a multi-surface evidence workstation, not a single acquisition screen:
+
+1. **Cases** establishes operator and case context.
+2. **Identify** makes source capability and constraints visible.
+3. **Acquire** performs the guarded collection workflow.
+4. **Seal / Preserve** exposes verification, custody, and export.
+5. **Triage / Tools** are read-only or clearly separated post-acquisition surfaces.
+6. **Help / QMS / About** keep SOP limits, release identity, and support boundaries reachable.
+
+Light is the default theme for normal desk and classroom conditions; dark remains an operator
+preference for low-light benches. Both themes must preserve the same hierarchy, focus treatment,
+status semantics, and restraint. Navigation labels describe user work, never internal modules.
+
 ## Subject
 Desktop **evidence acquisition** station for DFIR lab operators.
 Audience: examiners comparing Trareon to Magnet AXIOM Process / Belkasoft X acquire /
@@ -58,7 +73,7 @@ Real job: **Prepare → Acquire → Seal**. UI mirrors that sequence — not a s
 - Prefs chips stay quiet; copper fill reserved for the primary action.
 
 ### Theme + language (runtime)
-- Header segmented toggles: **Dark | Light** and **EN | ID**
+- Header segmented toggles: **Light | Dark** and **EN | ID**; light starts selected on first use
 - Tokens live in `ui/theme.slint`; chrome copy in `ui/strings.slint`
 - Rust `UiSnapshot.dark_mode` / `locale` drive prefs; guidance/status/preflight localize with locale
 - Responsive: rail + padding compress below ~980px; body scrolls via `Flickable`; action row scrolls horizontally when tight

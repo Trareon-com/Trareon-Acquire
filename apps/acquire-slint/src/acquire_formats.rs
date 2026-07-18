@@ -20,6 +20,8 @@ pub enum UiOutputFormat {
     Vhd,
     Qcow2,
     Dmg,
+    /// Optional ZFF via external `zffacquire` (feature `zff` on trareon-core).
+    Zff,
 }
 
 impl UiOutputFormat {
@@ -32,6 +34,7 @@ impl UiOutputFormat {
             Self::Vhd => "vhd",
             Self::Qcow2 => "qcow2",
             Self::Dmg => "dmg",
+            Self::Zff => "z01",
         }
     }
 }
@@ -64,21 +67,44 @@ pub fn acquire_to_format_with_sha512(
         acquire_file(&request).map_err(|error| error.to_string())?;
 
         let output = output_dir.join(format!("evidence.{}", format.extension()));
-        let reader = BufReader::new(File::open(&raw).map_err(|error| error.to_string())?);
         match format {
-            UiOutputFormat::E01 => write_e01(reader, &output, &CaseMetadata::default()).map(|_| ()),
-            UiOutputFormat::Aff4 => write_aff4(reader, &output).map(|_| ()),
-            UiOutputFormat::Vmdk => write_vmdk(reader, &output).map(|_| ()),
-            UiOutputFormat::Vhd => write_vhd(reader, &output).map(|_| ()),
-            UiOutputFormat::Qcow2 => write_qcow2(reader, &output).map(|_| ()),
-            UiOutputFormat::Dmg => write_dmg(reader, &output).map(|_| ()),
-            UiOutputFormat::RawFsnap => unreachable!("handled above"),
+            UiOutputFormat::Zff => {
+                #[cfg(feature = "zff")]
+                {
+                    let prefix = output_dir.join("evidence-zff");
+                    trareon_core::write_zff_physical(&raw, &prefix)
+                        .map_err(|error| error.to_string())?;
+                    prefix
+                }
+                #[cfg(not(feature = "zff"))]
+                {
+                    return Err(
+                        "ZFF output requires trareon-core feature `zff` + zffacquire on PATH".into(),
+                    );
+                }
+            }
+            other => {
+                let reader = BufReader::new(File::open(&raw).map_err(|error| error.to_string())?);
+                match other {
+                    UiOutputFormat::E01 => {
+                        write_e01(reader, &output, &CaseMetadata::default()).map(|_| ())
+                    }
+                    UiOutputFormat::Aff4 => write_aff4(reader, &output).map(|_| ()),
+                    UiOutputFormat::Vmdk => write_vmdk(reader, &output).map(|_| ()),
+                    UiOutputFormat::Vhd => write_vhd(reader, &output).map(|_| ()),
+                    UiOutputFormat::Qcow2 => write_qcow2(reader, &output).map(|_| ()),
+                    UiOutputFormat::Dmg => write_dmg(reader, &output).map(|_| ()),
+                    UiOutputFormat::RawFsnap | UiOutputFormat::Zff => {
+                        unreachable!("handled above")
+                    }
+                }
+                .map_err(|error| error.to_string())?;
+                output
+            }
         }
-        .map_err(|error| error.to_string())?;
-        output
     };
 
-    if write_sha512_sidecar {
+    if write_sha512_sidecar && output.is_file() {
         write_sha512_sidecar_for(&output)?;
     }
     Ok(output)

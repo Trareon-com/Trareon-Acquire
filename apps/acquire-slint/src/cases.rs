@@ -105,7 +105,7 @@ impl CaseStore {
         id
     }
 
-    fn path_for(&self, id: &str) -> Result<PathBuf, String> {
+    pub fn path_for(&self, id: &str) -> Result<PathBuf, String> {
         let id = require_case_id(id)?;
         if id.contains('/') || id.contains('\\') {
             return Err("case id must not contain path separators".into());
@@ -130,6 +130,7 @@ pub fn require_case_id(case_id: &str) -> Result<&str, String> {
 
 fn local_root() -> Option<PathBuf> {
     std::env::var_os("HOME")
+        .or_else(|| std::env::var_os("USERPROFILE"))
         .map(PathBuf::from)
         .map(|home| home.join(".trareon").join("cases"))
 }

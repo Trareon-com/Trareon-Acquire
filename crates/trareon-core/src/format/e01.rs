@@ -71,7 +71,24 @@ pub struct E01Summary {
     pub chunk_count: u64,
 }
 
+/// Product E01 writer: real EWF when feature `ewf` is enabled, else e01-lite.
 pub fn write_e01(
+    reader: impl Read,
+    output: &Path,
+    case: &CaseMetadata,
+) -> Result<E01Summary, CoreError> {
+    #[cfg(feature = "ewf")]
+    {
+        crate::format::ewf::write_ewf_physical(reader, output, case)
+    }
+    #[cfg(not(feature = "ewf"))]
+    {
+        write_e01_lite(reader, output, case)
+    }
+}
+
+/// Documented `trareon.e01-lite/1` subset (not libewf-compatible).
+pub fn write_e01_lite(
     mut reader: impl Read,
     output: &Path,
     case: &CaseMetadata,
@@ -265,7 +282,7 @@ mod tests {
             description: "synth".into(),
             notes: String::new(),
         };
-        let summary = write_e01(Cursor::new(&data), &path, &case).unwrap();
+        let summary = write_e01_lite(Cursor::new(&data), &path, &case).unwrap();
         assert_eq!(summary.raw_size, data.len() as u64);
         let verified = verify_e01(&path).unwrap();
         assert_eq!(verified.sha256, summary.sha256);

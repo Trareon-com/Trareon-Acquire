@@ -2,18 +2,33 @@
 
 ## Perfect Product IA (M14)
 
-Acquire is a multi-surface evidence workstation, not a single acquisition screen:
+Acquire is a multi-surface evidence workstation, not a single acquisition screen.
+Rail groups follow **ISO/IEC 27037** process language (not internal milestone codes):
 
-1. **Cases** establishes operator and case context.
-2. **Identify** makes source capability and constraints visible.
-3. **Acquire** performs the guarded collection workflow.
-4. **Seal / Preserve** exposes verification, custody, and export.
-5. **Triage / Tools** are read-only or clearly separated post-acquisition surfaces.
-6. **Help / QMS / About** keep SOP limits, release identity, and support boundaries reachable.
+1. **Cases** establishes operator and case context (who / case id — CoC start).
+2. **Identify** makes source capability and constraints visible (power, encryption, OoV).
+3. **Acquire** performs the guarded collection workflow (Prepare → Acquire → Seal).
+4. **Triage** is post-acquire review; deep analysis stays out of this bench.
+5. **Tools / QMS / Boot** are lab utilities, clearly secondary.
+6. **Help / About** keep SOP limits, release identity, and support boundaries reachable.
+
+**Mode** (Guided / Standard / Expert) appears only on the Acquire surface — Hibshi et al.
+(IMF 2011) found tool chrome that mixes process with capability raises learning cost.
+
+**Instrument strip** (Case · Write-blocker · Integrity) stays visible like FTK Imager /
+Guymager / Autopsy status areas: protection and integrity are first-class readouts, not
+buried prose.
 
 Light is the default theme for normal desk and classroom conditions; dark remains an operator
 preference for low-light benches. Both themes must preserve the same hierarchy, focus treatment,
 status semantics, and restraint. Navigation labels describe user work, never internal modules.
+
+### Research anchors (2026-07-18)
+- Peers: FTK Imager, Guymager, Autopsy UI layout, Magnet AXIOM Examine, EnCase density norms.
+- Literature: Hibshi/Vidas/Cranor IMF 2011 usability study; ISO/IEC 27037; Altiero visualization
+  thesis; usable-digital-forensics frameworks (effectiveness / efficiency / satisfaction).
+- Wave 0 polish: guided wizard strip, run telemetry (MiB/s + ETA), coverage mini-map, custody
+  timeline after seal, help as task deep-links, deny panel (not color-only), phase opacity motion.
 
 ## Subject
 Desktop **evidence acquisition** station for DFIR lab operators.

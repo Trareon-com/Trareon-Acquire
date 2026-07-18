@@ -10,7 +10,7 @@ resolver = "2"
 
 [workspace.package]
 edition = "2024"
-rust-version = "1.95"
+rust-version = "1.96"
 license = "GPL-3.0-only"
 authors = ["Yusuf Shalahuddin Al Ayyubi As Sobari"]
 

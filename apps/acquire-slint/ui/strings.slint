@@ -24,15 +24,69 @@ export global Strings {
         : "A hash seal is not a digital signature.";
     out property <string> about-build: is-id ? "Identitas build" : "Build identity";
 
+    out property <string> rail-workflow: is-id ? "ALUR" : "WORKFLOW";
+    out property <string> rail-lab: is-id ? "LAB" : "LAB";
+    out property <string> rail-support: is-id ? "DUKUNGAN" : "SUPPORT";
     out property <string> nav-cases: is-id ? "Kasus" : "Cases";
+    out property <string> hint-cases: is-id ? "Konteks operator" : "Operator context";
     out property <string> nav-identify: is-id ? "Identifikasi" : "Identify";
-    out property <string> nav-acquire: "Acquire";
-    out property <string> nav-triage: "Triage";
-    out property <string> nav-tools: "Tools";
+    out property <string> hint-identify: is-id ? "ISO · kenali sumber" : "ISO · know source";
+    out property <string> nav-acquire: is-id ? "Akuisisi" : "Acquire";
+    out property <string> hint-acquire: is-id ? "Siapkan · jalankan · segel" : "Prepare · run · seal";
+    out property <string> nav-triage: is-id ? "Triage" : "Triage";
+    out property <string> hint-triage: is-id ? "Pasca-akuisisi" : "Post-acquire";
+    out property <string> nav-tools: is-id ? "Alat" : "Tools";
+    out property <string> hint-tools: is-id ? "Verifikasi / utilitas" : "Verify / utilities";
     out property <string> nav-qms: "QMS";
-    out property <string> nav-boot: "Boot";
+    out property <string> hint-qms: is-id ? "Validasi lab" : "Lab validation";
+    out property <string> nav-boot: is-id ? "Boot" : "Boot";
+    out property <string> hint-boot: is-id ? "Media portabel" : "Portable media";
     out property <string> nav-help: is-id ? "Bantuan" : "Help";
+    out property <string> hint-help: is-id ? "SOP singkat" : "Short SOP";
     out property <string> nav-about: is-id ? "Tentang" : "About";
+    out property <string> hint-about: is-id ? "Identitas build" : "Build identity";
+
+    out property <string> chip-case: is-id ? "Kasus" : "Case";
+    out property <string> chip-wb: is-id ? "Write-blocker" : "Write-blocker";
+    out property <string> chip-integrity: is-id ? "Integritas" : "Integrity";
+    out property <string> integrity-standby: is-id ? "Siaga" : "Standby";
+    out property <string> integrity-ready: is-id ? "Siap akuisisi" : "Ready";
+    out property <string> integrity-sealed: is-id ? "Tersegel" : "Sealed";
+    out property <string> integrity-running: is-id ? "Berjalan" : "Running";
+    out property <string> case-id-label: is-id ? "ID BUKTI / KASUS" : "EVIDENCE / CASE ID";
+    out property <string> examiner-label: is-id ? "PEMERIKSA" : "EXAMINER";
+    out property <string> confirm-wb: is-id
+        ? "Saya konfirmasi write-blocker perangkat keras terpasang (sumber blok)."
+        : "I confirm a hardware write-blocker is in place (block device source).";
+
+    out property <string> shell-cases-title: is-id ? "Konteks kasus" : "Case context";
+    out property <string> shell-cases-body: is-id
+        ? "Tetapkan identitas kasus dan pemeriksa sebelum akuisisi. ISO/IEC 27037: catatan siapa/kapan harus dapat diaudit bersama bukti."
+        : "Set case and examiner identity before acquisition. ISO/IEC 27037: who/when must remain auditable with the evidence.";
+    out property <string> shell-identify-title: is-id ? "Identifikasi sumber" : "Source identification";
+    out property <string> shell-identify-body: is-id
+        ? "Catat daya, jaringan, enkripsi, dan checklist di luar pandang. Jangan klaim write-blocker atau HPA tanpa bukti probe."
+        : "Record power, network, encryption, and out-of-view checklist. Do not claim write-blocker or HPA without probe evidence.";
+    out property <string> shell-triage-title: is-id ? "Triage baca-saja" : "Read-only triage";
+    out property <string> shell-triage-body: is-id
+        ? "Tinjau hasil setelah segel. Analisis mendalam (gaya Autopsy) bukan pekerjaan meja akuisisi — gunakan Lab terpisah."
+        : "Review after seal. Deep analysis (Autopsy-style) is not the acquisition job — use a separate Lab surface.";
+    out property <string> shell-tools-title: is-id ? "Alat verifikasi" : "Verification tools";
+    out property <string> shell-tools-body: is-id
+        ? "Hub verifikasi dan utilitas. Hash segel membuktikan konsistensi byte; verifikasi independen tetap wajib."
+        : "Verifier hub and utilities. A hash seal proves byte consistency; independent verification remains required.";
+    out property <string> shell-qms-title: is-id ? "Mutu lab (QMS)" : "Lab quality (QMS)";
+    out property <string> shell-qms-body: is-id
+        ? "Self-test, dataset dikenal, dan matriks validasi. Klaim produk harus sama dengan bukti yang tercatat."
+        : "Self-test, known datasets, and validation matrix. Product claims must match recorded evidence.";
+    out property <string> shell-boot-title: is-id ? "Media boot / portabel" : "Boot / portable media";
+    out property <string> shell-boot-body: is-id
+        ? "Paket USB dan distribusi portabel untuk akuisisi di lapangan. Tanda tangan/notarisasi produksi masih di luar jalur lab."
+        : "USB pack and portable distribution for field acquisition. Production signing/notarization remains outside the lab track.";
+    out property <string> shell-help-title: is-id ? "Bantuan operator" : "Operator help";
+    out property <string> shell-help-body: is-id
+        ? "SOP singkat: write-blocker, di luar validasi, segel vs tanda tangan, format, dan pintasan keyboard."
+        : "Short SOP: write-blocker, out of validation, seal vs signature, formats, and keyboard shortcuts.";
     out property <string> help_wb: is-id
         ? "Write-blocker: gunakan blocker perangkat keras bila tersedia. Jika tidak, catat konfirmasi manual di audit. Jangan klaim terdeteksi tanpa bukti."
         : "Write-blocker: use a hardware blocker when available. Otherwise record manual confirmation in the audit. Do not claim detection without evidence.";
@@ -103,4 +157,63 @@ export global Strings {
     out property <string> state-standby: is-id ? "Siaga" : "Standby";
     out property <string> state-running: is-id ? "Berjalan" : "Running";
     out property <string> state-sealed: is-id ? "Tersegel" : "Sealed";
+
+    out property <string> wizard-case: is-id ? "Kasus" : "Case";
+    out property <string> wizard-source: is-id ? "Sumber" : "Source";
+    out property <string> wizard-wb: is-id ? "Write-blocker" : "Write-blocker";
+    out property <string> wizard-confirm: is-id ? "Konfirmasi" : "Confirm";
+    out property <string> wizard-start: is-id ? "Mulai" : "Start";
+    out property <string> telemetry: is-id ? "TELEMETRI" : "TELEMETRY";
+    out property <string> coverage-map: is-id ? "PETA CAKUPAN" : "COVERAGE MAP";
+    out property <string> custody-timeline: is-id ? "LINIMASA CUSTODY" : "CUSTODY TIMELINE";
+    out property <string> format-label: is-id ? "FORMAT KELUARAN" : "OUTPUT FORMAT";
+    out property <string> disks-label: is-id ? "DISK HOST" : "HOST DISKS";
+    out property <string> refresh-disks: is-id ? "Muat ulang disk" : "Refresh disks";
+    out property <string> use-selected-disk: is-id ? "Pakai baris pertama sebagai sumber" : "Use first disk path as source";
+    out property <string> create-case: is-id ? "Buat kasus" : "Create case";
+    out property <string> refresh-cases: is-id ? "Muat ulang kasus" : "Refresh cases";
+    out property <string> save-identify: is-id ? "Simpan identify" : "Save identify";
+    out property <string> probe-encryption: is-id ? "Probe enkripsi" : "Probe encryption";
+    out property <string> run-verify: is-id ? "Verifikasi paket" : "Verify package";
+    out property <string> run-hash: is-id ? "Hash saja" : "Hash only";
+    out property <string> run-qms: is-id ? "Jalankan QMS" : "Run QMS";
+    out property <string> run-triage: is-id ? "Jalankan triage" : "Run triage";
+    out property <string> boot-plan: is-id ? "Rencana boot (dry-run)" : "Boot plan (dry-run)";
+    out property <string> analysis-lite: is-id ? "Analysis lite" : "Analysis lite";
+    out property <string> sha512-label: "SHA-512";
+    out property <string> write-sha512: is-id ? "Tulis sidecar SHA-512" : "Write SHA-512 sidecar";
+    out property <string> segment-mib: is-id ? "Segmen MiB (split)" : "Segment MiB (split)";
+    out property <string> retry-policy: is-id ? "Kebijakan bad-sector: lewati & catat (default lab)" : "Bad-sector policy: skip & log (lab default)";
+    out property <string> retry-label: is-id ? "KEBIJAKAN BAD-SECTOR" : "BAD-SECTOR POLICY";
+    out property <string> retry-skip: is-id ? "Lewati" : "Skip";
+    out property <string> retry-n: is-id ? "Retry×3" : "Retry×3";
+    out property <string> retry-fail: is-id ? "Fail-closed" : "Fail-closed";
+    out property <string> profile-label: is-id ? "PROFIL" : "PROFILE";
+    out property <string> profile-quick: "Quick";
+    out property <string> profile-standard: "Standard";
+    out property <string> profile-deep: "Deep";
+    out property <string> profile-custom: "Custom";
+    out property <string> run-quick-profile: is-id ? "Jalankan Quick (logical)" : "Run Quick (logical)";
+    out property <string> source-kind-label: is-id ? "JENIS SUMBER" : "SOURCE KIND";
+    out property <string> kind-disk: "Disk";
+    out property <string> kind-file: is-id ? "Berkas" : "File";
+    out property <string> kind-ram: "RAM";
+    out property <string> kind-snap: "Snapshot";
+    out property <string> coc-form-label: is-id ? "FORM CoC" : "CoC FORM";
+    out property <string> coc-device: is-id ? "ID perangkat / media" : "Device / media ID";
+    out property <string> coc-media: is-id ? "Media #" : "Media #";
+    out property <string> coc-seq: is-id ? "Seq #" : "Seq #";
+    out property <string> coc-description: is-id ? "Deskripsi bukti" : "Evidence description";
+    out property <string> export-full-coc: is-id ? "Ekspor CoC + QR" : "Export CoC + QR";
+    out property <string> compare-packages: is-id ? "Bandingkan" : "Compare";
+    out property <string> browse-compare: is-id ? "Pilih paket B" : "Pick package B";
+    out property <string> export-report: is-id ? "Ekspor bukti" : "Export evidence";
+    out property <string> compare-hint: is-id ? "Pilih paket B untuk compare." : "Pick package B to compare.";
+    out property <string> multisource-label: is-id ? "MULTISOURCE" : "MULTISOURCE";
+    out property <string> multisource-b: is-id ? "Sumber B (path)" : "Source B (path)";
+    out property <string> run-multisource: is-id ? "Jalankan dual-source" : "Run dual-source";
+    out property <string> deny-title: is-id ? "Akuisisi ditolak" : "Acquire denied";
+    out property <string> deny-body: is-id
+        ? "Perbaiki jalur atau konfirmasi write-blocker, lalu coba lagi."
+        : "Fix the path or write-blocker confirmation, then retry.";
 }

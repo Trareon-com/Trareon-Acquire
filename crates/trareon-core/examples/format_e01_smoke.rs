@@ -1,6 +1,6 @@
 use std::{env, fs::File, io::Cursor, path::PathBuf};
 
-use trareon_core::{CaseMetadata, read_e01_to_raw, write_e01};
+use trareon_core::{CaseMetadata, read_e01_to_raw, write_e01_lite};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output = env::args()
@@ -8,7 +8,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(PathBuf::from)
         .ok_or("usage: format_e01_smoke OUTPUT.E01")?;
     let data: Vec<u8> = (0..=255).cycle().take(256 * 1024).collect();
-    let summary = write_e01(
+    // Lite framing round-trip (Path A companion). Real EWF uses feature `ewf` + write_e01.
+    let summary = write_e01_lite(
         Cursor::new(&data),
         &output,
         &CaseMetadata {

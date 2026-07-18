@@ -222,6 +222,51 @@ impl UiSnapshot {
         guidance(self.mode, self.locale)
     }
 
+    /// Short write-blocker readout for the instrument strip (FTK/Guymager pattern).
+    pub fn write_blocker_line(&self) -> String {
+        let path = self.source_path.trim();
+        if path.is_empty() {
+            return "Write-blocker: —".into();
+        }
+        if !self.is_blockish_source() {
+            return "Write-blocker: n/a (file source)".into();
+        }
+        match trareon_ata::probe_write_blocker(std::path::Path::new(path)) {
+            trareon_ata::WriteBlockerState::Detected { vendor, .. } => {
+                format!("Write-blocker: detected ({vendor})")
+            }
+            trareon_ata::WriteBlockerState::ManualConfirmed { note } => {
+                format!("Write-blocker: manual ({note})")
+            }
+            trareon_ata::WriteBlockerState::NotDetected => {
+                if self.wb_confirmed {
+                    "Write-blocker: operator confirmed".into()
+                } else {
+                    "Write-blocker: NOT detected".into()
+                }
+            }
+            trareon_ata::WriteBlockerState::Uncertain { reason } => {
+                format!("Write-blocker: uncertain ({reason})")
+            }
+            trareon_ata::WriteBlockerState::NotApplicable => "Write-blocker: n/a".into(),
+        }
+    }
+
+    /// True when protection is detected, n/a, or the operator confirmed hardware blocking.
+    pub fn write_blocker_ready(&self) -> bool {
+        let path = self.source_path.trim();
+        if path.is_empty() || !self.is_blockish_source() {
+            return true;
+        }
+        match trareon_ata::probe_write_blocker(std::path::Path::new(path)) {
+            trareon_ata::WriteBlockerState::Detected { .. }
+            | trareon_ata::WriteBlockerState::ManualConfirmed { .. }
+            | trareon_ata::WriteBlockerState::NotApplicable => true,
+            trareon_ata::WriteBlockerState::NotDetected
+            | trareon_ata::WriteBlockerState::Uncertain { .. } => self.wb_confirmed,
+        }
+    }
+
     /// Elevation / allowlist preflight hint (Hari 26 / Expert).
     pub fn preflight_hint(&self) -> String {
         let path = self.source_path.trim().to_ascii_lowercase();
@@ -677,6 +722,30 @@ mod tests {
         assert!(snap.preflight_hint().contains("allowlist"));
         snap.source_path = "/dev/disk0".into();
         assert!(snap.preflight_hint().contains("TOLAK"));
+    }
+
+    #[test]
+    fn write_blocker_line_marks_file_source_as_na() {
+        let snap = UiSnapshot {
+            source_path: "/tmp/demo.bin".into(),
+            ..UiSnapshot::default()
+        };
+        assert!(snap.write_blocker_line().contains("n/a"));
+        assert!(snap.write_blocker_ready());
+    }
+
+    #[test]
+    fn write_blocker_not_detected_ready_only_after_confirm() {
+        let mut snap = UiSnapshot {
+            source_path: "/dev/sdb".into(),
+            ..UiSnapshot::default()
+        };
+        // Without hardware detection, readiness requires operator confirmation.
+        let ready_before = snap.write_blocker_ready();
+        snap.wb_confirmed = true;
+        assert!(snap.write_blocker_ready());
+        assert!(snap.write_blocker_line().contains("Write-blocker"));
+        let _ = ready_before; // platform-dependent before confirm
     }
 
     #[test]

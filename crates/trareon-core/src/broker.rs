@@ -178,6 +178,91 @@ impl ElevationHelper for StubElevationHelper {
     }
 }
 
+/// Looks for a reviewed helper binary; never shells out and never elevates itself.
+///
+/// Resolution order:
+/// 1. `TRAREON_ELEVATION_HELPER` absolute path
+/// 2. sibling `trareon-elevate` next to the current executable
+///
+/// Until that binary exists and speaks the broker protocol, responses stay
+/// `NotImplemented` with an honest reason (Wave 4 software prep).
+#[derive(Debug, Clone)]
+pub struct PlatformElevationHelper {
+    allowlist: Option<LabAllowlist>,
+    helper_path: Option<std::path::PathBuf>,
+}
+
+impl Default for PlatformElevationHelper {
+    fn default() -> Self {
+        Self {
+            allowlist: None,
+            helper_path: resolve_helper_path(),
+        }
+    }
+}
+
+impl PlatformElevationHelper {
+    pub fn with_allowlist(allowlist: LabAllowlist) -> Self {
+        Self {
+            allowlist: Some(allowlist),
+            helper_path: resolve_helper_path(),
+        }
+    }
+
+    pub fn helper_path(&self) -> Option<&std::path::Path> {
+        self.helper_path.as_deref()
+    }
+}
+
+fn resolve_helper_path() -> Option<std::path::PathBuf> {
+    if let Ok(path) = std::env::var("TRAREON_ELEVATION_HELPER") {
+        let p = std::path::PathBuf::from(path);
+        if p.is_file() {
+            return Some(p);
+        }
+    }
+    if let Ok(exe) = std::env::current_exe()
+        && let Some(dir) = exe.parent()
+    {
+        let candidate = dir.join("trareon-elevate");
+        if candidate.is_file() {
+            return Some(candidate);
+        }
+        #[cfg(windows)]
+        {
+            let win = dir.join("trareon-elevate.exe");
+            if win.is_file() {
+                return Some(win);
+            }
+        }
+    }
+    None
+}
+
+impl ElevationHelper for PlatformElevationHelper {
+    fn elevate_for(&self, request: &BrokerRequest) -> Result<BrokerResponse, CoreError> {
+        match evaluate_broker_request_with_allowlist(request, self.allowlist.as_ref())? {
+            BrokerResponse::Denied { request_id, reason } => {
+                Ok(BrokerResponse::Denied { request_id, reason })
+            }
+            BrokerResponse::Accepted { request_id }
+            | BrokerResponse::NotImplemented { request_id, .. } => {
+                let reason = match &self.helper_path {
+                    Some(path) => format!(
+                        "helper present at {} but IPC elevation not wired; refusing silent privilege",
+                        path.display()
+                    ),
+                    None => {
+                        "no trareon-elevate helper (set TRAREON_ELEVATION_HELPER); privilege denied"
+                            .into()
+                    }
+                };
+                Ok(BrokerResponse::NotImplemented { request_id, reason })
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -295,5 +380,18 @@ mod tests {
         request.source_identity = "/dev/rdisk10".to_string();
         let response = helper.elevate_for(&request).unwrap();
         assert!(matches!(response, BrokerResponse::NotImplemented { .. }));
+    }
+
+    #[test]
+    fn platform_helper_without_binary_stays_not_implemented() {
+        let helper = PlatformElevationHelper::default();
+        assert!(helper.helper_path().is_none());
+        let response = helper.elevate_for(&valid_request()).unwrap();
+        match response {
+            BrokerResponse::NotImplemented { reason, .. } => {
+                assert!(reason.contains("trareon-elevate") || reason.contains("TRAREON_ELEVATION"));
+            }
+            other => panic!("{other:?}"),
+        }
     }
 }

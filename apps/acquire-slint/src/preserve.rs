@@ -56,10 +56,22 @@ pub fn seal_package(
     examiner: &str,
     device_id: &str,
 ) -> Result<EvidenceCoC, String> {
+    seal_package_with_ids(package, case_id, examiner, device_id, 1, 1)
+}
+
+/// Same as [`seal_package`] with explicit media/sequence numbers for full CoC forms.
+pub fn seal_package_with_ids(
+    package: &Path,
+    case_id: &str,
+    examiner: &str,
+    device_id: &str,
+    media_num: u16,
+    seq_num: u16,
+) -> Result<EvidenceCoC, String> {
     let manifest = verify_fsnap(package).map_err(core_error)?;
     let parent = package_parent(package)?;
     let coc = EvidenceCoC::build(
-        &EvidenceId::new(case_id, 1, 1),
+        &EvidenceId::new(case_id, media_num.max(1), seq_num.max(1)),
         &manifest.evidence_sha256,
         &Utc::now().to_rfc3339(),
         examiner,

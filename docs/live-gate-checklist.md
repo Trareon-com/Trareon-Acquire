@@ -2,6 +2,12 @@
 
 A part that touches hardware or forensic claims is **not done** until this checklist is checked for that part.
 
+## Software prep (not a human pass)
+
+- Elevation helper resolves `TRAREON_ELEVATION_HELPER` / sibling `trareon-elevate` via `PlatformElevationHelper` — still returns `NotImplemented` until IPC is wired; never claims OS elevation.
+- ATA lab probe: `cargo run -p trareon-ata --example lab_hpa_dco_probe -- --json <path>` writes an honest Unavailable/Ok report (`probe_lab_report`).
+- AI/software **must not** check the human boxes below.
+
 ## Common gates
 
 - [ ] Source is allowlisted (`lab_policy`), not a system disk — pending human lab; procedure in [evidence README](live-gate-evidence/2026-07-18/README.md)

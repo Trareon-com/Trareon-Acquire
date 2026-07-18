@@ -67,6 +67,8 @@ allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "BSL-1.0",
+    # Transitive via ewf-image → bzip2 → libbz2-rs-sys (EWF BZip2 chunks).
+    "bzip2-1.0.6",
     "CC0-1.0",
     "GPL-3.0-only",
     "ISC",

@@ -13,6 +13,7 @@ pub mod preserve;
 pub mod profiles;
 pub mod qms;
 pub mod recent;
+pub mod shell_ops;
 pub mod sources_ext;
 pub mod tools_hub;
 pub mod triage_ui;

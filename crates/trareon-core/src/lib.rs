@@ -12,6 +12,7 @@ mod domain;
 pub mod format;
 pub mod freespace;
 pub mod fsnap_archive;
+pub mod imaging_policy;
 mod lab_policy;
 mod package;
 pub mod platform;
@@ -26,8 +27,9 @@ pub use acquisition::{
 };
 pub use audit::{AuditEvent, AuditJournal};
 pub use broker::{
-    BrokerOperation, BrokerRequest, BrokerResponse, ElevationHelper, StubElevationHelper,
-    evaluate_broker_request, evaluate_broker_request_with_allowlist, plan_digest,
+    BrokerOperation, BrokerRequest, BrokerResponse, ElevationHelper, PlatformElevationHelper,
+    StubElevationHelper, evaluate_broker_request, evaluate_broker_request_with_allowlist,
+    plan_digest,
 };
 pub use checkpoint::{
     AcquisitionCheckpoint, clear_checkpoint, default_checkpoint_path, load_checkpoint,
@@ -45,6 +47,7 @@ pub use format::{
 };
 pub use freespace::{destination_free_bytes, freespace_margin, freespace_ok};
 pub use fsnap_archive::{pack_fsnap, unpack_fsnap};
+pub use imaging_policy::BadSectorPolicy;
 pub use lab_policy::{
     LabAllowlist, LabAllowlistEntry, SourceIdentity, SourceKind, assert_broker_source_identity,
     assert_source_permitted, classify_source_path, load_lab_allowlist, source_identity_for,

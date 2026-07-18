@@ -227,7 +227,7 @@ export component AppWindow inherits Window {
     in-out property <bool> busy: false;
     in-out property <bool> dark-mode: false;
     in-out property <string> locale: "en";
-    // M0 navigation: 0 is the working Acquire bench; remaining sections are shells.
+    // Navigation: 0 = Acquire bench; 1–7 = wired workflow surfaces.
     in-out property <int> nav-index: 0;
     in-out property <string> about-text: "";
     in-out property <float> progress-fraction: 0.0;
@@ -238,6 +238,39 @@ export component AppWindow inherits Window {
     in-out property <bool> write-blocker-ready: true;
     in-out property <bool> wb-confirmed: false;
     in-out property <bool> blockish-source: false;
+    // Wave 0–2 telemetry / format / CoC
+    in-out property <string> panel-detail: "";
+    in-out property <string> disk-list: "";
+    in-out property <string> custody-timeline-text: "";
+    in-out property <string> throughput-label: "— MiB/s";
+    in-out property <string> eta-label: "ETA —";
+    in-out property <float> coverage-ok: 0.0;
+    in-out property <float> coverage-err: 0.0;
+    in-out property <int> format-index: 0;
+    in-out property <string> format-caption: "RAW + .fsnap (court path A)";
+    in-out property <bool> write-sha512: true;
+    in-out property <string> segment-mib: "64";
+    in-out property <string> evidence-sha512: "(none)";
+    in-out property <bool> id-power: false;
+    in-out property <bool> id-network: false;
+    in-out property <bool> id-encryption: false;
+    in-out property <bool> id-anti: false;
+    in-out property <bool> id-oov: false;
+    in-out property <string> case-title: "";
+    in-out property <string> boot-image-path: "";
+    in-out property <int> profile-index: 1;
+    in-out property <string> profile-caption: "Standard — full file/disk acquire";
+    in-out property <int> source-kind-index: 0;
+    in-out property <string> source-kind-caption: "Disk — host enumerator / PhysicalDrive";
+    in-out property <int> retry-index: 0;
+    in-out property <string> retry-caption: "imaging_policy=skip & log (lab default)";
+    in-out property <string> coc-device: "";
+    in-out property <string> coc-media: "1";
+    in-out property <string> coc-seq: "1";
+    in-out property <string> coc-description: "";
+    in-out property <string> compare-package-b: "";
+    in-out property <string> multisource-b: "";
+    in-out property <float> phase-opacity: 1.0;
 
     property <bool> can-run: root.confirmed-synthetic && root.source-path != "" && root.output-dir != "" && !root.busy && (root.mode-index == 0 || root.case-id != "");
     property <bool> has-package: root.last-package != "(none)";
@@ -255,7 +288,7 @@ export component AppWindow inherits Window {
         : root.prepared ? Strings.integrity-ready
         : Strings.integrity-standby;
     property <string> case-chip: root.case-id == "" ? "—" : root.case-id;
-    property <string> shell-title:
+    property <string> panel-title:
         root.nav-index == 1 ? Strings.shell-cases-title
         : root.nav-index == 2 ? Strings.shell-identify-title
         : root.nav-index == 3 ? Strings.shell-triage-title
@@ -264,7 +297,7 @@ export component AppWindow inherits Window {
         : root.nav-index == 6 ? Strings.shell-boot-title
         : root.nav-index == 7 ? Strings.shell-help-title
         : Strings.about-build;
-    property <string> shell-body:
+    property <string> panel-body:
         root.nav-index == 1 ? Strings.shell-cases-body
         : root.nav-index == 2 ? Strings.shell-identify-body
         : root.nav-index == 3 ? Strings.shell-triage-body
@@ -273,6 +306,12 @@ export component AppWindow inherits Window {
         : root.nav-index == 6 ? Strings.shell-boot-body
         : root.nav-index == 7 ? Strings.shell-help-body
         : root.about-text;
+    property <int> wizard-step: !root.prepared && root.case-id == "" ? 0
+        : !root.prepared && root.source-path == "" ? 1
+        : root.blockish-source && !root.write-blocker-ready ? 2
+        : !root.confirmed-synthetic ? 3
+        : root.has-hash ? 5
+        : 4;
 
     callback browse-source-clicked();
     callback browse-output-clicked();
@@ -285,6 +324,29 @@ export component AppWindow inherits Window {
     callback theme-toggled(bool);
     callback locale-toggled(string);
     callback instrument-refresh();
+    callback refresh-disks-clicked();
+    callback use-first-disk-clicked();
+    callback refresh-cases-clicked();
+    callback create-case-clicked();
+    callback save-identify-clicked();
+    callback probe-encryption-clicked();
+    callback verify-package-clicked();
+    callback hash-only-clicked();
+    callback run-qms-clicked();
+    callback run-triage-clicked();
+    callback boot-plan-clicked();
+    callback analysis-lite-clicked();
+    callback format-changed(int);
+    callback browse-package-clicked();
+    callback profile-changed(int);
+    callback source-kind-changed(int);
+    callback retry-changed(int);
+    callback export-full-coc-clicked();
+    callback compare-packages-clicked();
+    callback export-report-clicked();
+    callback run-profile-clicked();
+    callback multisource-clicked();
+    callback browse-compare-clicked();
 
     init => {
         Theme.apply(root.dark-mode);
@@ -722,7 +784,7 @@ export component AppWindow inherits Window {
                                 padding: 18px;
                                 spacing: 10px;
                                 Text {
-                                    text: root.shell-title;
+                                    text: root.panel-title;
                                     color: Theme.copper;
                                     font-size: 11px;
                                     font-weight: 700;
@@ -730,34 +792,115 @@ export component AppWindow inherits Window {
                                     font-family: "Avenir Next";
                                 }
                                 Text {
-                                    text: root.shell-body;
+                                    text: root.panel-body;
                                     color: Theme.readout;
                                     font-size: 14px;
                                     font-family: "Avenir Next";
                                     wrap: word-wrap;
                                 }
+                                if root.nav-index == 1: VerticalLayout {
+                                    spacing: 8px;
+                                    FieldShell { text <=> root.case-title; placeholder: "Case title"; enabled: !root.busy; }
+                                    FieldShell { text <=> root.case-identity; placeholder: Strings.case-placeholder; enabled: !root.busy; }
+                                    HorizontalLayout {
+                                        spacing: 8px;
+                                        ActionButton { label: Strings.create-case; primary: true; enabled: !root.busy; clicked => { root.create-case-clicked(); } }
+                                        ActionButton { label: Strings.refresh-cases; enabled: !root.busy; clicked => { root.refresh-cases-clicked(); } }
+                                    }
+                                }
+                                if root.nav-index == 2: VerticalLayout {
+                                    spacing: 6px;
+                                    CheckBox { text: "Power documented"; checked <=> root.id-power; enabled: !root.busy; }
+                                    CheckBox { text: "Network isolated"; checked <=> root.id-network; enabled: !root.busy; }
+                                    CheckBox { text: "Encryption probed"; checked <=> root.id-encryption; enabled: !root.busy; }
+                                    CheckBox { text: "Anti-forensics reviewed"; checked <=> root.id-anti; enabled: !root.busy; }
+                                    CheckBox { text: "Out-of-view acknowledged"; checked <=> root.id-oov; enabled: !root.busy; }
+                                    HorizontalLayout {
+                                        spacing: 8px;
+                                        ActionButton { label: Strings.probe-encryption; enabled: !root.busy; clicked => { root.probe-encryption-clicked(); } }
+                                        ActionButton { label: Strings.save-identify; primary: true; enabled: !root.busy; clicked => { root.save-identify-clicked(); } }
+                                    }
+                                }
+                                if root.nav-index == 3: HorizontalLayout {
+                                    spacing: 8px;
+                                    ActionButton { label: Strings.run-triage; primary: true; enabled: !root.busy; clicked => { root.run-triage-clicked(); } }
+                                    ActionButton { label: Strings.analysis-lite; enabled: !root.busy; clicked => { root.analysis-lite-clicked(); } }
+                                }
+                                if root.nav-index == 4: VerticalLayout {
+                                    spacing: 8px;
+                                    HorizontalLayout {
+                                        spacing: 8px;
+                                        ActionButton { label: Strings.run-verify; primary: true; enabled: !root.busy; clicked => { root.verify-package-clicked(); } }
+                                        ActionButton { label: Strings.run-hash; enabled: !root.busy; clicked => { root.hash-only-clicked(); } }
+                                        ActionButton { label: "Browse .fsnap"; enabled: !root.busy; clicked => { root.browse-package-clicked(); } }
+                                    }
+                                    HorizontalLayout {
+                                        spacing: 8px;
+                                        ActionButton { label: Strings.compare-packages; enabled: !root.busy; clicked => { root.compare-packages-clicked(); } }
+                                        ActionButton { label: Strings.browse-compare; enabled: !root.busy; clicked => { root.browse-compare-clicked(); } }
+                                        ActionButton { label: Strings.export-report; enabled: !root.busy; clicked => { root.export-report-clicked(); } }
+                                    }
+                                    Text {
+                                        text: root.compare-package-b == "" ? Strings.compare-hint : root.compare-package-b;
+                                        color: Theme.mute;
+                                        font-size: 11px;
+                                        font-family: "Menlo";
+                                        wrap: word-wrap;
+                                    }
+                                }
+                                if root.nav-index == 5: ActionButton {
+                                    label: Strings.run-qms; primary: true; enabled: !root.busy; clicked => { root.run-qms-clicked(); }
+                                }
+                                if root.nav-index == 6: VerticalLayout {
+                                    spacing: 8px;
+                                    FieldShell { text <=> root.boot-image-path; placeholder: "Boot image path"; enabled: !root.busy; }
+                                    ActionButton { label: Strings.boot-plan; primary: true; enabled: !root.busy; clicked => { root.boot-plan-clicked(); } }
+                                }
                                 if root.nav-index == 7: VerticalLayout {
                                     spacing: 8px;
+                                    HorizontalLayout {
+                                        spacing: 8px;
+                                        ActionButton { label: Strings.nav-cases; enabled: !root.busy; clicked => { root.nav-index = 1; } }
+                                        ActionButton { label: Strings.nav-identify; primary: true; enabled: !root.busy; clicked => { root.nav-index = 2; } }
+                                        ActionButton { label: Strings.nav-acquire; enabled: !root.busy; clicked => { root.nav-index = 0; } }
+                                    }
+                                    HorizontalLayout {
+                                        spacing: 8px;
+                                        ActionButton { label: Strings.nav-tools; enabled: !root.busy; clicked => { root.nav-index = 4; } }
+                                        ActionButton { label: Strings.nav-triage; enabled: !root.busy; clicked => { root.nav-index = 3; } }
+                                        ActionButton { label: Strings.nav-qms; enabled: !root.busy; clicked => { root.nav-index = 5; } }
+                                    }
                                     Text { text: Strings.help_wb; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
                                     Text { text: Strings.help_oov; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
                                     Text { text: Strings.help_seal_vs_sig; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
                                     Text { text: Strings.help_formats; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
                                     Text { text: Strings.help_shortcuts; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
                                 }
-                                if root.nav-index != 7 && root.nav-index != 8: Text {
-                                    text: Strings.hash-seal-not-signature;
-                                    color: Theme.info;
+                                if root.panel-detail != "": Text {
+                                    text: root.panel-detail;
+                                    color: Theme.readout;
                                     font-size: 12px;
-                                    font-family: "Avenir Next";
+                                    font-family: "Menlo";
                                     wrap: word-wrap;
                                 }
                                 ActionButton {
                                     label: Strings.nav-acquire;
-                                    primary: true;
+                                    primary: root.nav-index != 4;
                                     enabled: !root.busy;
                                     clicked => { root.nav-index = 0; }
                                 }
                             }
+                        }
+
+                        // Wave 0 guided wizard (IMF 2011 Q&A)
+                        if root.nav-index == 0: HorizontalLayout {
+                            spacing: 6px;
+                            StepBadge { label: Strings.wizard-case; active: root.wizard-step == 0; done: root.wizard-step > 0; }
+                            StepBadge { label: Strings.wizard-source; active: root.wizard-step == 1; done: root.wizard-step > 1; }
+                            StepBadge { label: Strings.wizard-wb; active: root.wizard-step == 2; done: root.wizard-step > 2; }
+                            StepBadge { label: Strings.wizard-confirm; active: root.wizard-step == 3; done: root.wizard-step > 3; }
+                            StepBadge { label: Strings.wizard-start; active: root.wizard-step == 4; done: root.wizard-step >= 5; }
+                            Rectangle { horizontal-stretch: 1; background: transparent; }
                         }
 
                         // STEP 1 — Prepare (Acquire bench only)
@@ -784,6 +927,109 @@ export component AppWindow inherits Window {
                                         font-weight: 600;
                                         font-family: "Avenir Next";
                                         vertical-alignment: center;
+                                    }
+                                }
+
+                                VerticalLayout {
+                                    spacing: 6px;
+                                    Eyebrow { label: Strings.disks-label; }
+                                    Text {
+                                        text: root.disk-list == "" ? "Refresh host disks to pick a PhysicalDrive /dev path." : root.disk-list;
+                                        color: Theme.mute;
+                                        font-size: 11px;
+                                        font-family: "Menlo";
+                                        wrap: word-wrap;
+                                    }
+                                    HorizontalLayout {
+                                        spacing: 8px;
+                                        ActionButton { label: Strings.refresh-disks; enabled: !root.busy; clicked => { root.refresh-disks-clicked(); } }
+                                        ActionButton { label: Strings.use-selected-disk; enabled: !root.busy; clicked => { root.use-first-disk-clicked(); } }
+                                    }
+                                }
+
+                                VerticalLayout {
+                                    spacing: 6px;
+                                    Eyebrow { label: Strings.source-kind-label; }
+                                    Text { text: root.source-kind-caption; color: Theme.readout; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
+                                    HorizontalLayout {
+                                        spacing: 4px;
+                                        PrefChip { label: Strings.kind-disk; active: root.source-kind-index == 0; clicked => { root.source-kind-changed(0); } }
+                                        PrefChip { label: Strings.kind-file; active: root.source-kind-index == 1; clicked => { root.source-kind-changed(1); } }
+                                        PrefChip { label: Strings.kind-ram; active: root.source-kind-index == 2; clicked => { root.source-kind-changed(2); } }
+                                        PrefChip { label: Strings.kind-snap; active: root.source-kind-index == 3; clicked => { root.source-kind-changed(3); } }
+                                    }
+                                }
+
+                                VerticalLayout {
+                                    spacing: 6px;
+                                    Eyebrow { label: Strings.profile-label; }
+                                    Text { text: root.profile-caption; color: Theme.readout; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
+                                    HorizontalLayout {
+                                        spacing: 4px;
+                                        PrefChip { label: Strings.profile-quick; active: root.profile-index == 0; clicked => { root.profile-changed(0); } }
+                                        PrefChip { label: Strings.profile-standard; active: root.profile-index == 1; clicked => { root.profile-changed(1); } }
+                                        PrefChip { label: Strings.profile-deep; active: root.profile-index == 2; clicked => { root.profile-changed(2); } }
+                                        PrefChip { label: Strings.profile-custom; active: root.profile-index == 3; clicked => { root.profile-changed(3); } }
+                                    }
+                                    if root.profile-index == 0: ActionButton {
+                                        label: Strings.run-quick-profile;
+                                        enabled: !root.busy;
+                                        clicked => { root.run-profile-clicked(); }
+                                    }
+                                }
+
+                                VerticalLayout {
+                                    spacing: 6px;
+                                    Eyebrow { label: Strings.format-label; }
+                                    Text { text: root.format-caption; color: Theme.readout; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
+                                    HorizontalLayout {
+                                        spacing: 4px;
+                                        PrefChip { label: "fsnap"; active: root.format-index == 0; clicked => { root.format-changed(0); } }
+                                        PrefChip { label: "E01-lite"; active: root.format-index == 1; clicked => { root.format-changed(1); } }
+                                        PrefChip { label: "AFF4"; active: root.format-index == 2; clicked => { root.format-changed(2); } }
+                                        PrefChip { label: "split"; active: root.format-index == 7; clicked => { root.format-changed(7); } }
+                                    }
+                                    CheckBox { text: Strings.write-sha512; checked <=> root.write-sha512; enabled: !root.busy; }
+                                    if root.format-index == 7: FieldShell {
+                                        text <=> root.segment-mib;
+                                        placeholder: Strings.segment-mib;
+                                        enabled: !root.busy;
+                                    }
+                                    Eyebrow { label: Strings.retry-label; }
+                                    Text { text: root.retry-caption; color: Theme.faint; font-size: 11px; font-family: "Avenir Next"; wrap: word-wrap; }
+                                    HorizontalLayout {
+                                        spacing: 4px;
+                                        PrefChip { label: Strings.retry-skip; active: root.retry-index == 0; clicked => { root.retry-changed(0); } }
+                                        PrefChip { label: Strings.retry-n; active: root.retry-index == 1; clicked => { root.retry-changed(1); } }
+                                        PrefChip { label: Strings.retry-fail; active: root.retry-index == 2; clicked => { root.retry-changed(2); } }
+                                    }
+                                }
+
+                                VerticalLayout {
+                                    spacing: 6px;
+                                    Eyebrow { label: Strings.coc-form-label; }
+                                    FieldShell { text <=> root.coc-device; placeholder: Strings.coc-device; enabled: !root.busy; }
+                                    HorizontalLayout {
+                                        spacing: 8px;
+                                        FieldShell { text <=> root.coc-media; placeholder: Strings.coc-media; enabled: !root.busy; }
+                                        FieldShell { text <=> root.coc-seq; placeholder: Strings.coc-seq; enabled: !root.busy; }
+                                    }
+                                    FieldShell { text <=> root.coc-description; placeholder: Strings.coc-description; enabled: !root.busy; }
+                                    ActionButton {
+                                        label: Strings.export-full-coc;
+                                        enabled: !root.busy && root.has-package;
+                                        clicked => { root.export-full-coc-clicked(); }
+                                    }
+                                }
+
+                                VerticalLayout {
+                                    spacing: 6px;
+                                    Eyebrow { label: Strings.multisource-label; }
+                                    FieldShell { text <=> root.multisource-b; placeholder: Strings.multisource-b; enabled: !root.busy; }
+                                    ActionButton {
+                                        label: Strings.run-multisource;
+                                        enabled: !root.busy;
+                                        clicked => { root.multisource-clicked(); }
                                     }
                                 }
 
@@ -879,19 +1125,52 @@ export component AppWindow inherits Window {
                                     checked <=> root.wb-confirmed;
                                     enabled: !root.busy;
                                 }
-                                if root.preflight-hint != "": Text {
+                                if root.preflight-hint != "" && !root.preflight-is-deny: Text {
                                     text: root.preflight-hint;
-                                    color: root.preflight-is-deny ? Theme.deny : Theme.copper;
+                                    color: Theme.copper;
                                     font-size: 12px;
                                     font-weight: 500;
                                     font-family: "Avenir Next";
                                     wrap: word-wrap;
+                                }
+                                if root.preflight-is-deny: Rectangle {
+                                    background: Theme.deny-mist;
+                                    border-radius: 4px;
+                                    border-width: 1px;
+                                    border-color: Theme.deny;
+                                    VerticalLayout {
+                                        padding: 12px;
+                                        spacing: 6px;
+                                        Text {
+                                            text: Strings.deny-title;
+                                            color: Theme.deny;
+                                            font-size: 13px;
+                                            font-weight: 700;
+                                            font-family: "Avenir Next";
+                                        }
+                                        Text {
+                                            text: root.preflight-hint;
+                                            color: Theme.readout;
+                                            font-size: 12px;
+                                            font-family: "Avenir Next";
+                                            wrap: word-wrap;
+                                        }
+                                        Text {
+                                            text: Strings.deny-body;
+                                            color: Theme.mute;
+                                            font-size: 11px;
+                                            font-family: "Avenir Next";
+                                            wrap: word-wrap;
+                                        }
+                                    }
                                 }
                             }
                         }
 
                         // STEP 2 — Acquire
                         if root.nav-index == 0: Panel {
+                            opacity: root.busy ? 1.0 : root.has-hash ? 0.92 : 1.0;
+                            animate opacity { duration: 220ms; easing: ease-out; }
                             VerticalLayout {
                                 padding: 18px;
                                 spacing: 12px;
@@ -956,6 +1235,18 @@ export component AppWindow inherits Window {
                                         }
                                         Rectangle { horizontal-stretch: 1; background: transparent; }
                                         Text {
+                                            text: root.throughput-label;
+                                            color: Theme.readout;
+                                            font-size: 11px;
+                                            font-family: "Menlo";
+                                        }
+                                        Text {
+                                            text: root.eta-label;
+                                            color: Theme.mute;
+                                            font-size: 11px;
+                                            font-family: "Menlo";
+                                        }
+                                        Text {
                                             text: root.progress-label;
                                             color: Theme.mute;
                                             font-size: 11px;
@@ -975,6 +1266,26 @@ export component AppWindow inherits Window {
                                             width: parent.width * root.progress-fraction;
                                             border-radius: 3px;
                                             background: Theme.copper;
+                                        }
+                                    }
+                                    Eyebrow { label: Strings.coverage-map; }
+                                    Rectangle {
+                                        height: 10px;
+                                        border-radius: 2px;
+                                        background: Theme.raised;
+                                        Rectangle {
+                                            x: 0px;
+                                            width: parent.width * root.coverage-ok;
+                                            height: parent.height;
+                                            background: Theme.ok-glow;
+                                            border-radius: 2px;
+                                        }
+                                        Rectangle {
+                                            x: parent.width * root.coverage-ok;
+                                            width: parent.width * root.coverage-err;
+                                            height: parent.height;
+                                            background: Theme.deny;
+                                            border-radius: 2px;
                                         }
                                     }
                                 }
@@ -1054,6 +1365,14 @@ export component AppWindow inherits Window {
 
                                 if root.has-hash: VerticalLayout {
                                     spacing: 8px;
+                                    Eyebrow { label: Strings.custody-timeline; }
+                                    Text {
+                                        text: root.custody-timeline-text;
+                                        color: Theme.mute;
+                                        font-size: 11px;
+                                        font-family: "Avenir Next";
+                                        wrap: word-wrap;
+                                    }
                                     Text {
                                         text: Strings.sha-label;
                                         color: Theme.faint;
@@ -1069,6 +1388,11 @@ export component AppWindow inherits Window {
                                         font-size: 15px;
                                         font-weight: 500;
                                         wrap: word-wrap;
+                                    }
+                                    if root.evidence-sha512 != "(none)": VerticalLayout {
+                                        spacing: 3px;
+                                        Text { text: Strings.sha512-label; color: Theme.faint; font-size: 10px; font-weight: 600; font-family: "Avenir Next"; }
+                                        Text { text: root.evidence-sha512; color: Theme.mute; font-family: "Menlo"; font-size: 12px; wrap: word-wrap; }
                                     }
                                     Hairline { background: Theme.ok-mist; }
                                     HorizontalLayout {

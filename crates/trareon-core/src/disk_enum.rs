@@ -1,4 +1,4 @@
-#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::process::Command;
 
 #[cfg(target_os = "linux")]
@@ -50,9 +50,7 @@ pub fn enumerate_disks() -> Result<Vec<DiskRow>, EnumError> {
     }
     #[cfg(target_os = "windows")]
     {
-        Err(EnumError::Unavailable(
-            "Windows disk enumeration is not implemented".to_string(),
-        ))
+        enumerate_windows_disks()
     }
     #[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
     {
@@ -121,9 +119,65 @@ fn parse_diskutil_text(input: &str) -> Vec<DiskRow> {
         .collect()
 }
 
+#[cfg(target_os = "windows")]
+fn enumerate_windows_disks() -> Result<Vec<DiskRow>, EnumError> {
+    // CIM JSON: Index, Size, Model — maps to \\.\PhysicalDriveN
+    let output = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-Command",
+            "Get-CimInstance Win32_DiskDrive | Select-Object Index,Size,Model,MediaType | ConvertTo-Json -Compress",
+        ])
+        .output()
+        .map_err(|error| EnumError::Unavailable(error.to_string()))?;
+    if !output.status.success() {
+        return Err(EnumError::Unavailable(
+            String::from_utf8_lossy(&output.stderr).trim().to_string(),
+        ));
+    }
+    parse_windows_cim_json(&String::from_utf8_lossy(&output.stdout))
+}
+
+/// Parse PowerShell `ConvertTo-Json` output from Win32_DiskDrive (unit-tested on all hosts).
+pub fn parse_windows_cim_json(input: &str) -> Result<Vec<DiskRow>, EnumError> {
+    let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return Ok(Vec::new());
+    }
+    // PowerShell emits either one object or an array.
+    let value: serde_json::Value =
+        serde_json::from_str(trimmed).map_err(|error| EnumError::Unavailable(error.to_string()))?;
+    let items = match value {
+        serde_json::Value::Array(items) => items,
+        other => vec![other],
+    };
+    Ok(items
+        .into_iter()
+        .filter_map(|item| {
+            let index = item.get("Index")?.as_u64()?;
+            let size = item.get("Size").and_then(|v| v.as_u64()).unwrap_or(0);
+            let model = item
+                .get("Model")
+                .and_then(|v| v.as_str())
+                .unwrap_or("disk")
+                .trim()
+                .to_string();
+            let media = item
+                .get("MediaType")
+                .and_then(|v| v.as_str())
+                .unwrap_or("disk");
+            Some(DiskRow {
+                path: format!(r"\\.\PhysicalDrive{index}"),
+                name: model,
+                size_bytes: size,
+                kind: media.to_string(),
+            })
+        })
+        .collect())
+}
+
 #[cfg(test)]
 mod tests {
-    #[cfg(target_os = "linux")]
     use super::*;
 
     #[cfg(target_os = "linux")]
@@ -139,5 +193,17 @@ mod tests {
                 kind: "disk".into()
             }]
         );
+    }
+
+    #[test]
+    fn windows_cim_json_maps_physical_drive_paths() {
+        let rows = parse_windows_cim_json(
+            r#"[{"Index":1,"Size":128,"Model":"USB Disk","MediaType":"External hard disk media"}]"#,
+        )
+        .unwrap();
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].path, r"\\.\PhysicalDrive1");
+        assert_eq!(rows[0].size_bytes, 128);
+        assert_eq!(rows[0].name, "USB Disk");
     }
 }

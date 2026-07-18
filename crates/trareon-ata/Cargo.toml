@@ -10,6 +10,7 @@ description = "ATA HPA/DCO and write-blocker probes (may use unsafe platform IOC
 [dependencies]
 thiserror.workspace = true
 serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

@@ -161,6 +161,22 @@ pub fn probe_write_blocker(device: &Path) -> WriteBlockerState {
     }
 }
 
+/// Operator-facing JSON report for live-gate packs (software prep; not a pass).
+pub fn probe_lab_report(device: &Path) -> Result<String, AtaError> {
+    let wb = probe_write_blocker(device);
+    let hpa = detect_hpa_dco(device)?;
+    let report = serde_json::json!({
+        "schema": "trareon.ata.lab-probe/1",
+        "device": device.display().to_string(),
+        "os": std::env::consts::OS,
+        "write_blocker": wb,
+        "hpa_dco": hpa,
+        "human_sign_off_required": true,
+        "note": "Software probe only — do not treat as live-gate completion",
+    });
+    serde_json::to_string_pretty(&report).map_err(|e| AtaError::Io(e.to_string()))
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct HpaUnlockRecord {
     pub requested: bool,

@@ -1,29 +1,44 @@
-# Format interoperability evidence template
+# Format interoperability evidence
 
-Date:
-Operator:
-Reviewer:
-Commit:
-OS and version:
+Date: 2026-07-18  
+Operator: _(software prep)_  
+Reviewer: _(pending human)_  
+Commit: _(fill at sign-off)_  
+OS and version: _(fill at sign-off)_
 
-## Generated artifact
+## Path A — RAW / `.fsnap` (official court track)
 
-- Artifact path:
-- `SHA256.txt` value:
-- Core smoke command:
-- Core round-trip result:
-
-## External verification
+See [PATH-A-RAW.md](PATH-A-RAW.md).
 
 | Tool | Exact version | Open result | Extracted hash | Notes |
 |---|---|---|---|---|
-| Autopsy | | [ ] pass [ ] fail | | |
-| FTK / FTK Imager | | [ ] pass [ ] fail | | |
+| Autopsy | | [ ] pass [ ] fail | | Open raw evidence file from `.fsnap` |
+| FTK / FTK Imager | | [ ] pass [ ] fail | | Same raw bytes |
+
+## Path B — EWF (`ewf-image`) — not product-default yet
+
+Spike decision: **adopt `ewf-image` after MSRV ≥ 1.96**.  
+Current UI label remains **E01-lite**. Details: [EWF-SPIKE.md](EWF-SPIKE.md).
+
+| Check | Result |
+|---|---|
+| `scripts/ewf-spike.sh` local write | [ ] run recorded |
+| `ewfverify` (libewf) | [ ] pending |
+| Autopsy open EWF | [ ] pending |
+| FTK open EWF | [ ] pending |
+| UI label without `-lite` | **blocked** until above green |
+
+## Generated artifact (fill when running smoke)
+
+- Artifact path:
+- `SHA256.txt` value:
+- Core smoke command: `scripts/format-interop-smoke.sh`
+- Core round-trip result:
 
 ## Decision
 
-- [ ] Both external checks recorded
+- [ ] Path A external checks recorded **or** Path B libewf+Autopsy/FTK green
 - [ ] Any limitation added to the capability matrix
 - [ ] Independent reviewer sign-off recorded
 
-No unchecked template is evidence of interoperability.
+No unchecked template is evidence of interoperability. Product marketing must match this file.

@@ -13,10 +13,22 @@
 //! ```
 
 use std::{env, path::PathBuf, process};
-use trareon_ata::{DetectionStatus, detect_hpa_dco, probe_write_blocker};
+use trareon_ata::{DetectionStatus, detect_hpa_dco, probe_lab_report, probe_write_blocker};
 
 fn main() {
     let path = PathBuf::from(env::args().nth(1).unwrap_or_else(|| "/dev/rdisk10".into()));
+    let json = env::args().any(|a| a == "--json");
+
+    if json {
+        match probe_lab_report(&path) {
+            Ok(body) => println!("{body}"),
+            Err(e) => {
+                eprintln!("LAB_PROBE_FAIL {e}");
+                process::exit(1);
+            }
+        }
+        return;
+    }
 
     let wb = probe_write_blocker(&path);
     println!("WRITE_BLOCKER {wb:?}");
@@ -42,6 +54,7 @@ fn main() {
             if r.is_hidden_area() {
                 println!("WARNING: hidden area indicated — acquire coverage may be incomplete");
             }
+            println!("NOTE: software probe only — human live-gate sign-off still required");
         }
         Err(e) => {
             eprintln!("HPA_DCO_FAIL {e}");

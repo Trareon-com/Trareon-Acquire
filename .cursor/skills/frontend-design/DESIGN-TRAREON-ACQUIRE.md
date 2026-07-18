@@ -27,6 +27,8 @@ status semantics, and restraint. Navigation labels describe user work, never int
 - Peers: FTK Imager, Guymager, Autopsy UI layout, Magnet AXIOM Examine, EnCase density norms.
 - Literature: Hibshi/Vidas/Cranor IMF 2011 usability study; ISO/IEC 27037; Altiero visualization
   thesis; usable-digital-forensics frameworks (effectiveness / efficiency / satisfaction).
+- Wave 0 polish: guided wizard strip, run telemetry (MiB/s + ETA), coverage mini-map, custody
+  timeline after seal, help as task deep-links, deny panel (not color-only), phase opacity motion.
 
 ## Subject
 Desktop **evidence acquisition** station for DFIR lab operators.

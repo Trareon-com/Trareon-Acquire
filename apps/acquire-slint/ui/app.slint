@@ -5,6 +5,10 @@
 import { Button, CheckBox, LineEdit, ScrollView, Palette } from "std-widgets.slint";
 import { Theme } from "theme.slint";
 import { Strings } from "strings.slint";
+import {
+    PageHeader, FieldLabel, PrimaryBtn, GhostBtn, StatusBadge, CheckRow, MetaRow,
+    EmptyHint, HelpTopic, CaseRow, ResultRow, LogLineRow, CoverageBar, DraftBanner,
+} from "widgets.slint";
 
 export struct DiskLine {
     path: string,
@@ -13,6 +17,42 @@ export struct DiskLine {
     serial: string,
     size: string,
     bus: string,
+}
+
+export struct CaseLine {
+    id: string,
+    title: string,
+    examiner: string,
+    state: string,
+    updated: string,
+}
+
+export struct ResultLine {
+    name: string,
+    ok: bool,
+    detail: string,
+}
+
+export struct LogLine {
+    level: string,
+    text: string,
+}
+
+export struct TimelineLine {
+    when: string,
+    what: string,
+}
+
+export struct ListingLine {
+    path: string,
+    size: string,
+    kind: string,
+}
+
+export struct RecentLine {
+    case-id: string,
+    package-path: string,
+    completed-at: string,
 }
 
 // -------------------------------------------------------------------- primitives
@@ -554,6 +594,8 @@ component SourceZone inherits Rectangle {
         padding: Theme.space-md;
         spacing: Theme.space-md;
 
+        FieldLabel { caption: Strings.zone-source-caption; }
+
         if root.is-guided: Rectangle {
             background: Theme.unsigned-well;
             border-radius: Theme.radius-sm;
@@ -700,6 +742,7 @@ component PrepareZone inherits Rectangle {
     in-out property <int> wizard-focus;
     in-out property <bool> preflight-is-deny;
     in-out property <string> preflight-hint;
+    in-out property <bool> free-space-ok: true;
     callback mode-changed(int);
     callback format-changed(int);
     callback profile-changed(int);
@@ -717,13 +760,8 @@ component PrepareZone inherits Rectangle {
         padding: Theme.space-md;
         spacing: Theme.space-md;
 
-        Text {
-            text: Strings.operator-mode;
-            color: Theme.faint;
-            font-size: 9px;
-            font-weight: 700;
-            font-family: "Avenir Next";
-        }
+        FieldLabel { caption: Strings.zone-prepare-caption; }
+        FieldLabel { caption: Strings.operator-mode; }
         // Compact mode switcher
         Rectangle {
             height: 34px;
@@ -925,6 +963,17 @@ component PrepareZone inherits Rectangle {
             }
         }
 
+        if !root.free-space-ok: Rectangle {
+            background: Theme.unsigned-well;
+            border-radius: Theme.radius-sm;
+            border-width: 1px;
+            border-color: Theme.unsigned-border;
+            HorizontalLayout {
+                padding: 10px;
+                Text { text: Strings.freespace-warn; color: Theme.unsigned-text; font-size: 11px; font-weight: 700; wrap: word-wrap; }
+            }
+        }
+
         if root.preflight-is-deny: Rectangle {
             background: Theme.deny-mist;
             border-radius: Theme.radius-sm;
@@ -1021,8 +1070,11 @@ component RunZone inherits Rectangle {
     in-out property <string> eta-label;
     in-out property <int> wizard-focus;
     in-out property <int> nav-index;
+    in-out property <float> coverage-ok: 0.0;
+    in-out property <float> coverage-err: 0.0;
     callback run-clicked;
     callback cancel-clicked;
+    callback pause-clicked;
     callback fill-synthetic-clicked;
     callback verify-package-clicked;
     callback export-coc-clicked;
@@ -1034,6 +1086,8 @@ component RunZone inherits Rectangle {
     VerticalLayout {
         padding: Theme.space-md;
         spacing: Theme.space-md;
+
+        FieldLabel { caption: Strings.zone-run-caption; }
 
         // Warning above START — linked to Case ID requirement
         if !root.busy && !root.show-post-run && root.start-reason != "": Rectangle {
@@ -1117,11 +1171,16 @@ component RunZone inherits Rectangle {
                 border-radius: 4px;
             }
         }
+        if root.busy: CoverageBar { ok-frac: root.coverage-ok; err-frac: root.coverage-err; }
         if root.busy: HorizontalLayout {
             Text { text: root.throughput-label; color: Theme.mute; font-size: 10px; font-family: "Menlo"; horizontal-stretch: 1; }
             Text { text: root.eta-label; color: Theme.mute; font-size: 10px; font-family: "Menlo"; }
         }
-        if root.busy: Button { text: Strings.cancel; clicked => { root.cancel-clicked(); } }
+        if root.busy: HorizontalLayout {
+            spacing: Theme.space-sm;
+            GhostBtn { label: Strings.pause-acquire; clicked => { root.pause-clicked(); } }
+            GhostBtn { label: Strings.cancel; clicked => { root.cancel-clicked(); } }
+        }
 
         Text {
             text: Strings.evidence-seal;
@@ -1259,6 +1318,27 @@ export component AppWindow inherits Window {
     in-out property <string> status-evidence-text: "0";
     in-out property <string> status-coverage-text: "—";
     in-out property <string> status-mode-text: "Standard";
+    in-out property <[CaseLine]> case-rows: [];
+    in-out property <int> selected-case: -1;
+    in-out property <string> case-filter: "";
+    in-out property <bool> case-sort-by-id: false;
+    in-out property <[ResultLine]> result-rows: [];
+    in-out property <[LogLine]> log-rows: [];
+    in-out property <[TimelineLine]> timeline-rows: [];
+    in-out property <[ListingLine]> listing-rows: [];
+    in-out property <[RecentLine]> recent-rows: [];
+    in-out property <[ResultLine]> compare-rows: [];
+    in-out property <bool> free-space-ok: true;
+    in-out property <bool> show-draft-banner: false;
+    in-out property <string> draft-summary: "";
+    in-out property <string> toast-text: "";
+    in-out property <bool> show-toast: false;
+    in-out property <bool> show-confirm: false;
+    in-out property <string> confirm-message: "";
+    in-out property <string> confirm-action: "";
+    in-out property <string> qr-image-path: "";
+    in-out property <bool> reduce-motion: false;
+    in-out property <bool> paused: false;
 
     // ============ Derived UX ============
     // is-compact is set imperatively from init/changed-width to avoid a reactive
@@ -1335,6 +1415,17 @@ export component AppWindow inherits Window {
     callback multisource-clicked();
     callback browse-compare-clicked();
     callback search-submitted();
+    callback case-selected(int);
+    callback archive-case-clicked();
+    callback refresh-case-rows();
+    callback copy-text-clicked(string);
+    callback pause-clicked();
+    callback draft-resume-clicked();
+    callback draft-discard-clicked();
+    callback confirm-accepted();
+    callback confirm-cancelled();
+    callback open-user-guide-clicked();
+    callback recent-selected(int);
 
     init => {
         Theme.apply(root.dark-mode);
@@ -1665,8 +1756,19 @@ export component AppWindow inherits Window {
                     background: Theme.void;
 
                     // ===== ACQUIRE — wide (3 zones) =====
-                    if root.nav-index == 0 && !root.is-compact: HorizontalLayout {
+                    if root.nav-index == 0 && !root.is-compact: VerticalLayout {
                         padding: Theme.space-xl;
+                        spacing: Theme.space-md;
+                        if root.show-draft-banner: DraftBanner {
+                            summary: root.draft-summary == "" ? Strings.draft-banner : root.draft-summary;
+                            resume-clicked => { root.draft-resume-clicked(); }
+                            discard-clicked => {
+                                root.confirm-message = Strings.confirm-discard-draft;
+                                root.confirm-action = "discard-draft";
+                                root.show-confirm = true;
+                            }
+                        }
+                    HorizontalLayout {
                         spacing: Theme.space-lg;
                         SourceZone {
                             horizontal-stretch: 42;
@@ -1717,6 +1819,7 @@ export component AppWindow inherits Window {
                             wizard-focus <=> root.wizard-focus;
                             preflight-is-deny: root.preflight-is-deny;
                             preflight-hint: root.preflight-hint;
+                            free-space-ok: root.free-space-ok;
                             mode-changed(i) => { root.mode-changed(i); }
                             format-changed(i) => { root.format-changed(i); }
                             profile-changed(i) => { root.profile-changed(i); }
@@ -1745,15 +1848,23 @@ export component AppWindow inherits Window {
                             progress-phase: root.progress-phase;
                             throughput-label: root.throughput-label;
                             eta-label: root.eta-label;
+                            coverage-ok: root.coverage-ok;
+                            coverage-err: root.coverage-err;
                             wizard-focus <=> root.wizard-focus;
                             nav-index <=> root.nav-index;
                             run-clicked => { root.run-clicked(); }
                             cancel-clicked => { root.cancel-clicked(); }
+                            pause-clicked => { root.pause-clicked(); }
                             fill-synthetic-clicked => { root.fill-synthetic-clicked(); }
                             verify-package-clicked => { root.verify-package-clicked(); }
                             export-coc-clicked => { root.export-coc-clicked(); }
-                            clear-clicked => { root.clear-clicked(); }
+                            clear-clicked => {
+                                root.confirm-message = Strings.confirm-clear;
+                                root.confirm-action = "clear";
+                                root.show-confirm = true;
+                            }
                         }
+                    }
                     }
 
                     // ===== ACQUIRE — compact (stacked) =====
@@ -1761,6 +1872,15 @@ export component AppWindow inherits Window {
                         VerticalLayout {
                             padding: 12px;
                             spacing: 12px;
+                            if root.show-draft-banner: DraftBanner {
+                                summary: root.draft-summary == "" ? Strings.draft-banner : root.draft-summary;
+                                resume-clicked => { root.draft-resume-clicked(); }
+                                discard-clicked => {
+                                    root.confirm-message = Strings.confirm-discard-draft;
+                                    root.confirm-action = "discard-draft";
+                                    root.show-confirm = true;
+                                }
+                            }
                             SourceZone {
                                 is-guided: root.is-guided;
                                 is-expert: root.is-expert;
@@ -1806,6 +1926,7 @@ export component AppWindow inherits Window {
                                 wizard-focus <=> root.wizard-focus;
                                 preflight-is-deny: root.preflight-is-deny;
                                 preflight-hint: root.preflight-hint;
+                                free-space-ok: root.free-space-ok;
                                 mode-changed(i) => { root.mode-changed(i); }
                                 format-changed(i) => { root.format-changed(i); }
                                 profile-changed(i) => { root.profile-changed(i); }
@@ -1832,14 +1953,21 @@ export component AppWindow inherits Window {
                                 progress-phase: root.progress-phase;
                                 throughput-label: root.throughput-label;
                                 eta-label: root.eta-label;
+                                coverage-ok: root.coverage-ok;
+                                coverage-err: root.coverage-err;
                                 wizard-focus <=> root.wizard-focus;
                                 nav-index <=> root.nav-index;
                                 run-clicked => { root.run-clicked(); }
                                 cancel-clicked => { root.cancel-clicked(); }
+                                pause-clicked => { root.pause-clicked(); }
                                 fill-synthetic-clicked => { root.fill-synthetic-clicked(); }
                                 verify-package-clicked => { root.verify-package-clicked(); }
                                 export-coc-clicked => { root.export-coc-clicked(); }
-                                clear-clicked => { root.clear-clicked(); }
+                                clear-clicked => {
+                                    root.confirm-message = Strings.confirm-clear;
+                                    root.confirm-action = "clear";
+                                    root.show-confirm = true;
+                                }
                             }
                         }
                     }
@@ -1847,32 +1975,83 @@ export component AppWindow inherits Window {
                     // ===== CASES =====
                     if root.nav-index == 1: ScrollView {
                         VerticalLayout {
-                            padding: 20px;
-                            spacing: 12px;
-                            Text { text: Strings.shell-cases-title; color: Theme.readout; font-size: 24px; font-weight: 800; font-family: "Avenir Next"; }
-                            Text { text: Strings.shell-cases-body; color: Theme.mute; font-size: 12px; wrap: word-wrap; }
-                            Rectangle {
-                                background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
-                                VerticalLayout {
-                                    padding: 14px; spacing: 8px;
-                                    Text { text: Strings.create-case-heading; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
-                                    LineEdit { placeholder-text: Strings.case-title-ph; text <=> root.case-title; }
-                                    LineEdit { placeholder-text: Strings.examiner-ph; text <=> root.case-identity; }
-                                    HorizontalLayout {
-                                        spacing: 8px;
-                                        Button { text: Strings.create-case; clicked => { root.create-case-clicked(); } }
-                                        Button { text: Strings.refresh-cases; clicked => { root.refresh-cases-clicked(); } }
-                                        Button { text: Strings.continue-identify; clicked => { root.nav-index = 2; } }
-                                        Button { text: Strings.open-acquire; clicked => { root.nav-index = 0; } }
+                            padding: Theme.page-pad;
+                            spacing: 14px;
+                            PageHeader { title: Strings.shell-cases-title; body: Strings.shell-cases-body; }
+                            if root.case-id != "": HorizontalLayout {
+                                spacing: 8px;
+                                FieldLabel { caption: Strings.active-case; }
+                                StatusBadge { label: root.case-id; warn: true; }
+                                Rectangle { horizontal-stretch: 1; }
+                            }
+                            HorizontalLayout {
+                                spacing: 14px;
+                                Rectangle {
+                                    horizontal-stretch: 3;
+                                    background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    VerticalLayout {
+                                        padding: 14px; spacing: 8px;
+                                        HorizontalLayout {
+                                            FieldLabel { caption: Strings.case-list; }
+                                            Rectangle { horizontal-stretch: 1; }
+                                            GhostBtn {
+                                                label: root.case-sort-by-id ? Strings.sort-id : Strings.sort-updated;
+                                                clicked => { root.case-sort-by-id = !root.case-sort-by-id; root.refresh-case-rows(); }
+                                            }
+                                        }
+                                        HorizontalLayout {
+                                            spacing: 8px;
+                                            LineEdit {
+                                                placeholder-text: Strings.filter-cases;
+                                                text <=> root.case-filter;
+                                                horizontal-stretch: 1;
+                                                accepted => { root.refresh-case-rows(); }
+                                            }
+                                            GhostBtn { label: Strings.refresh-cases; clicked => { root.refresh-case-rows(); } }
+                                        }
+                                        if root.case-rows.length == 0: EmptyHint { title: Strings.cases-empty-title; body: Strings.cases-empty-body; }
+                                        if root.case-rows.length > 0: Rectangle {
+                                            height: 24px; background: Theme.table-head; border-radius: Theme.radius-sm;
+                                            HorizontalLayout {
+                                                padding-left: 10px; spacing: 8px;
+                                                Text { text: Strings.col-id; width: 140px; color: Theme.faint; font-size: 9px; font-weight: 700; vertical-alignment: center; }
+                                                Text { text: Strings.col-title; horizontal-stretch: 1; color: Theme.faint; font-size: 9px; font-weight: 700; vertical-alignment: center; }
+                                                Text { text: Strings.col-examiner; width: 90px; color: Theme.faint; font-size: 9px; font-weight: 700; vertical-alignment: center; }
+                                                Text { text: Strings.col-state; width: 72px; color: Theme.faint; font-size: 9px; font-weight: 700; vertical-alignment: center; }
+                                            }
+                                        }
+                                        for row[idx] in root.case-rows: CaseRow {
+                                            id: row.id; title: row.title; examiner: row.examiner; state: row.state; updated: row.updated;
+                                            active: root.selected-case == idx || root.case-id == row.id;
+                                            clicked => { root.case-selected(idx); }
+                                        }
+                                        HorizontalLayout {
+                                            spacing: 8px;
+                                            GhostBtn { label: Strings.refresh-cases; clicked => { root.refresh-cases-clicked(); root.refresh-case-rows(); } }
+                                            GhostBtn {
+                                                label: Strings.archive-case;
+                                                enabled: root.case-id != "";
+                                                clicked => {
+                                                    root.confirm-message = Strings.confirm-archive;
+                                                    root.confirm-action = "archive";
+                                                    root.show-confirm = true;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                            Rectangle {
-                                background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
-                                VerticalLayout {
-                                    padding: 14px; spacing: 6px;
-                                    Text { text: Strings.case-list; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
-                                    Text { text: root.panel-detail; color: Theme.readout; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
+                                Rectangle {
+                                    horizontal-stretch: 2;
+                                    background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    VerticalLayout {
+                                        padding: 14px; spacing: 10px;
+                                        FieldLabel { caption: Strings.create-case-heading; }
+                                        LineEdit { placeholder-text: Strings.case-title-ph; text <=> root.case-title; }
+                                        LineEdit { placeholder-text: Strings.examiner-ph; text <=> root.case-identity; }
+                                        PrimaryBtn { label: Strings.create-case; clicked => { root.create-case-clicked(); } }
+                                        GhostBtn { label: Strings.continue-identify; clicked => { root.nav-index = 2; } }
+                                        GhostBtn { label: Strings.open-acquire; clicked => { root.nav-index = 0; } }
+                                    }
                                 }
                             }
                         }
@@ -1881,29 +2060,42 @@ export component AppWindow inherits Window {
                     // ===== IDENTIFY =====
                     if root.nav-index == 2: ScrollView {
                         VerticalLayout {
-                            padding: 20px;
-                            spacing: 12px;
-                            Text { text: Strings.shell-identify-title; color: Theme.readout; font-size: 24px; font-weight: 800; font-family: "Avenir Next"; }
-                            Text { text: Strings.shell-identify-body; color: Theme.mute; font-size: 12px; wrap: word-wrap; }
-                            Rectangle {
-                                background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
-                                VerticalLayout {
-                                    padding: 14px; spacing: 10px;
-                                    Text { text: "Case: " + (root.case-id == "" ? "—" : root.case-id); color: Theme.readout; font-size: 13px; font-weight: 700; font-family: "Avenir Next"; }
-                                    CheckBox { text: Strings.id-power; checked <=> root.id-power; }
-                                    CheckBox { text: Strings.id-network; checked <=> root.id-network; }
-                                    CheckBox { text: Strings.id-encryption; checked <=> root.id-encryption; }
-                                    CheckBox { text: Strings.id-anti; checked <=> root.id-anti; }
-                                    CheckBox { text: Strings.id-oov; checked <=> root.id-oov; }
-                                    Text { text: Strings.emergency-override-label; color: Theme.faint; font-size: 10px; font-weight: 700; }
-                                    LineEdit { placeholder-text: Strings.emergency-override-ph; text <=> root.emergency-override; }
-                                    HorizontalLayout {
-                                        spacing: 8px;
-                                        Button { text: Strings.save-identify; clicked => { root.save-identify-clicked(); } }
-                                        Button { text: Strings.probe-encryption; clicked => { root.probe-encryption-clicked(); } }
-                                        Button { text: Strings.continue-acquire; clicked => { root.nav-index = 0; } }
+                            padding: Theme.page-pad;
+                            spacing: 14px;
+                            PageHeader { title: Strings.shell-identify-title; body: Strings.shell-identify-body; }
+                            HorizontalLayout {
+                                spacing: 14px;
+                                Rectangle {
+                                    horizontal-stretch: 3;
+                                    background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    VerticalLayout {
+                                        padding: 14px; spacing: 8px;
+                                        FieldLabel { caption: Strings.checklist-heading; }
+                                        Text { text: Strings.chip-case + ": " + (root.case-id == "" ? "—" : root.case-id); color: Theme.readout; font-size: 13px; font-weight: 700; font-family: "Avenir Next"; }
+                                        CheckRow { label: Strings.id-power; hint: Strings.id-power-hint; checked <=> root.id-power; }
+                                        CheckRow { label: Strings.id-network; hint: Strings.id-network-hint; checked <=> root.id-network; }
+                                        CheckRow { label: Strings.id-encryption; hint: Strings.id-encryption-hint; checked <=> root.id-encryption; }
+                                        CheckRow { label: Strings.id-anti; hint: Strings.id-anti-hint; checked <=> root.id-anti; }
+                                        CheckRow { label: Strings.id-oov; hint: Strings.id-oov-hint; checked <=> root.id-oov; }
+                                        FieldLabel { caption: Strings.emergency-override-label; }
+                                        LineEdit { placeholder-text: Strings.emergency-override-ph; text <=> root.emergency-override; }
+                                        HorizontalLayout {
+                                            spacing: 8px;
+                                            PrimaryBtn { label: Strings.save-identify; clicked => { root.save-identify-clicked(); } }
+                                            GhostBtn { label: Strings.probe-encryption; clicked => { root.probe-encryption-clicked(); } }
+                                            GhostBtn { label: Strings.continue-acquire; clicked => { root.nav-index = 0; } }
+                                        }
+                                        for line in root.log-rows: LogLineRow { level: line.level; text: line.text; }
                                     }
-                                    Text { text: root.panel-detail; color: Theme.mute; font-size: 11px; font-family: "Menlo"; wrap: word-wrap; }
+                                }
+                                Rectangle {
+                                    horizontal-stretch: 2;
+                                    background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    VerticalLayout {
+                                        padding: 14px; spacing: 10px;
+                                        FieldLabel { caption: Strings.why-matters-title; }
+                                        Text { text: Strings.why-matters-body; color: Theme.readout; font-size: 12px; wrap: word-wrap; }
+                                    }
                                 }
                             }
                         }
@@ -1912,16 +2104,16 @@ export component AppWindow inherits Window {
                     // ===== TRIAGE =====
                     if root.nav-index == 3: ScrollView {
                         VerticalLayout {
-                            padding: 20px;
-                            spacing: 12px;
-                            Text { text: Strings.shell-triage-title; color: Theme.readout; font-size: 24px; font-weight: 800; font-family: "Avenir Next"; }
-                            Text { text: Strings.shell-triage-body; color: Theme.mute; font-size: 12px; wrap: word-wrap; }
-                            Button { text: Strings.run-triage; clicked => { root.run-triage-clicked(); } }
+                            padding: Theme.page-pad;
+                            spacing: 14px;
+                            PageHeader { title: Strings.shell-triage-title; body: Strings.shell-triage-body; }
+                            PrimaryBtn { label: Strings.run-triage; clicked => { root.run-triage-clicked(); } }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
-                                    padding: 14px;
-                                    Text { text: root.panel-detail; color: Theme.readout; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
+                                    padding: 14px; spacing: 6px;
+                                    if root.log-rows.length == 0: EmptyHint { title: Strings.triage-empty; body: root.panel-detail; }
+                                    for line in root.log-rows: LogLineRow { level: line.level; text: line.text; }
                                 }
                             }
                         }
@@ -1930,44 +2122,50 @@ export component AppWindow inherits Window {
                     // ===== TOOLS =====
                     if root.nav-index == 4: ScrollView {
                         VerticalLayout {
-                            padding: 20px;
-                            spacing: 12px;
-                            Text { text: Strings.shell-tools-title; color: Theme.readout; font-size: 24px; font-weight: 800; font-family: "Avenir Next"; }
+                            padding: Theme.page-pad;
+                            spacing: 14px;
+                            PageHeader { title: Strings.shell-tools-title; body: Strings.shell-tools-body; }
                             HorizontalLayout {
                                 spacing: 14px;
                                 Rectangle {
-                                    horizontal-stretch: 1;
-                                    background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
-                                    VerticalLayout {
-                                        padding: 14px; spacing: 6px;
-                                        Text { text: Strings.last-package; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
-                                        Text { text: root.last-package; color: Theme.readout; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
-                                        Text { text: "SHA-256: " + root.evidence-sha256; color: Theme.mute; font-size: 11px; font-family: "Menlo"; wrap: word-wrap; }
-                                        Text { text: "SHA-512: " + root.evidence-sha512; color: Theme.mute; font-size: 11px; font-family: "Menlo"; wrap: word-wrap; }
-                                        Text { text: "Size: " + root.evidence-size; color: Theme.mute; font-size: 11px; }
-                                        Text { text: root.custody-timeline-text; color: Theme.mute; font-size: 11px; wrap: word-wrap; }
-                                    }
-                                }
-                                Rectangle {
-                                    horizontal-stretch: 1;
+                                    horizontal-stretch: 3;
                                     background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                     VerticalLayout {
                                         padding: 14px; spacing: 8px;
-                                        Text { text: Strings.tools-actions; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
-                                        Button { text: Strings.browse-package; clicked => { root.browse-package-clicked(); } }
-                                        Button { text: Strings.run-verify; clicked => { root.verify-package-clicked(); } }
-                                        Button { text: Strings.run-hash; clicked => { root.hash-only-clicked(); } }
-                                        LineEdit { placeholder-text: Strings.compare-package-b-ph; text <=> root.compare-package-b; }
                                         HorizontalLayout {
-                                            spacing: 6px;
-                                            Button { text: Strings.browse-compare; clicked => { root.browse-compare-clicked(); } }
-                                            Button { text: Strings.compare-packages; clicked => { root.compare-packages-clicked(); } }
+                                            FieldLabel { caption: Strings.last-package; }
+                                            Rectangle { horizontal-stretch: 1; }
+                                            StatusBadge {
+                                                label: root.has-package ? Strings.sealed-label : Strings.unsealed-label;
+                                                ok: root.has-package;
+                                                warn: !root.has-package;
+                                            }
                                         }
-                                        Button { text: Strings.export-coc; clicked => { root.export-coc-clicked(); } }
-                                        Button { text: Strings.export-full-coc; clicked => { root.export-full-coc-clicked(); } }
-                                        Button { text: Strings.export-report; clicked => { root.export-report-clicked(); } }
-                                        Button { text: Strings.analysis-lite; clicked => { root.analysis-lite-clicked(); } }
-                                        Text { text: Strings.coc-form-label; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                        if !root.has-package: EmptyHint { title: Strings.tools-empty-package; body: Strings.tools-empty-body; }
+                                        if root.has-package: MetaRow { caption: "PATH"; value: root.last-package; copyable: true; copy-clicked => { root.copy-text-clicked(root.last-package); } }
+                                        if root.has-package: MetaRow { caption: "SHA-256"; value: root.evidence-sha256; copyable: true; copy-clicked => { root.copy-text-clicked(root.evidence-sha256); } }
+                                        if root.has-package: MetaRow { caption: "SHA-512"; value: root.evidence-sha512; copyable: true; copy-clicked => { root.copy-text-clicked(root.evidence-sha512); } }
+                                        if root.has-package: MetaRow { caption: Strings.size; value: root.evidence-size; }
+                                        FieldLabel { caption: Strings.custody-timeline; }
+                                        for line in root.log-rows: LogLineRow { level: line.level; text: line.text; }
+                                        if root.qr-image-path != "": FieldLabel { caption: Strings.qr-preview; }
+                                        if root.qr-image-path != "": Text { text: root.qr-image-path; color: Theme.mute; font-size: 11px; font-family: "Menlo"; wrap: word-wrap; }
+                                    }
+                                }
+                                Rectangle {
+                                    horizontal-stretch: 2;
+                                    background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    VerticalLayout {
+                                        padding: 14px; spacing: 8px;
+                                        FieldLabel { caption: Strings.tools-actions; }
+                                        GhostBtn { label: Strings.browse-package; clicked => { root.browse-package-clicked(); } }
+                                        PrimaryBtn { label: Strings.run-verify; clicked => { root.verify-package-clicked(); } }
+                                        GhostBtn { label: Strings.run-hash; clicked => { root.hash-only-clicked(); } }
+                                        GhostBtn { label: Strings.export-coc; clicked => { root.export-coc-clicked(); } }
+                                        GhostBtn { label: Strings.export-full-coc; clicked => { root.export-full-coc-clicked(); } }
+                                        GhostBtn { label: Strings.export-report; clicked => { root.export-report-clicked(); } }
+                                        GhostBtn { label: Strings.analysis-lite; clicked => { root.analysis-lite-clicked(); } }
+                                        FieldLabel { caption: Strings.coc-form-label; }
                                         LineEdit { placeholder-text: Strings.coc-device; text <=> root.coc-device; }
                                         HorizontalLayout {
                                             spacing: 6px;
@@ -1981,9 +2179,58 @@ export component AppWindow inherits Window {
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
-                                    padding: 14px;
-                                    Text { text: Strings.log-detail; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
-                                    Text { text: root.panel-detail == "" ? root.status-line : root.panel-detail; color: Theme.readout; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
+                                    padding: 14px; spacing: 8px;
+                                    FieldLabel { caption: Strings.compare-summary; }
+                                    LineEdit { placeholder-text: Strings.compare-package-b-ph; text <=> root.compare-package-b; }
+                                    HorizontalLayout {
+                                        spacing: 8px;
+                                        GhostBtn { label: Strings.browse-compare; clicked => { root.browse-compare-clicked(); } }
+                                        PrimaryBtn { label: Strings.compare-packages; clicked => { root.compare-packages-clicked(); } }
+                                    }
+                                    for row in root.compare-rows: ResultRow { name: row.name; ok: row.ok; detail: row.detail; }
+                                }
+                            }
+                            if root.recent-rows.length > 0: Rectangle {
+                                background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                VerticalLayout {
+                                    padding: 14px; spacing: 6px;
+                                    FieldLabel { caption: Strings.recent-packages; }
+                                    for row[idx] in root.recent-rows: Rectangle {
+                                        height: 32px; border-radius: Theme.radius-sm; background: rta.has-hover ? Theme.raised : transparent;
+                                        HorizontalLayout {
+                                            padding-left: 8px; spacing: 8px;
+                                            Text { text: row.case-id; width: 120px; color: Theme.copper; font-size: 11px; font-family: "Menlo"; vertical-alignment: center; }
+                                            Text { text: row.package-path; horizontal-stretch: 1; color: Theme.mute; font-size: 11px; font-family: "Menlo"; vertical-alignment: center; overflow: elide; }
+                                        }
+                                        rta := TouchArea { mouse-cursor: pointer; clicked => { root.recent-selected(idx); } }
+                                    }
+                                }
+                            }
+                            if root.timeline-rows.length > 0 || root.listing-rows.length > 0: HorizontalLayout {
+                                spacing: 14px;
+                                Rectangle {
+                                    horizontal-stretch: 1;
+                                    background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    VerticalLayout {
+                                        padding: 14px; spacing: 6px;
+                                        FieldLabel { caption: Strings.analysis-timeline; }
+                                        for row in root.timeline-rows: Text {
+                                            text: row.when + " · " + row.what;
+                                            color: Theme.readout; font-size: 11px; font-family: "Menlo"; wrap: word-wrap;
+                                        }
+                                    }
+                                }
+                                Rectangle {
+                                    horizontal-stretch: 1;
+                                    background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    VerticalLayout {
+                                        padding: 14px; spacing: 6px;
+                                        FieldLabel { caption: Strings.analysis-listing; }
+                                        for row in root.listing-rows: Text {
+                                            text: row.path + " · " + row.size;
+                                            color: Theme.mute; font-size: 10px; font-family: "Menlo"; overflow: elide;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1992,16 +2239,16 @@ export component AppWindow inherits Window {
                     // ===== QMS =====
                     if root.nav-index == 5: ScrollView {
                         VerticalLayout {
-                            padding: 20px;
-                            spacing: 12px;
-                            Text { text: Strings.shell-qms-title; color: Theme.readout; font-size: 24px; font-weight: 800; font-family: "Avenir Next"; }
-                            Text { text: Strings.shell-qms-body; color: Theme.mute; font-size: 12px; wrap: word-wrap; }
-                            Button { text: Strings.run-qms; clicked => { root.run-qms-clicked(); } }
+                            padding: Theme.page-pad;
+                            spacing: 14px;
+                            PageHeader { title: Strings.shell-qms-title; body: Strings.shell-qms-body; }
+                            PrimaryBtn { label: Strings.run-qms; clicked => { root.run-qms-clicked(); } }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
-                                    padding: 14px;
-                                    Text { text: root.panel-detail; color: Theme.readout; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
+                                    padding: 14px; spacing: 8px;
+                                    if root.result-rows.length == 0: EmptyHint { title: Strings.qms-empty; body: root.panel-detail; }
+                                    for row in root.result-rows: ResultRow { name: row.name; ok: row.ok; detail: row.detail; }
                                 }
                             }
                         }
@@ -2010,20 +2257,20 @@ export component AppWindow inherits Window {
                     // ===== BOOT =====
                     if root.nav-index == 6: ScrollView {
                         VerticalLayout {
-                            padding: 20px;
-                            spacing: 12px;
-                            Text { text: Strings.shell-boot-title; color: Theme.readout; font-size: 24px; font-weight: 800; font-family: "Avenir Next"; }
-                            Text { text: Strings.shell-boot-body; color: Theme.mute; font-size: 12px; wrap: word-wrap; }
-                            HorizontalLayout {
-                                spacing: 8px;
-                                LineEdit { placeholder-text: Strings.boot-image-ph; text <=> root.boot-image-path; horizontal-stretch: 1; }
-                                Button { text: Strings.boot-plan; clicked => { root.boot-plan-clicked(); } }
-                            }
+                            padding: Theme.page-pad;
+                            spacing: 14px;
+                            PageHeader { title: Strings.shell-boot-title; body: Strings.shell-boot-body; }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
-                                    padding: 14px;
-                                    Text { text: root.panel-detail; color: Theme.readout; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
+                                    padding: 14px; spacing: 10px;
+                                    HorizontalLayout {
+                                        spacing: 8px;
+                                        LineEdit { placeholder-text: Strings.boot-image-ph; text <=> root.boot-image-path; horizontal-stretch: 1; }
+                                        PrimaryBtn { label: Strings.boot-plan; clicked => { root.boot-plan-clicked(); } }
+                                    }
+                                    if root.log-rows.length == 0: EmptyHint { title: Strings.boot-empty; body: root.panel-detail; }
+                                    for line in root.log-rows: LogLineRow { level: line.level; text: line.text; }
                                 }
                             }
                         }
@@ -2032,14 +2279,14 @@ export component AppWindow inherits Window {
                     // ===== HELP / SETTINGS =====
                     if root.nav-index == 7: ScrollView {
                         VerticalLayout {
-                            padding: 20px;
-                            spacing: 12px;
-                            Text { text: Strings.shell-help-title; color: Theme.readout; font-size: 24px; font-weight: 800; font-family: "Avenir Next"; }
+                            padding: Theme.page-pad;
+                            spacing: 14px;
+                            PageHeader { title: Strings.shell-help-title; body: Strings.shell-help-body; }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
-                                    padding: 14px; spacing: 8px;
-                                    Text { text: Strings.settings-label; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                    padding: 14px; spacing: 10px;
+                                    FieldLabel { caption: Strings.settings-label; }
                                     HorizontalLayout {
                                         spacing: 8px;
                                         CheckBox {
@@ -2050,79 +2297,37 @@ export component AppWindow inherits Window {
                                                 root.theme-toggled(root.dark-mode);
                                             }
                                         }
+                                        CheckBox { text: Strings.reduced-motion; checked <=> root.reduce-motion; }
                                         LocaleChip { label: Strings.lang-en; active: root.locale == "en"; clicked => { root.locale = "en"; root.locale-toggled("en"); } }
                                         LocaleChip { label: Strings.lang-id; active: root.locale == "id"; clicked => { root.locale = "id"; root.locale-toggled("id"); } }
                                     }
                                     LineEdit { placeholder-text: Strings.default-examiner-ph; text <=> root.case-identity; }
+                                    GhostBtn { label: Strings.open-user-guide; clicked => { root.open-user-guide-clicked(); } }
                                 }
                             }
-                            Rectangle {
-                                background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
-                                VerticalLayout {
-                                    padding: 14px; spacing: 8px;
-                                    Text { text: Strings.operator-help; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
-                                    Text { text: Strings.help_wb; color: Theme.readout; font-size: 12px; wrap: word-wrap; }
-                                    Text { text: Strings.help_oov; color: Theme.readout; font-size: 12px; wrap: word-wrap; }
-                                    Text { text: Strings.help_seal_vs_sig; color: Theme.readout; font-size: 12px; wrap: word-wrap; }
-                                    Text { text: Strings.help_formats; color: Theme.readout; font-size: 12px; wrap: word-wrap; }
-                                    Text { text: Strings.help_shortcuts; color: Theme.readout; font-size: 12px; wrap: word-wrap; }
-                                }
-                            }
+                            HelpTopic { title: "Write-blocker"; body: Strings.help_wb; }
+                            HelpTopic { title: "Out of validation"; body: Strings.help_oov; }
+                            HelpTopic { title: "Seal vs signature"; body: Strings.help_seal_vs_sig; }
+                            HelpTopic { title: "Formats"; body: Strings.help_formats; }
+                            HelpTopic { title: "Shortcuts"; body: Strings.help_shortcuts; }
                         }
                     }
 
                     // ===== ABOUT =====
                     if root.nav-index == 8: ScrollView {
                         VerticalLayout {
-                            padding: Theme.space-xl;
+                            padding: Theme.page-pad;
                             spacing: Theme.space-md;
-                            HorizontalLayout {
-                                spacing: Theme.space-md;
-                                Rectangle {
-                                    width: 56px;
-                                    height: 56px;
-                                    border-radius: 12px;
-                                    background: Theme.copper-deep;
-                                    Text {
-                                        text: "T";
-                                        color: white;
-                                        font-size: 26px;
-                                        font-weight: 800;
-                                        font-family: "Avenir Next";
-                                        horizontal-alignment: center;
-                                        vertical-alignment: center;
-                                    }
-                                }
-                                VerticalLayout {
-                                    spacing: 4px;
-                                    alignment: center;
-                                    Text { text: "TRAREON ACQUIRE"; color: Theme.readout; font-size: 22px; font-weight: 800; font-family: "Avenir Next"; }
-                                    Text { text: Strings.about-product; color: Theme.mute; font-size: 13px; font-family: "Avenir Next"; }
-                                }
-                            }
+                            PageHeader { title: "TRAREON ACQUIRE"; body: Strings.about-product; }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
                                     padding: Theme.space-lg; spacing: Theme.space-md;
-                                    Text { text: Strings.about-build; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                    FieldLabel { caption: Strings.about-build; }
                                     Text { text: root.about-text; color: Theme.readout; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
-                                    Rectangle { height: 1px; background: Theme.hairline; }
-                                    HorizontalLayout {
-                                        spacing: Theme.space-lg;
-                                        VerticalLayout {
-                                            spacing: 4px;
-                                            Text { text: Strings.about-version-label; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; }
-                                            Text { text: root.app-version; color: Theme.readout; font-size: 14px; font-weight: 700; font-family: "Avenir Next"; }
-                                        }
-                                        VerticalLayout {
-                                            spacing: 4px;
-                                            horizontal-stretch: 1;
-                                            Text { text: "Build"; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; }
-                                            Text { text: root.app-build == "" ? "—" : root.app-build; color: Theme.mute; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
-                                        }
-                                    }
-                                    Rectangle { height: 1px; background: Theme.hairline; }
-                                    Text { text: Strings.hash-seal-not-signature; color: Theme.mute; font-size: 11px; font-family: "Avenir Next"; wrap: word-wrap; }
+                                    MetaRow { caption: Strings.about-version-label; value: root.app-version; }
+                                    MetaRow { caption: Strings.build-label; value: root.app-build == "" ? "—" : root.app-build; }
+                                    Text { text: Strings.license-gpl; color: Theme.mute; font-size: 11px; wrap: word-wrap; }
                                     Text { text: Strings.alpha-line; color: Theme.faint; font-size: 10px; font-family: "Menlo"; }
                                 }
                             }
@@ -2130,12 +2335,24 @@ export component AppWindow inherits Window {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
                                     padding: Theme.space-lg; spacing: Theme.space-sm;
-                                    Text { text: "SESSION"; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
-                                    Text { text: "Time: " + root.footer-time; color: Theme.mute; font-size: 11px; font-family: "Menlo"; }
-                                    Text { text: "User: " + root.footer-user; color: Theme.mute; font-size: 11px; font-family: "Menlo"; }
-                                    Text { text: "Workstation: " + root.footer-host; color: Theme.mute; font-size: 11px; font-family: "Menlo"; }
+                                    FieldLabel { caption: Strings.session-label; }
+                                    MetaRow { caption: Strings.footer-time-label; value: root.footer-time; }
+                                    MetaRow { caption: Strings.footer-user-label; value: root.footer-user; }
+                                    MetaRow { caption: Strings.footer-host-label; value: root.footer-host; }
                                 }
                             }
+                        }
+                    }
+
+                    // Toast
+                    if root.show-toast: Rectangle {
+                        height: 36px;
+                        background: Theme.ok-mist;
+                        border-width: 1px;
+                        border-color: Theme.ok-glow;
+                        HorizontalLayout {
+                            padding-left: 14px;
+                            Text { text: root.toast-text; color: Theme.ok-glow; font-size: 12px; font-weight: 700; vertical-alignment: center; }
                         }
                     }
                 }
@@ -2152,19 +2369,19 @@ export component AppWindow inherits Window {
                         spacing: 14px;
                         alignment: start;
                         HwStatus {
-                            glyph: "💾";
+                            glyph: "D";
                             label: Strings.hw-disks + " " + root.status-evidence-text;
                             ok: root.disk-rows.length > 0;
                             warn: root.disk-rows.length == 0;
                         }
                         HwStatus {
-                            glyph: "⛨";
+                            glyph: "B";
                             label: Strings.hw-blocker;
                             ok: root.write-blocker-ready;
                             warn: !root.write-blocker-ready && !root.wb-confirmed;
                         }
                         HwStatus {
-                            glyph: "✓";
+                            glyph: "I";
                             label: Strings.hw-integrity + " " + root.integrity-status;
                             ok: root.integrity-status == Strings.integrity-sealed || root.integrity-status == Strings.integrity-ready;
                         }
@@ -2175,6 +2392,37 @@ export component AppWindow inherits Window {
                             font-size: 11px;
                             font-family: "Menlo";
                             vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if root.show-confirm: Rectangle {
+        x: 0;
+        y: 0;
+        width: parent.width;
+        height: parent.height;
+        background: #00000066;
+        VerticalLayout {
+            alignment: center;
+            HorizontalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 360px;
+                    background: Theme.panel;
+                    border-radius: Theme.radius-lg;
+                    border-width: 1px;
+                    border-color: Theme.hairline;
+                    VerticalLayout {
+                        padding: 20px;
+                        spacing: 14px;
+                        Text { text: root.confirm-message; color: Theme.readout; font-size: 14px; font-weight: 700; wrap: word-wrap; }
+                        HorizontalLayout {
+                            spacing: 10px;
+                            GhostBtn { label: Strings.confirm-no; clicked => { root.show-confirm = false; root.confirm-cancelled(); } }
+                            PrimaryBtn { label: Strings.confirm-yes; clicked => { root.show-confirm = false; root.confirm-accepted(); } }
                         }
                     }
                 }

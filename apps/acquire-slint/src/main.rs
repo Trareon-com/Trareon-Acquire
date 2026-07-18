@@ -1,10 +1,11 @@
 #[cfg(feature = "gui")]
 fn main() -> Result<(), slint::PlatformError> {
     use acquire_slint::{
-        AppWindow, DiskLine, UiMode, UiSnapshot, prefs::AcquirePrefs, preserve, recent, shell_ops,
+        AppWindow, CaseLine, DiskLine, ListingLine, LogLine, RecentLine, ResultLine, TimelineLine,
+        UiMode, UiSnapshot, draft::WizardDraft, prefs::AcquirePrefs, preserve, recent, shell_ops,
         write_coc_summary,
     };
-    use slint::{ComponentHandle, ModelRc, VecModel};
+    use slint::{ComponentHandle, ModelRc, SharedString, VecModel};
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::{Arc, Mutex};
@@ -26,6 +27,105 @@ fn main() -> Result<(), slint::PlatformError> {
             .collect();
         ui.set_disk_rows(ModelRc::new(VecModel::from(rows)));
         ui.set_disk_list(shell_ops::list_disks_text().into());
+    }
+
+    fn load_case_rows(ui: &AppWindow) {
+        let filter = ui.get_case_filter().as_str().to_string();
+        let rows: Vec<CaseLine> = shell_ops::list_case_ui_rows(&filter, ui.get_case_sort_by_id())
+            .into_iter()
+            .map(|row| CaseLine {
+                id: row.id.into(),
+                title: row.title.into(),
+                examiner: row.examiner.into(),
+                state: row.state.into(),
+                updated: row.updated.into(),
+            })
+            .collect();
+        ui.set_case_rows(ModelRc::new(VecModel::from(rows)));
+    }
+
+    fn set_log_rows(ui: &AppWindow, body: &str) {
+        let rows: Vec<LogLine> = shell_ops::text_to_log_rows(body)
+            .into_iter()
+            .map(|row| LogLine {
+                level: row.level.into(),
+                text: row.text.into(),
+            })
+            .collect();
+        ui.set_log_rows(ModelRc::new(VecModel::from(rows)));
+    }
+
+    fn set_result_rows(ui: &AppWindow, rows: Vec<shell_ops::ResultUiRow>) {
+        let rows: Vec<ResultLine> = rows
+            .into_iter()
+            .map(|row| ResultLine {
+                name: row.name.into(),
+                ok: row.ok,
+                detail: row.detail.into(),
+            })
+            .collect();
+        ui.set_result_rows(ModelRc::new(VecModel::from(rows)));
+    }
+
+    fn load_recent_rows(ui: &AppWindow) {
+        let rows: Vec<RecentLine> = recent::list()
+            .into_iter()
+            .map(|row| RecentLine {
+                case_id: row.case_id.into(),
+                package_path: row.package_path.into(),
+                completed_at: row.completed_at.into(),
+            })
+            .collect();
+        ui.set_recent_rows(ModelRc::new(VecModel::from(rows)));
+    }
+
+    fn show_toast(ui: &AppWindow, text: &str) {
+        ui.set_toast_text(text.into());
+        ui.set_show_toast(true);
+    }
+
+    fn copy_to_clipboard(text: &str) {
+        #[cfg(target_os = "macos")]
+        {
+            let _ = std::process::Command::new("pbcopy")
+                .stdin(std::process::Stdio::piped())
+                .spawn()
+                .and_then(|mut child| {
+                    use std::io::Write;
+                    if let Some(stdin) = child.stdin.as_mut() {
+                        stdin.write_all(text.as_bytes())?;
+                    }
+                    child.wait()?;
+                    Ok(())
+                });
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = text;
+        }
+    }
+
+    fn refresh_draft_banner(ui: &AppWindow) {
+        if let Some(draft) = WizardDraft::load() {
+            let summary = format!(
+                "Draft: case={} source={}",
+                if draft.case_id.is_empty() {
+                    "—"
+                } else {
+                    draft.case_id.as_str()
+                },
+                if draft.source_path.is_empty() {
+                    "—"
+                } else {
+                    draft.source_path.as_str()
+                }
+            );
+            ui.set_draft_summary(summary.into());
+            ui.set_show_draft_banner(true);
+        } else {
+            ui.set_show_draft_banner(false);
+            ui.set_draft_summary(SharedString::default());
+        }
     }
 
     fn apply_disk_details(ui: &AppWindow, index: i32, write_blocker_ready: bool) {
@@ -159,6 +259,16 @@ fn main() -> Result<(), slint::PlatformError> {
         }
         apply_footer(ui, snap);
         ui.set_format_caption(shell_ops::format_label(ui.get_format_index()).into());
+        ui.set_free_space_ok(snap.free_space_ok != Some(false));
+        set_log_rows(
+            ui,
+            &shell_ops::custody_timeline(
+                &snap.case_id,
+                &snap.last_package,
+                &snap.evidence_sha256,
+                sealed,
+            ),
+        );
         // SHA-512 default: off in Guided, on otherwise (unless user already toggled via UI bind).
         if matches!(snap.mode, UiMode::Guided) && !snap.busy {
             // leave write_sha512 as UI state; guided default applied once at mode change
@@ -217,8 +327,166 @@ fn main() -> Result<(), slint::PlatformError> {
         }
     }
     load_disk_rows(&ui);
+    load_case_rows(&ui);
+    load_recent_rows(&ui);
+    refresh_draft_banner(&ui);
     ui.set_panel_detail(shell_ops::refresh_cases_text().into());
 
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_refresh_case_rows(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                load_case_rows(&ui);
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        let snap = Arc::clone(&snapshot);
+        ui.on_case_selected(move |idx| {
+            if let Some(ui) = ui_weak.upgrade() {
+                let rows = shell_ops::list_case_ui_rows(
+                    ui.get_case_filter().as_str(),
+                    ui.get_case_sort_by_id(),
+                );
+                if let Some(row) = rows.get(idx as usize) {
+                    let mut s = snap.lock().expect("snapshot lock");
+                    s.case_id = row.id.clone();
+                    s.case_identity = row.examiner.clone();
+                    ui.set_selected_case(idx);
+                    ui.set_case_title(row.title.clone().into());
+                    ui.set_case_verify(row.id.clone().into());
+                    apply(&ui, &s);
+                    show_toast(&ui, &format!("Case {}", row.id));
+                }
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_copy_text_clicked(move |text| {
+            if let Some(ui) = ui_weak.upgrade() {
+                copy_to_clipboard(text.as_str());
+                show_toast(&ui, "Copied");
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        let snap = Arc::clone(&snapshot);
+        ui.on_pause_clicked(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                let mut s = snap.lock().expect("snapshot lock");
+                sync_fields_from_ui(&ui, &mut s);
+                let out = if s.output_dir.trim().is_empty() {
+                    std::env::temp_dir()
+                } else {
+                    PathBuf::from(&s.output_dir)
+                };
+                let checkpoint = default_checkpoint_path(&out);
+                if let Err(err) = s.set_paused(&checkpoint) {
+                    ui.set_panel_detail(err.into());
+                } else {
+                    s.status_line = "Paused — checkpoint written.".into();
+                    ui.set_paused(true);
+                    apply(&ui, &s);
+                    show_toast(&ui, "Paused");
+                }
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        let snap = Arc::clone(&snapshot);
+        ui.on_draft_resume_clicked(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                let mut s = snap.lock().expect("snapshot lock");
+                s.restore_draft();
+                apply(&ui, &s);
+                ui.set_show_draft_banner(false);
+                ui.set_nav_index(0);
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_draft_discard_clicked(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                WizardDraft::clear();
+                ui.set_show_draft_banner(false);
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        let snap = Arc::clone(&snapshot);
+        let cancel_flag = Arc::clone(&cancel_flag);
+        ui.on_confirm_accepted(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                let action = ui.get_confirm_action().as_str().to_string();
+                match action.as_str() {
+                    "archive" => {
+                        let id = ui.get_case_id().as_str().to_string();
+                        match shell_ops::archive_case(&id) {
+                            Ok(msg) => {
+                                ui.set_panel_detail(msg.into());
+                                load_case_rows(&ui);
+                                show_toast(&ui, "Archived");
+                            }
+                            Err(err) => ui.set_panel_detail(err.into()),
+                        }
+                    }
+                    "discard-draft" => {
+                        WizardDraft::clear();
+                        ui.set_show_draft_banner(false);
+                    }
+                    "clear" => {
+                        let mut s = snap.lock().expect("snapshot lock");
+                        s.clear_results();
+                        apply(&ui, &s);
+                        cancel_flag.store(false, Ordering::SeqCst);
+                    }
+                    _ => {}
+                }
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_open_user_guide_clicked(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                let guide = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../docs/USER-GUIDE.md");
+                #[cfg(target_os = "macos")]
+                {
+                    let _ = std::process::Command::new("open").arg(&guide).spawn();
+                }
+                #[cfg(not(target_os = "macos"))]
+                {
+                    let _ = guide;
+                }
+                show_toast(&ui, "User guide");
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        let snap = Arc::clone(&snapshot);
+        ui.on_recent_selected(move |idx| {
+            if let Some(ui) = ui_weak.upgrade() {
+                let list = recent::list();
+                if let Some(entry) = list.get(idx as usize) {
+                    let mut s = snap.lock().expect("snapshot lock");
+                    s.last_package = entry.package_path.clone();
+                    if !entry.case_id.is_empty() {
+                        s.case_id = entry.case_id.clone();
+                    }
+                    apply(&ui, &s);
+                    ui.set_nav_index(4);
+                    set_log_rows(&ui, &shell_ops::verify_tools_text(&entry.package_path));
+                }
+            }
+        });
+    }
     {
         let ui_weak = ui.as_weak();
         let snap = Arc::clone(&snapshot);
@@ -278,8 +546,12 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.on_search_submitted(move || {
             if let Some(ui) = ui_weak.upgrade() {
                 let q = ui.get_search_query();
+                if q.trim().is_empty() {
+                    return;
+                }
                 if let Some(idx) = shell_ops::nav_index_for_search(q.as_str()) {
                     ui.set_nav_index(idx);
+                    show_toast(&ui, &format!("→ {}", q.trim()));
                 }
             }
         });
@@ -703,6 +975,7 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.on_refresh_cases_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
                 ui.set_panel_detail(shell_ops::refresh_cases_text().into());
+                load_case_rows(&ui);
             }
         });
     }
@@ -736,6 +1009,8 @@ fn main() -> Result<(), slint::PlatformError> {
                             )
                             .into(),
                         );
+                        load_case_rows(&ui);
+                        show_toast(&ui, "Case created");
                         ui.set_nav_index(2);
                     }
                     Err(err) => ui.set_panel_detail(err.into()),
@@ -773,7 +1048,9 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.on_probe_encryption_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
                 let source = ui.get_source_path().as_str().to_string();
-                ui.set_panel_detail(shell_ops::identify_probe_text(&source).into());
+                let text = shell_ops::identify_probe_text(&source);
+                ui.set_panel_detail(text.clone().into());
+                set_log_rows(&ui, &text);
             }
         });
     }
@@ -781,9 +1058,14 @@ fn main() -> Result<(), slint::PlatformError> {
         let ui_weak = ui.as_weak();
         ui.on_verify_package_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
-                ui.set_panel_detail(
-                    shell_ops::verify_tools_text(ui.get_last_package().as_str()).into(),
-                );
+                let text = shell_ops::verify_tools_text(ui.get_last_package().as_str());
+                ui.set_panel_detail(text.clone().into());
+                set_log_rows(&ui, &text);
+                if text.to_ascii_lowercase().contains("ok")
+                    || text.to_ascii_lowercase().contains("valid")
+                {
+                    show_toast(&ui, "Verify OK");
+                }
             }
         });
     }
@@ -791,9 +1073,9 @@ fn main() -> Result<(), slint::PlatformError> {
         let ui_weak = ui.as_weak();
         ui.on_hash_only_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
-                ui.set_panel_detail(
-                    shell_ops::hash_only_text(ui.get_last_package().as_str()).into(),
-                );
+                let text = shell_ops::hash_only_text(ui.get_last_package().as_str());
+                ui.set_panel_detail(text.clone().into());
+                set_log_rows(&ui, &text);
             }
         });
     }
@@ -801,7 +1083,10 @@ fn main() -> Result<(), slint::PlatformError> {
         let ui_weak = ui.as_weak();
         ui.on_run_qms_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
-                ui.set_panel_detail(shell_ops::run_qms_text().into());
+                let text = shell_ops::run_qms_text();
+                ui.set_panel_detail(text.clone().into());
+                set_result_rows(&ui, shell_ops::qms_check_ui_rows());
+                set_log_rows(&ui, &text);
             }
         });
     }
@@ -810,7 +1095,9 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.on_run_triage_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
                 let out = ui.get_output_dir().as_str().to_string();
-                ui.set_panel_detail(shell_ops::run_triage_text(&out).into());
+                let text = shell_ops::run_triage_text(&out);
+                ui.set_panel_detail(text.clone().into());
+                set_log_rows(&ui, &text);
             }
         });
     }
@@ -818,9 +1105,9 @@ fn main() -> Result<(), slint::PlatformError> {
         let ui_weak = ui.as_weak();
         ui.on_boot_plan_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
-                ui.set_panel_detail(
-                    shell_ops::boot_plan_text(ui.get_boot_image_path().as_str(), "").into(),
-                );
+                let text = shell_ops::boot_plan_text(ui.get_boot_image_path().as_str(), "");
+                ui.set_panel_detail(text.clone().into());
+                set_log_rows(&ui, &text);
             }
         });
     }
@@ -828,13 +1115,36 @@ fn main() -> Result<(), slint::PlatformError> {
         let ui_weak = ui.as_weak();
         ui.on_analysis_lite_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
-                ui.set_panel_detail(
-                    shell_ops::analysis_lite_text(
-                        ui.get_last_package().as_str(),
-                        ui.get_output_dir().as_str(),
-                    )
-                    .into(),
-                );
+                match shell_ops::analysis_lite_rows(
+                    ui.get_last_package().as_str(),
+                    ui.get_output_dir().as_str(),
+                ) {
+                    Ok((timeline, listing, summary)) => {
+                        ui.set_panel_detail(summary.clone().into());
+                        set_log_rows(&ui, &summary);
+                        let trows: Vec<TimelineLine> = timeline
+                            .into_iter()
+                            .map(|row| TimelineLine {
+                                when: row.when.into(),
+                                what: row.what.into(),
+                            })
+                            .collect();
+                        let lrows: Vec<ListingLine> = listing
+                            .into_iter()
+                            .map(|row| ListingLine {
+                                path: row.path.into(),
+                                size: row.size.into(),
+                                kind: row.kind.into(),
+                            })
+                            .collect();
+                        ui.set_timeline_rows(ModelRc::new(VecModel::from(trows)));
+                        ui.set_listing_rows(ModelRc::new(VecModel::from(lrows)));
+                    }
+                    Err(err) => {
+                        ui.set_panel_detail(err.clone().into());
+                        set_log_rows(&ui, &err);
+                    }
+                }
             }
         });
     }
@@ -902,7 +1212,15 @@ fn main() -> Result<(), slint::PlatformError> {
                 ) {
                     Ok(msg) => {
                         s.status_line = msg.clone();
-                        ui.set_panel_detail(msg.into());
+                        ui.set_panel_detail(msg.clone().into());
+                        set_log_rows(&ui, &msg);
+                        if let Some(parent) = PathBuf::from(&s.last_package).parent() {
+                            let qr = parent.join("qr.png");
+                            if qr.is_file() {
+                                ui.set_qr_image_path(qr.display().to_string().into());
+                            }
+                        }
+                        show_toast(&ui, "CoC exported");
                     }
                     Err(err) => {
                         s.set_err(err.clone());
@@ -917,13 +1235,20 @@ fn main() -> Result<(), slint::PlatformError> {
         let ui_weak = ui.as_weak();
         ui.on_compare_packages_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
-                ui.set_panel_detail(
-                    shell_ops::compare_packages_text(
-                        ui.get_last_package().as_str(),
-                        ui.get_compare_package_b().as_str(),
-                    )
-                    .into(),
-                );
+                let a = ui.get_last_package().as_str().to_string();
+                let b = ui.get_compare_package_b().as_str().to_string();
+                let text = shell_ops::compare_packages_text(&a, &b);
+                ui.set_panel_detail(text.clone().into());
+                set_log_rows(&ui, &text);
+                let rows: Vec<ResultLine> = shell_ops::compare_summary_rows(&a, &b)
+                    .into_iter()
+                    .map(|row| ResultLine {
+                        name: row.name.into(),
+                        ok: row.ok,
+                        detail: row.detail.into(),
+                    })
+                    .collect();
+                ui.set_compare_rows(ModelRc::new(VecModel::from(rows)));
             }
         });
     }

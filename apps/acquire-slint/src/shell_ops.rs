@@ -184,6 +184,175 @@ pub fn refresh_cases_text() -> String {
     }
 }
 
+/// Structured case rows for the Cases table (mirrors DiskUiRow).
+#[derive(Debug, Clone)]
+pub struct CaseUiRow {
+    pub id: String,
+    pub title: String,
+    pub examiner: String,
+    pub state: String,
+    pub updated: String,
+}
+
+pub fn list_case_ui_rows(filter: &str, sort_by_id: bool) -> Vec<CaseUiRow> {
+    let Some(store) = cases::CaseStore::local() else {
+        return Vec::new();
+    };
+    let Ok(mut list) = store.list() else {
+        return Vec::new();
+    };
+    let filter = filter.trim().to_ascii_lowercase();
+    if !filter.is_empty() {
+        list.retain(|c| {
+            c.id.to_ascii_lowercase().contains(&filter)
+                || c.title.to_ascii_lowercase().contains(&filter)
+                || c.examiner.to_ascii_lowercase().contains(&filter)
+        });
+    }
+    if sort_by_id {
+        list.sort_by(|a, b| a.id.cmp(&b.id));
+    }
+    list.into_iter()
+        .map(|c| CaseUiRow {
+            id: c.id,
+            title: c.title,
+            examiner: c.examiner,
+            state: format!("{:?}", c.state),
+            updated: c.updated_at.chars().take(16).collect(),
+        })
+        .collect()
+}
+
+pub fn archive_case(id: &str) -> Result<String, String> {
+    let store = cases::CaseStore::local().ok_or("case store unavailable")?;
+    let record = store.archive(id)?;
+    Ok(format!("Archived {} — state {:?}.", record.id, record.state))
+}
+
+#[derive(Debug, Clone)]
+pub struct ResultUiRow {
+    pub name: String,
+    pub ok: bool,
+    pub detail: String,
+}
+
+pub fn qms_check_ui_rows() -> Vec<ResultUiRow> {
+    qms::validation_matrix()
+        .checks
+        .into_iter()
+        .map(|c| ResultUiRow {
+            name: c.name,
+            ok: c.passed,
+            detail: c.detail,
+        })
+        .collect()
+}
+
+#[derive(Debug, Clone)]
+pub struct LogUiRow {
+    pub level: String,
+    pub text: String,
+}
+
+pub fn text_to_log_rows(body: &str) -> Vec<LogUiRow> {
+    body.lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let lower = line.to_ascii_lowercase();
+            let level = if lower.contains("fail")
+                || lower.contains("error")
+                || lower.contains("deny")
+                || lower.contains("tolak")
+            {
+                "err"
+            } else if lower.contains("pass")
+                || lower.contains("ok")
+                || lower.contains("verified")
+                || lower.contains("sealed")
+            {
+                "ok"
+            } else {
+                "info"
+            };
+            LogUiRow {
+                level: level.into(),
+                text: line.to_string(),
+            }
+        })
+        .collect()
+}
+
+pub fn compare_summary_rows(package_a: &str, package_b: &str) -> Vec<ResultUiRow> {
+    let text = compare_packages_text(package_a, package_b);
+    text.lines()
+        .filter(|l| !l.trim().is_empty())
+        .map(|line| {
+            let ok = !line.to_ascii_lowercase().contains("mismatch")
+                && !line.to_ascii_lowercase().contains("fail")
+                && !line.to_ascii_lowercase().contains("differ");
+            ResultUiRow {
+                name: if ok { "Match".into() } else { "Mismatch".into() },
+                ok,
+                detail: line.to_string(),
+            }
+        })
+        .collect()
+}
+
+#[derive(Debug, Clone)]
+pub struct TimelineUiRow {
+    pub when: String,
+    pub what: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct ListingUiRow {
+    pub path: String,
+    pub size: String,
+    pub kind: String,
+}
+
+pub fn analysis_lite_rows(
+    package: &str,
+    out_dir: &str,
+) -> Result<(Vec<TimelineUiRow>, Vec<ListingUiRow>, String), String> {
+    if package.trim().is_empty() || package == "(none)" {
+        return Err("No package selected.".into());
+    }
+    let out = if out_dir.trim().is_empty() {
+        std::env::temp_dir()
+    } else {
+        PathBuf::from(out_dir)
+    };
+    let index_dir = out.join("analysis-index");
+    let report_dir = out.join("analysis-report");
+    let result = analysis_ui::import_for_analysis(Path::new(package), &index_dir, &report_dir)?;
+    let timeline = result
+        .timeline
+        .into_iter()
+        .map(|e| TimelineUiRow {
+            when: e.timestamp_utc.clone(),
+            what: format!("{} · {}", e.state, e.action),
+        })
+        .collect();
+    let listing = result
+        .listing
+        .into_iter()
+        .take(200)
+        .map(|e| ListingUiRow {
+            path: e.relative_path.clone(),
+            size: e.size.to_string(),
+            kind: "file".into(),
+        })
+        .collect();
+    let summary = format!(
+        "Analysis lite OK — report {}\nindex {}",
+        result.report_path.display(),
+        result.index_path.display()
+    );
+    Ok((timeline, listing, summary))
+}
+
 pub fn create_case(title: &str, examiner: &str, notes: &str) -> Result<String, String> {
     let store = cases::CaseStore::local().ok_or("case store unavailable")?;
     let record = store.create(title, examiner, notes)?;
@@ -686,7 +855,10 @@ pub fn custody_timeline(case_id: &str, package: &str, sha: &str, sealed: bool) -
 
 #[cfg(test)]
 mod disk_ui_tests {
-    use super::{bus_from_kind, format_size_label, nav_index_for_search};
+    use super::{
+        bus_from_kind, format_size_label, list_case_ui_rows, nav_index_for_search, qms_check_ui_rows,
+        text_to_log_rows,
+    };
 
     #[test]
     fn size_and_bus_labels_match_bench_table() {
@@ -702,5 +874,17 @@ mod disk_ui_tests {
         assert_eq!(nav_index_for_search("Cases"), Some(1));
         assert_eq!(nav_index_for_search("about"), Some(8));
         assert_eq!(nav_index_for_search("xyz"), None);
+    }
+
+    #[test]
+    fn case_and_qms_rows_are_structured() {
+        let _ = list_case_ui_rows("", false);
+        let checks = qms_check_ui_rows();
+        assert!(!checks.is_empty());
+        assert!(checks.iter().all(|c| !c.name.is_empty()));
+        let logs = text_to_log_rows("COMPARE OK — packages match.\nCOMPARE FAIL: boom");
+        assert_eq!(logs.len(), 2);
+        assert_eq!(logs[0].level, "ok");
+        assert_eq!(logs[1].level, "err");
     }
 }

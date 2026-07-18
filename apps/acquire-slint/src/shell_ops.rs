@@ -54,6 +54,129 @@ pub fn list_disks_text() -> String {
     }
 }
 
+/// Structured disk rows for the Evidence Control Room table (Fase 1).
+#[derive(Debug, Clone)]
+pub struct DiskUiRow {
+    pub path: String,
+    pub device: String,
+    pub model: String,
+    pub serial: String,
+    pub size: String,
+    pub bus: String,
+}
+
+/// Exact HOST DISK DEVICES rows from the Evidence Control Room mock (Fase 1 visual SoT).
+pub fn mock_bench_disk_rows() -> Vec<DiskUiRow> {
+    vec![
+        DiskUiRow {
+            path: r"\\.\PhysicalDrive0".into(),
+            device: "Disk 0".into(),
+            model: "Samsung SSD 870 EVO 1TB".into(),
+            serial: "S6PYNF0T123456Z".into(),
+            size: "931.51 GB".into(),
+            bus: "SATA".into(),
+        },
+        DiskUiRow {
+            path: r"\\.\PhysicalDrive1".into(),
+            device: "Disk 1".into(),
+            model: "WDC WD20EFRX-68EUZN0".into(),
+            serial: "WD-WCC4M2LXC123".into(),
+            size: "1.82 TB".into(),
+            bus: "SATA".into(),
+        },
+        DiskUiRow {
+            path: r"\\.\PhysicalDrive2".into(),
+            device: "Disk 2".into(),
+            model: "Seagate Expansion Desk 4TB".into(),
+            serial: "NA7QJ2S8".into(),
+            size: "3.64 TB".into(),
+            bus: "USB".into(),
+        },
+        DiskUiRow {
+            path: r"\\.\PhysicalDrive3".into(),
+            device: "Disk 3".into(),
+            model: "Kingston DataTraveler 3.0".into(),
+            serial: "001CC0EC0E1F12345678".into(),
+            size: "28.87 GB".into(),
+            bus: "USB".into(),
+        },
+        DiskUiRow {
+            path: r"\\.\PhysicalDrive4".into(),
+            device: "Disk 4".into(),
+            model: "SanDisk Ultra USB 3.0".into(),
+            serial: "4C530001060924105116".into(),
+            size: "57.81 GB".into(),
+            bus: "USB".into(),
+        },
+    ]
+}
+
+pub fn list_disk_ui_rows() -> Vec<DiskUiRow> {
+    match enumerate_disks() {
+        Ok(rows) if !rows.is_empty() => rows
+            .into_iter()
+            .enumerate()
+            .map(|(i, row)| {
+                let size = format_size_label(row.size_bytes);
+                let bus = bus_from_kind(&row.kind);
+                DiskUiRow {
+                    path: row.path.clone(),
+                    device: format!("Disk {i}"),
+                    model: if row.name.trim().is_empty() {
+                        row.path.clone()
+                    } else {
+                        row.name
+                    },
+                    serial: "—".into(),
+                    size,
+                    bus,
+                }
+            })
+            .collect(),
+        // Honest empty: do not inject Tableau/mock fixtures into the live shell.
+        _ => Vec::new(),
+    }
+}
+
+/// Demo disk table for Guided "Fill demo" visual preview only (not host truth).
+pub fn demo_disk_ui_rows() -> Vec<DiskUiRow> {
+    mock_bench_disk_rows()
+}
+
+fn format_size_label(bytes: u64) -> String {
+    const KIB: f64 = 1024.0;
+    const MIB: f64 = KIB * 1024.0;
+    const GIB: f64 = MIB * 1024.0;
+    const TIB: f64 = GIB * 1024.0;
+    let b = bytes as f64;
+    if b >= TIB {
+        format!("{:.1} TB", b / TIB)
+    } else if b >= GIB {
+        format!("{:.0} GB", b / GIB)
+    } else if b >= MIB {
+        format!("{:.0} MB", b / MIB)
+    } else if bytes == 0 {
+        "—".into()
+    } else {
+        format!("{bytes} B")
+    }
+}
+
+fn bus_from_kind(kind: &str) -> String {
+    let k = kind.to_ascii_lowercase();
+    if k.contains("usb") {
+        "USB".into()
+    } else if k.contains("nvme") {
+        "NVMe".into()
+    } else if k.contains("sata") || k.contains("disk") || k.contains("ata") {
+        "SATA".into()
+    } else if kind.trim().is_empty() {
+        "—".into()
+    } else {
+        kind.to_string()
+    }
+}
+
 pub fn refresh_cases_text() -> String {
     let Some(store) = cases::CaseStore::local() else {
         return "Case store unavailable (no local data directory).".into();
@@ -466,6 +589,55 @@ pub fn coverage_fractions(
     (ok, err)
 }
 
+/// Format coverage for the status bar (Evidence · Coverage · mode).
+pub fn coverage_status_text(ok: f32, err: f32) -> String {
+    if ok <= 0.0 && err <= 0.0 {
+        return "—".into();
+    }
+    if err > 0.0 {
+        format!("{:.0}% ok · {:.0}% err", ok * 100.0, err * 100.0)
+    } else {
+        format!("{:.0}%", ok * 100.0)
+    }
+}
+
+/// Map header search query → nav-index (0 Acquire … 8 About).
+pub fn nav_index_for_search(query: &str) -> Option<i32> {
+    let q = query.trim().to_lowercase();
+    if q.is_empty() {
+        return None;
+    }
+    let pairs: &[(&[&str], i32)] = &[
+        (&["acquire", "akuisisi"], 0),
+        (&["case", "cases", "kasus"], 1),
+        (&["ident", "identify", "identifikasi"], 2),
+        (&["triage"], 3),
+        (&["tool", "tools", "alat"], 4),
+        (&["qms"], 5),
+        (&["boot"], 6),
+        (&["help", "bantuan", "sop", "setting"], 7),
+        (&["about", "tentang"], 8),
+    ];
+    for (keys, idx) in pairs {
+        if keys.iter().any(|k| q.contains(k)) {
+            return Some(*idx);
+        }
+    }
+    None
+}
+
+pub fn mode_status_label(mode_index: i32) -> &'static str {
+    match mode_index {
+        0 => "Guided",
+        2 => "Expert",
+        _ => "Standard",
+    }
+}
+
+pub fn evidence_status_count(has_package: bool) -> &'static str {
+    if has_package { "1" } else { "0" }
+}
+
 pub fn custody_timeline(case_id: &str, package: &str, sha: &str, sealed: bool) -> String {
     let mut lines = vec![
         "1 · Case context recorded (ISO Identify)".to_string(),
@@ -495,4 +667,25 @@ pub fn custody_timeline(case_id: &str, package: &str, sha: &str, sealed: bool) -
         lines.push("4 · Seal pending".into());
     }
     lines.join("\n")
+}
+
+#[cfg(test)]
+mod disk_ui_tests {
+    use super::{bus_from_kind, format_size_label, nav_index_for_search};
+
+    #[test]
+    fn size_and_bus_labels_match_bench_table() {
+        assert_eq!(format_size_label(0), "—");
+        assert_eq!(format_size_label(1024 * 1024 * 1024), "1 GB");
+        assert_eq!(bus_from_kind("disk"), "SATA");
+        assert_eq!(bus_from_kind("USB"), "USB");
+    }
+
+    #[test]
+    fn search_jumps_to_known_nav() {
+        assert_eq!(nav_index_for_search("qms"), Some(5));
+        assert_eq!(nav_index_for_search("Cases"), Some(1));
+        assert_eq!(nav_index_for_search("about"), Some(8));
+        assert_eq!(nav_index_for_search("xyz"), None);
+    }
 }

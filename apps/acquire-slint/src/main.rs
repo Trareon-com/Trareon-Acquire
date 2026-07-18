@@ -1,10 +1,10 @@
 #[cfg(feature = "gui")]
 fn main() -> Result<(), slint::PlatformError> {
     use acquire_slint::{
-        AppWindow, UiMode, UiSnapshot, prefs::AcquirePrefs, preserve, recent,
+        AppWindow, DiskLine, UiMode, UiSnapshot, prefs::AcquirePrefs, preserve, recent,
         run_foundation_demo_with_progress, shell_ops, write_coc_summary,
     };
-    use slint::ComponentHandle;
+    use slint::{ComponentHandle, ModelRc, VecModel};
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::{Arc, Mutex};
@@ -12,12 +12,104 @@ fn main() -> Result<(), slint::PlatformError> {
     use std::time::Instant;
     use trareon_core::{AcquireProgress, ProgressCallback, default_checkpoint_path};
 
+    fn load_disk_rows(ui: &AppWindow) {
+        let rows: Vec<DiskLine> = shell_ops::list_disk_ui_rows()
+            .into_iter()
+            .map(|row| DiskLine {
+                path: row.path.into(),
+                device: row.device.into(),
+                model: row.model.into(),
+                serial: row.serial.into(),
+                size: row.size.into(),
+                bus: row.bus.into(),
+            })
+            .collect();
+        ui.set_disk_rows(ModelRc::new(VecModel::from(rows)));
+        ui.set_disk_list(shell_ops::list_disks_text().into());
+    }
+
+    fn apply_disk_details(ui: &AppWindow, index: i32, write_blocker_ready: bool) {
+        let rows = shell_ops::list_disk_ui_rows();
+        let Some(row) = rows.get(index as usize) else {
+            ui.set_selected_disk(-1);
+            ui.set_detail_interface("—".into());
+            ui.set_detail_sectors("—".into());
+            ui.set_detail_sector_size("—".into());
+            ui.set_detail_partitions("—".into());
+            ui.set_detail_type("—".into());
+            ui.set_detail_readonly("—".into());
+            ui.set_detail_readonly_ok(false);
+            return;
+        };
+        ui.set_selected_disk(index);
+        ui.set_detail_interface(row.bus.clone().into());
+        ui.set_detail_sectors("—".into());
+        ui.set_detail_sector_size("512 Bytes".into());
+        ui.set_detail_partitions("—".into());
+        ui.set_detail_type("GPT".into());
+        ui.set_detail_readonly(
+            if write_blocker_ready {
+                "Yes (operator-confirmed / blocked)"
+            } else {
+                "Confirm before write"
+            }
+            .into(),
+        );
+        ui.set_detail_readonly_ok(write_blocker_ready);
+    }
+
+    fn apply_instrument(ui: &AppWindow, snap: &UiSnapshot) {
+        let line = snap.write_blocker_line();
+        ui.set_write_blocker_line(line.clone().into());
+        let secondary = if snap.is_blockish_source() {
+            if snap.wb_confirmed {
+                "Operator confirmed HW block"
+            } else {
+                "Enumerator: OS disk list — verify HW"
+            }
+        } else {
+            "File / non-blockish source"
+        };
+        ui.set_write_blocker_secondary(secondary.into());
+        ui.set_write_blocker_ready(snap.write_blocker_ready());
+        ui.set_wb_confirmed(snap.wb_confirmed);
+        ui.set_blockish_source(snap.is_blockish_source());
+    }
+
+    fn apply_footer(ui: &AppWindow, snap: &UiSnapshot) {
+        let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        ui.set_footer_time(now.into());
+        let user = if snap.case_identity.trim().is_empty() {
+            std::env::var("USER")
+                .or_else(|_| std::env::var("USERNAME"))
+                .unwrap_or_else(|_| "examiner".into())
+        } else {
+            snap.case_identity.clone()
+        };
+        ui.set_footer_user(user.into());
+        let host = std::env::var("HOSTNAME")
+            .or_else(|_| std::env::var("COMPUTERNAME"))
+            .unwrap_or_else(|_| "local".into());
+        ui.set_footer_host(host.into());
+        ui.set_app_version("Version 0.1.0".into());
+        ui.set_app_build(format!("Build {}", trareon_core::build_identity()).into());
+        let sealed = snap.evidence_sha256 != acquire_slint::NONE_SENTINEL;
+        ui.set_status_evidence_text(shell_ops::evidence_status_count(sealed).into());
+        ui.set_status_coverage_text(
+            shell_ops::coverage_status_text(ui.get_coverage_ok(), ui.get_coverage_err()).into(),
+        );
+        ui.set_status_mode_text(shell_ops::mode_status_label(ui.get_mode_index()).into());
+    }
+
     fn apply(ui: &AppWindow, snap: &UiSnapshot) {
         ui.set_mode_index(snap.mode.index());
         ui.set_mode_guidance(snap.guidance().into());
         ui.set_show_path_editors(snap.show_path_editors());
         ui.set_case_identity(snap.case_identity.clone().into());
         ui.set_case_id(snap.case_id.clone().into());
+        if ui.get_case_verify().is_empty() || ui.get_case_verify() == ui.get_case_id() {
+            ui.set_case_verify(snap.case_id.clone().into());
+        }
         ui.set_source_path(snap.source_path.clone().into());
         ui.set_output_dir(snap.output_dir.clone().into());
         ui.set_confirmed_synthetic(snap.confirmed_synthetic);
@@ -31,14 +123,18 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.set_busy(snap.busy);
         ui.set_dark_mode(snap.dark_mode);
         ui.set_locale(snap.locale.as_str().into());
+        ui.set_case_subtitle(ui.get_case_title());
         ui.set_progress_fraction(snap.progress_fraction as f32);
         ui.set_progress_label(snap.progress_label.clone().into());
         ui.set_progress_phase(snap.progress_phase.clone().into());
         ui.set_about_text(snap.about_text().into());
-        ui.set_write_blocker_line(snap.write_blocker_line().into());
-        ui.set_write_blocker_ready(snap.write_blocker_ready());
-        ui.set_wb_confirmed(snap.wb_confirmed);
-        ui.set_blockish_source(snap.is_blockish_source());
+        ui.set_emergency_override(snap.emergency_override_reason.clone().into());
+        ui.set_id_power(snap.identify_record.checklist_complete.power);
+        ui.set_id_network(snap.identify_record.checklist_complete.network);
+        ui.set_id_encryption(snap.identify_record.checklist_complete.encryption);
+        ui.set_id_anti(snap.identify_record.checklist_complete.anti_forensics);
+        ui.set_id_oov(snap.identify_record.oov_ack);
+        apply_instrument(ui, snap);
         let sealed = snap.evidence_sha256 != acquire_slint::NONE_SENTINEL;
         ui.set_custody_timeline_text(
             shell_ops::custody_timeline(
@@ -54,7 +150,6 @@ fn main() -> Result<(), slint::PlatformError> {
             snap.evidence_size.parse().ok(),
             snap.progress_phase.contains("FAIL"),
         );
-        // Prefer live progress fraction when busy.
         if snap.busy {
             ui.set_coverage_ok(snap.progress_fraction as f32);
             ui.set_coverage_err(0.0);
@@ -62,7 +157,12 @@ fn main() -> Result<(), slint::PlatformError> {
             ui.set_coverage_ok(if sealed { 1.0 } else { ok });
             ui.set_coverage_err(err);
         }
+        apply_footer(ui, snap);
         ui.set_format_caption(shell_ops::format_label(ui.get_format_index()).into());
+        // SHA-512 default: off in Guided, on otherwise (unless user already toggled via UI bind).
+        if matches!(snap.mode, UiMode::Guided) && !snap.busy {
+            // leave write_sha512 as UI state; guided default applied once at mode change
+        }
     }
 
     fn sync_fields_from_ui(ui: &AppWindow, snap: &mut UiSnapshot) {
@@ -73,6 +173,13 @@ fn main() -> Result<(), slint::PlatformError> {
         snap.confirmed_synthetic = ui.get_confirmed_synthetic();
         snap.wb_confirmed = ui.get_wb_confirmed();
         snap.oov_ack = ui.get_id_oov();
+        snap.emergency_override_reason = ui.get_emergency_override().as_str().to_string();
+        snap.dark_mode = ui.get_dark_mode();
+        snap.identify_record.oov_ack = ui.get_id_oov();
+        snap.identify_record.checklist_complete.power = ui.get_id_power();
+        snap.identify_record.checklist_complete.network = ui.get_id_network();
+        snap.identify_record.checklist_complete.encryption = ui.get_id_encryption();
+        snap.identify_record.checklist_complete.anti_forensics = ui.get_id_anti();
     }
 
     fn save_prefs(snap: &UiSnapshot) {
@@ -89,12 +196,26 @@ fn main() -> Result<(), slint::PlatformError> {
     let ui = AppWindow::new()?;
     let mut initial_snapshot = UiSnapshot::from_prefs(&AcquirePrefs::load());
     initial_snapshot.restore_draft();
+    // Prefer Standard for live ECR density; Guided remains available via mode chips.
+    if matches!(initial_snapshot.mode, UiMode::Guided)
+        && initial_snapshot.source_path.trim().is_empty()
+    {
+        initial_snapshot.mode = UiMode::Standard;
+    }
     let snapshot = Arc::new(Mutex::new(initial_snapshot));
     let cancel_flag = Arc::new(AtomicBool::new(false));
     let run_started = Arc::new(Mutex::new(None::<Instant>));
-    ui.set_disk_list(shell_ops::list_disks_text().into());
+    {
+        let s = snapshot.lock().expect("snapshot lock");
+        apply(&ui, &s);
+        ui.set_write_sha512(!matches!(s.mode, UiMode::Guided));
+        ui.set_segment_mib("4096".into());
+        if !s.case_identity.trim().is_empty() {
+            ui.set_case_identity(s.case_identity.clone().into());
+        }
+    }
+    load_disk_rows(&ui);
     ui.set_panel_detail(shell_ops::refresh_cases_text().into());
-    apply(&ui, &snapshot.lock().expect("snapshot lock"));
 
     {
         let ui_weak = ui.as_weak();
@@ -104,6 +225,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 let mut s = snap.lock().expect("snapshot lock");
                 sync_fields_from_ui(&ui, &mut s);
                 s.mode = UiMode::from_index(idx);
+                ui.set_write_sha512(!matches!(s.mode, UiMode::Guided));
                 apply(&ui, &s);
             }
         });
@@ -116,10 +238,7 @@ fn main() -> Result<(), slint::PlatformError> {
             if let Some(ui) = ui_weak.upgrade() {
                 let mut s = snap.lock().expect("snapshot lock");
                 sync_fields_from_ui(&ui, &mut s);
-                // Update instrument chips only — avoid rewriting path fields (changed-loop).
-                ui.set_write_blocker_line(s.write_blocker_line().into());
-                ui.set_write_blocker_ready(s.write_blocker_ready());
-                ui.set_blockish_source(s.is_blockish_source());
+                apply_instrument(&ui, &s);
             }
         });
     }
@@ -148,6 +267,18 @@ fn main() -> Result<(), slint::PlatformError> {
                 s.set_locale(loc.as_str());
                 save_prefs(&s);
                 apply(&ui, &s);
+            }
+        });
+    }
+
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_search_submitted(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                let q = ui.get_search_query();
+                if let Some(idx) = shell_ops::nav_index_for_search(q.as_str()) {
+                    ui.set_nav_index(idx);
+                }
             }
         });
     }
@@ -205,8 +336,31 @@ fn main() -> Result<(), slint::PlatformError> {
                 s.source_path = source.display().to_string();
                 s.output_dir = out.display().to_string();
                 s.confirmed_synthetic = true;
+                if s.case_id.trim().is_empty() {
+                    s.case_id = "DEMO-GUIDED".into();
+                }
                 s.clear_results();
                 apply(&ui, &s);
+                ui.set_case_verify(s.case_id.clone().into());
+                ui.set_case_subtitle("Guided synthetic demo".into());
+                // Preview table (labeled demo) — host truth remains empty until Refresh.
+                let rows: Vec<DiskLine> = shell_ops::demo_disk_ui_rows()
+                    .into_iter()
+                    .map(|row| DiskLine {
+                        path: row.path.into(),
+                        device: row.device.into(),
+                        model: row.model.into(),
+                        serial: row.serial.into(),
+                        size: row.size.into(),
+                        bus: row.bus.into(),
+                    })
+                    .collect();
+                ui.set_disk_rows(ModelRc::new(VecModel::from(rows)));
+                apply_disk_details(&ui, 0, true);
+                ui.set_panel_detail(
+                    "Guided demo filled — synthetic source + preview disk table (not host enum)."
+                        .into(),
+                );
             }
         });
     }
@@ -476,7 +630,7 @@ fn main() -> Result<(), slint::PlatformError> {
         let ui_weak = ui.as_weak();
         ui.on_refresh_disks_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
-                ui.set_disk_list(shell_ops::list_disks_text().into());
+                load_disk_rows(&ui);
             }
         });
     }
@@ -485,15 +639,44 @@ fn main() -> Result<(), slint::PlatformError> {
         let snap = Arc::clone(&snapshot);
         ui.on_use_first_disk_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
-                let list = shell_ops::list_disks_text();
-                if let Some(line) = list.lines().next()
-                    && let Some(path) = line.split(" · ").next()
-                {
+                let rows = shell_ops::list_disk_ui_rows();
+                if let Some(row) = rows.first() {
                     let mut s = snap.lock().expect("snapshot lock");
                     sync_fields_from_ui(&ui, &mut s);
-                    s.source_path = path.to_string();
+                    s.source_path = row.path.clone();
                     apply(&ui, &s);
-                    ui.set_panel_detail(format!("Source set to {path}").into());
+                    apply_disk_details(&ui, 0, s.write_blocker_ready());
+                    ui.set_panel_detail(format!("Source set to {}", row.path).into());
+                }
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        let snap = Arc::clone(&snapshot);
+        ui.on_disk_selected(move |idx| {
+            if let Some(ui) = ui_weak.upgrade() {
+                let rows = shell_ops::list_disk_ui_rows();
+                if let Some(row) = rows.get(idx as usize) {
+                    let mut s = snap.lock().expect("snapshot lock");
+                    sync_fields_from_ui(&ui, &mut s);
+                    s.source_path = row.path.clone();
+                    if s.output_dir.trim().is_empty() || s.output_dir.contains("/Acquire/") {
+                        let case = if s.case_id.trim().is_empty() {
+                            "NOCASE"
+                        } else {
+                            s.case_id.as_str()
+                        };
+                        let leaf = row
+                            .device
+                            .to_ascii_lowercase()
+                            .replace(' ', "");
+                        let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+                        s.output_dir = format!("{home}/Evidence/{case}/Acquire/{leaf}");
+                    }
+                    let wb = s.write_blocker_ready();
+                    apply(&ui, &s);
+                    apply_disk_details(&ui, idx, wb);
                 }
             }
         });
@@ -521,9 +704,22 @@ fn main() -> Result<(), slint::PlatformError> {
                         }
                         s.case_identity = examiner;
                         apply(&ui, &s);
-                        ui.set_panel_detail(
-                            format!("{msg}\n{}", shell_ops::refresh_cases_text()).into(),
+                        ui.set_case_verify(s.case_id.clone().into());
+                        ui.set_case_subtitle(
+                            if title.trim().is_empty() {
+                                "New case".into()
+                            } else {
+                                title.into()
+                            },
                         );
+                        ui.set_panel_detail(
+                            format!(
+                                "{msg}\n{}\nNext: Identify checklist, then Acquire.",
+                                shell_ops::refresh_cases_text()
+                            )
+                            .into(),
+                        );
+                        ui.set_nav_index(2);
                     }
                     Err(err) => ui.set_panel_detail(err.into()),
                 }

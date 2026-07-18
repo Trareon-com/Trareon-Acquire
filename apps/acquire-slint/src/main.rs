@@ -34,6 +34,10 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.set_progress_label(snap.progress_label.clone().into());
         ui.set_progress_phase(snap.progress_phase.clone().into());
         ui.set_about_text(snap.about_text().into());
+        ui.set_write_blocker_line(snap.write_blocker_line().into());
+        ui.set_write_blocker_ready(snap.write_blocker_ready());
+        ui.set_wb_confirmed(snap.wb_confirmed);
+        ui.set_blockish_source(snap.is_blockish_source());
     }
 
     fn sync_fields_from_ui(ui: &AppWindow, snap: &mut UiSnapshot) {
@@ -42,6 +46,7 @@ fn main() -> Result<(), slint::PlatformError> {
         snap.source_path = ui.get_source_path().as_str().to_string();
         snap.output_dir = ui.get_output_dir().as_str().to_string();
         snap.confirmed_synthetic = ui.get_confirmed_synthetic();
+        snap.wb_confirmed = ui.get_wb_confirmed();
     }
 
     fn save_prefs(snap: &UiSnapshot) {
@@ -71,6 +76,21 @@ fn main() -> Result<(), slint::PlatformError> {
                 sync_fields_from_ui(&ui, &mut s);
                 s.mode = UiMode::from_index(idx);
                 apply(&ui, &s);
+            }
+        });
+    }
+
+    {
+        let ui_weak = ui.as_weak();
+        let snap = Arc::clone(&snapshot);
+        ui.on_instrument_refresh(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                let mut s = snap.lock().expect("snapshot lock");
+                sync_fields_from_ui(&ui, &mut s);
+                // Update instrument chips only — avoid rewriting path fields (changed-loop).
+                ui.set_write_blocker_line(s.write_blocker_line().into());
+                ui.set_write_blocker_ready(s.write_blocker_ready());
+                ui.set_blockish_source(s.is_blockish_source());
             }
         });
     }

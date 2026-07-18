@@ -233,6 +233,11 @@ export component AppWindow inherits Window {
     in-out property <float> progress-fraction: 0.0;
     in-out property <string> progress-label: "";
     in-out property <string> progress-phase: "";
+    // Instrument strip (FTK Imager / Guymager / Autopsy status pattern)
+    in-out property <string> write-blocker-line: "Write-blocker: —";
+    in-out property <bool> write-blocker-ready: true;
+    in-out property <bool> wb-confirmed: false;
+    in-out property <bool> blockish-source: false;
 
     property <bool> can-run: root.confirmed-synthetic && root.source-path != "" && root.output-dir != "" && !root.busy && (root.mode-index == 0 || root.case-id != "");
     property <bool> has-package: root.last-package != "(none)";
@@ -245,6 +250,29 @@ export component AppWindow inherits Window {
     property <string> display-hash: root.has-hash ? root.evidence-sha256 : Strings.none-label;
     property <string> display-size: root.evidence-size == "(none)" ? "—" : root.evidence-size + " B";
     property <string> session-state: root.busy ? Strings.state-running : root.has-hash ? Strings.state-sealed : Strings.state-standby;
+    property <string> integrity-chip: root.busy ? Strings.integrity-running
+        : root.has-hash ? Strings.integrity-sealed
+        : root.prepared ? Strings.integrity-ready
+        : Strings.integrity-standby;
+    property <string> case-chip: root.case-id == "" ? "—" : root.case-id;
+    property <string> shell-title:
+        root.nav-index == 1 ? Strings.shell-cases-title
+        : root.nav-index == 2 ? Strings.shell-identify-title
+        : root.nav-index == 3 ? Strings.shell-triage-title
+        : root.nav-index == 4 ? Strings.shell-tools-title
+        : root.nav-index == 5 ? Strings.shell-qms-title
+        : root.nav-index == 6 ? Strings.shell-boot-title
+        : root.nav-index == 7 ? Strings.shell-help-title
+        : Strings.about-build;
+    property <string> shell-body:
+        root.nav-index == 1 ? Strings.shell-cases-body
+        : root.nav-index == 2 ? Strings.shell-identify-body
+        : root.nav-index == 3 ? Strings.shell-triage-body
+        : root.nav-index == 4 ? Strings.shell-tools-body
+        : root.nav-index == 5 ? Strings.shell-qms-body
+        : root.nav-index == 6 ? Strings.shell-boot-body
+        : root.nav-index == 7 ? Strings.shell-help-body
+        : root.about-text;
 
     callback browse-source-clicked();
     callback browse-output-clicked();
@@ -256,6 +284,7 @@ export component AppWindow inherits Window {
     callback mode-changed(int);
     callback theme-toggled(bool);
     callback locale-toggled(string);
+    callback instrument-refresh();
 
     init => {
         Theme.apply(root.dark-mode);
@@ -267,6 +296,8 @@ export component AppWindow inherits Window {
         Palette.color-scheme = root.dark-mode ? ColorScheme.dark : ColorScheme.light;
     }
     changed locale => { Strings.locale = root.locale; }
+    changed source-path => { root.instrument-refresh(); }
+    changed wb-confirmed => { root.instrument-refresh(); }
 
     HorizontalLayout {
         spacing: 0;
@@ -307,95 +338,118 @@ export component AppWindow inherits Window {
                     }
                 }
 
-                Rectangle { height: 18px; background: transparent; }
+                Rectangle { height: 16px; background: transparent; }
                 VerticalLayout {
                     padding-left: 14px;
-                    Eyebrow { label: Strings.operator-mode; }
+                    Eyebrow { label: Strings.rail-workflow; }
                 }
-                Rectangle { height: 6px; background: transparent; }
+                Rectangle { height: 4px; background: transparent; }
 
-                ModeRailItem {
-                    label: Strings.mode-guided;
-                    hint: Strings.hint-guided;
-                    active: root.mode-index == 0;
-                    enabled: !root.busy;
-                    clicked => { root.mode-changed(0); }
-                }
-                ModeRailItem {
-                    label: Strings.mode-standard;
-                    hint: Strings.hint-standard;
-                    active: root.mode-index == 1;
-                    enabled: !root.busy;
-                    clicked => { root.mode-changed(1); }
-                }
-                ModeRailItem {
-                    label: Strings.mode-expert;
-                    hint: Strings.hint-expert;
-                    active: root.mode-index == 2;
-                    enabled: !root.busy;
-                    clicked => { root.mode-changed(2); }
-                }
-
-                Rectangle { height: 10px; background: transparent; }
+                // ISO/IEC 27037-aligned order: Cases → Identify → Acquire → Triage
                 ModeRailItem {
                     label: Strings.nav-cases;
-                    hint: "M0";
+                    hint: Strings.hint-cases;
                     active: root.nav-index == 1;
                     enabled: !root.busy;
                     clicked => { root.nav-index = 1; }
                 }
                 ModeRailItem {
                     label: Strings.nav-identify;
-                    hint: "M0";
+                    hint: Strings.hint-identify;
                     active: root.nav-index == 2;
                     enabled: !root.busy;
                     clicked => { root.nav-index = 2; }
                 }
                 ModeRailItem {
                     label: Strings.nav-acquire;
-                    hint: Strings.evidence-station;
+                    hint: Strings.hint-acquire;
                     active: root.nav-index == 0;
                     enabled: !root.busy;
                     clicked => { root.nav-index = 0; }
                 }
                 ModeRailItem {
                     label: Strings.nav-triage;
-                    hint: "M0";
+                    hint: Strings.hint-triage;
                     active: root.nav-index == 3;
                     enabled: !root.busy;
                     clicked => { root.nav-index = 3; }
                 }
+
+                if root.nav-index == 0: VerticalLayout {
+                    spacing: 0;
+                    Rectangle { height: 12px; background: transparent; }
+                    VerticalLayout {
+                        padding-left: 14px;
+                        Eyebrow { label: Strings.operator-mode; }
+                    }
+                    Rectangle { height: 4px; background: transparent; }
+                    ModeRailItem {
+                        label: Strings.mode-guided;
+                        hint: Strings.hint-guided;
+                        active: root.mode-index == 0;
+                        enabled: !root.busy;
+                        clicked => { root.mode-changed(0); }
+                    }
+                    ModeRailItem {
+                        label: Strings.mode-standard;
+                        hint: Strings.hint-standard;
+                        active: root.mode-index == 1;
+                        enabled: !root.busy;
+                        clicked => { root.mode-changed(1); }
+                    }
+                    ModeRailItem {
+                        label: Strings.mode-expert;
+                        hint: Strings.hint-expert;
+                        active: root.mode-index == 2;
+                        enabled: !root.busy;
+                        clicked => { root.mode-changed(2); }
+                    }
+                }
+
+                Rectangle { height: 12px; background: transparent; }
+                VerticalLayout {
+                    padding-left: 14px;
+                    Eyebrow { label: Strings.rail-lab; }
+                }
+                Rectangle { height: 4px; background: transparent; }
                 ModeRailItem {
                     label: Strings.nav-tools;
-                    hint: "M0";
+                    hint: Strings.hint-tools;
                     active: root.nav-index == 4;
                     enabled: !root.busy;
                     clicked => { root.nav-index = 4; }
                 }
                 ModeRailItem {
                     label: Strings.nav-qms;
-                    hint: "M0";
+                    hint: Strings.hint-qms;
                     active: root.nav-index == 5;
                     enabled: !root.busy;
                     clicked => { root.nav-index = 5; }
                 }
                 ModeRailItem {
                     label: Strings.nav-boot;
-                    hint: "M0";
+                    hint: Strings.hint-boot;
                     active: root.nav-index == 6;
                     enabled: !root.busy;
                     clicked => { root.nav-index = 6; }
                 }
+
+                Rectangle { height: 12px; background: transparent; }
+                VerticalLayout {
+                    padding-left: 14px;
+                    Eyebrow { label: Strings.rail-support; }
+                }
+                Rectangle { height: 4px; background: transparent; }
                 ModeRailItem {
                     label: Strings.nav-help;
-                    hint: "M0";
+                    hint: Strings.hint-help;
                     active: root.nav-index == 7;
                     enabled: !root.busy;
                     clicked => { root.nav-index = 7; }
                 }
                 ModeRailItem {
                     label: Strings.nav-about;
-                    hint: "M0";
+                    hint: Strings.hint-about;
                     active: root.nav-index == 8;
                     enabled: !root.busy;
                     clicked => { root.nav-index = 8; }
@@ -532,7 +586,7 @@ export component AppWindow inherits Window {
                             }
                         }
 
-                        HorizontalLayout {
+                        if root.nav-index == 0: HorizontalLayout {
                             spacing: 8px;
                             StepBadge {
                                 label: Strings.step-prepare;
@@ -550,6 +604,82 @@ export component AppWindow inherits Window {
                                 done: root.has-hash;
                             }
                             Rectangle { horizontal-stretch: 1; background: transparent; }
+                        }
+
+                        // Instrument strip — always visible (peer status area pattern)
+                        Rectangle {
+                            background: Theme.pipeline-bg;
+                            border-radius: 5px;
+                            border-width: 1px;
+                            border-color: Theme.hairline;
+                            HorizontalLayout {
+                                padding-left: 12px;
+                                padding-right: 12px;
+                                padding-top: 8px;
+                                padding-bottom: 8px;
+                                spacing: 16px;
+                                VerticalLayout {
+                                    spacing: 2px;
+                                    Text {
+                                        text: Strings.chip-case;
+                                        color: Theme.faint;
+                                        font-size: 9px;
+                                        font-weight: 700;
+                                        letter-spacing: 1px;
+                                        font-family: "Avenir Next";
+                                    }
+                                    Text {
+                                        text: root.case-chip;
+                                        color: root.case-id == "" ? Theme.faint : Theme.readout;
+                                        font-size: 12px;
+                                        font-family: "Menlo";
+                                        font-weight: 500;
+                                    }
+                                }
+                                Rectangle { width: 1px; background: Theme.hairline; }
+                                VerticalLayout {
+                                    spacing: 2px;
+                                    horizontal-stretch: 1;
+                                    Text {
+                                        text: Strings.chip-wb;
+                                        color: Theme.faint;
+                                        font-size: 9px;
+                                        font-weight: 700;
+                                        letter-spacing: 1px;
+                                        font-family: "Avenir Next";
+                                    }
+                                    Text {
+                                        text: root.write-blocker-line;
+                                        color: root.write-blocker-ready ? Theme.ok-glow : Theme.deny;
+                                        font-size: 12px;
+                                        font-family: "Avenir Next";
+                                        font-weight: 600;
+                                        wrap: word-wrap;
+                                    }
+                                }
+                                Rectangle { width: 1px; background: Theme.hairline; }
+                                VerticalLayout {
+                                    spacing: 2px;
+                                    Text {
+                                        text: Strings.chip-integrity;
+                                        color: Theme.faint;
+                                        font-size: 9px;
+                                        font-weight: 700;
+                                        letter-spacing: 1px;
+                                        font-family: "Avenir Next";
+                                    }
+                                    Text {
+                                        text: root.integrity-chip;
+                                        color: root.busy ? Theme.copper-hot
+                                            : root.has-hash ? Theme.ok-glow
+                                            : root.prepared ? Theme.readout
+                                            : Theme.mute;
+                                        font-size: 12px;
+                                        font-weight: 700;
+                                        font-family: "Avenir Next";
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -590,9 +720,9 @@ export component AppWindow inherits Window {
                         if root.nav-index != 0: Panel {
                             VerticalLayout {
                                 padding: 18px;
-                                spacing: 8px;
+                                spacing: 10px;
                                 Text {
-                                    text: root.nav-index == 8 ? Strings.about-build : "M0";
+                                    text: root.shell-title;
                                     color: Theme.copper;
                                     font-size: 11px;
                                     font-weight: 700;
@@ -600,25 +730,38 @@ export component AppWindow inherits Window {
                                     font-family: "Avenir Next";
                                 }
                                 Text {
-                                    text: root.nav-index == 8 ? root.about-text
-                                        : "This section is a shell placeholder in M0. The Acquire bench remains available from the rail.";
+                                    text: root.shell-body;
                                     color: Theme.readout;
                                     font-size: 14px;
                                     font-family: "Avenir Next";
                                     wrap: word-wrap;
                                 }
-                                Text {
+                                if root.nav-index == 7: VerticalLayout {
+                                    spacing: 8px;
+                                    Text { text: Strings.help_wb; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
+                                    Text { text: Strings.help_oov; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
+                                    Text { text: Strings.help_seal_vs_sig; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
+                                    Text { text: Strings.help_formats; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
+                                    Text { text: Strings.help_shortcuts; color: Theme.mute; font-size: 12px; font-family: "Avenir Next"; wrap: word-wrap; }
+                                }
+                                if root.nav-index != 7 && root.nav-index != 8: Text {
                                     text: Strings.hash-seal-not-signature;
                                     color: Theme.info;
                                     font-size: 12px;
                                     font-family: "Avenir Next";
                                     wrap: word-wrap;
                                 }
+                                ActionButton {
+                                    label: Strings.nav-acquire;
+                                    primary: true;
+                                    enabled: !root.busy;
+                                    clicked => { root.nav-index = 0; }
+                                }
                             }
                         }
 
-                        // STEP 1 — Prepare
-                        Panel {
+                        // STEP 1 — Prepare (Acquire bench only)
+                        if root.nav-index == 0: Panel {
                             VerticalLayout {
                                 padding: 18px;
                                 spacing: 14px;
@@ -708,7 +851,7 @@ export component AppWindow inherits Window {
 
                                 VerticalLayout {
                                     spacing: 6px;
-                                    Eyebrow { label: "CASE ID"; }
+                                    Eyebrow { label: Strings.case-id-label; }
                                     FieldShell {
                                         text <=> root.case-id;
                                         placeholder: root.guided ? "Optional for Guided" : "Required for Standard / Expert";
@@ -718,7 +861,7 @@ export component AppWindow inherits Window {
 
                                 VerticalLayout {
                                     spacing: 6px;
-                                    Eyebrow { label: Strings.case-note; }
+                                    Eyebrow { label: Strings.examiner-label; }
                                     FieldShell {
                                         text <=> root.case-identity;
                                         placeholder: Strings.case-placeholder;
@@ -729,6 +872,11 @@ export component AppWindow inherits Window {
                                 CheckBox {
                                     text: Strings.confirm-synthetic;
                                     checked <=> root.confirmed-synthetic;
+                                    enabled: !root.busy;
+                                }
+                                if root.blockish-source: CheckBox {
+                                    text: Strings.confirm-wb;
+                                    checked <=> root.wb-confirmed;
                                     enabled: !root.busy;
                                 }
                                 if root.preflight-hint != "": Text {
@@ -743,7 +891,7 @@ export component AppWindow inherits Window {
                         }
 
                         // STEP 2 — Acquire
-                        Panel {
+                        if root.nav-index == 0: Panel {
                             VerticalLayout {
                                 padding: 18px;
                                 spacing: 12px;
@@ -834,7 +982,7 @@ export component AppWindow inherits Window {
                         }
 
                         // STEP 3 — Seal (result product)
-                        Rectangle {
+                        if root.nav-index == 0: Rectangle {
                             background: root.has-hash ? Theme.seal-ok : Theme.seal-well;
                             border-radius: 6px;
                             border-width: 1px;
@@ -946,7 +1094,7 @@ export component AppWindow inherits Window {
                             }
                         }
 
-                        Text {
+                        if root.nav-index == 0: Text {
                             text: Strings.footer;
                             color: Theme.faint;
                             font-size: 10px;

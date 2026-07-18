@@ -61,7 +61,45 @@ export global Strings {
     out property <string> hw-blocker: is-id ? "Blocker" : "Blocker";
     out property <string> hw-integrity: is-id ? "Integrity" : "Integrity";
     out property <string> mode-in-header: is-id ? "Mode" : "Mode";
-    out property <string> court-path-a: is-id ? "Path A pengadilan — RAW + .fsnap" : "Court path A — RAW + .fsnap";
+    out property <string> court-path-a: is-id ? "Path A kandidat — RAW + .fsnap" : "Path A candidate — RAW + .fsnap";
+    out property <string> experimental-not-applied: is-id
+        ? "Experimental — kontrol di bawah belum diterapkan ke AcquireRequest."
+        : "Experimental — controls below are not applied to AcquireRequest.";
+    out property <string> col-dev: "DEV";
+    out property <string> col-model: is-id ? "MODEL" : "MODEL";
+    out property <string> col-size: is-id ? "UKURAN" : "SIZE";
+    out property <string> col-bus: "BUS";
+    out property <string> case-verify-mismatch: is-id
+        ? "Case verify tidak cocok dengan Case ID."
+        : "Case verify does not match case ID.";
+    out property <string> identify-gate-banner: is-id
+        ? "Identify belum lengkap — checklist wajib sebelum akuisisi Expert/blockish."
+        : "Identify gate incomplete — checklist required before Expert/blockish acquire.";
+    out property <string> open-identify: is-id ? "Buka Identify" : "Open Identify";
+    out property <string> create-case-heading: is-id ? "BUAT KASUS" : "CREATE CASE";
+    out property <string> case-title-ph: is-id ? "Judul kasus" : "Case title";
+    out property <string> examiner-ph: is-id ? "Pemeriksa" : "Examiner";
+    out property <string> continue-identify: is-id ? "Lanjut ke Identify" : "Continue to Identify";
+    out property <string> open-acquire: is-id ? "Buka Acquire" : "Open Acquire";
+    out property <string> case-list: is-id ? "DAFTAR KASUS" : "CASE LIST";
+    out property <string> id-power: is-id ? "Daya terisolasi / stabil" : "Power isolated / stable";
+    out property <string> id-network: is-id ? "Jaringan terisolasi" : "Network isolated";
+    out property <string> id-encryption: is-id ? "Enkripsi dicatat" : "Encryption noted";
+    out property <string> id-anti: is-id ? "Anti-forensik dipertimbangkan" : "Anti-forensics considered";
+    out property <string> id-oov: is-id ? "Out-of-scope diakui (OoV)" : "Out-of-scope acknowledged (OoV)";
+    out property <string> emergency-override-label: is-id ? "Override darurat (opsional)" : "Emergency override (optional)";
+    out property <string> emergency-override-ph: is-id ? "Alasan supervisor — diaudit" : "Supervisor reason — audited";
+    out property <string> continue-acquire: is-id ? "Lanjut ke Acquire" : "Continue to Acquire";
+    out property <string> last-package: is-id ? "PAKET TERAKHIR" : "LAST PACKAGE";
+    out property <string> tools-actions: is-id ? "AKSI" : "ACTIONS";
+    out property <string> browse-package: is-id ? "Jelajah paket" : "Browse package";
+    out property <string> compare-package-b-ph: is-id ? "Bandingkan paket B" : "Compare package B";
+    out property <string> log-detail: is-id ? "LOG / DETAIL" : "LOG / DETAIL";
+    out property <string> boot-image-ph: is-id ? "Jalur image boot" : "Boot image path";
+    out property <string> settings-label: is-id ? "PENGATURAN" : "SETTINGS";
+    out property <string> default-examiner-ph: is-id ? "Pemeriksa default" : "Default examiner";
+    out property <string> operator-help: is-id ? "BANTUAN OPERATOR" : "OPERATOR HELP";
+    out property <string> unavailable-probed: is-id ? "Tidak tersedia / belum diprobe" : "Unavailable / not probed";
 
     out property <string> rail-workflow: is-id ? "ALUR" : "WORKFLOW";
     out property <string> rail-lab: is-id ? "LAB" : "LAB";
@@ -78,7 +116,7 @@ export global Strings {
     out property <string> hint-tools: is-id ? "Verifikasi / utilitas" : "Verify / utilities";
     out property <string> nav-qms: "QMS";
     out property <string> hint-qms: is-id ? "Validasi lab" : "Lab validation";
-    out property <string> nav-boot: is-id ? "Boot" : "Boot";
+    out property <string> nav-boot: is-id ? "Boot (preview)" : "Boot (preview)";
     out property <string> hint-boot: is-id ? "Media portabel" : "Portable media";
     out property <string> nav-help: is-id ? "Bantuan" : "Help";
     out property <string> hint-help: is-id ? "SOP singkat" : "Short SOP";
@@ -136,8 +174,8 @@ export global Strings {
         ? "Segel hash membuktikan konsistensi byte yang diperiksa; bukan tanda tangan digital, otorisasi, atau pengganti verifikasi independen."
         : "A hash seal proves consistency of the checked bytes; it is not a digital signature, authorization, or a substitute for independent verification.";
     out property <string> help_formats: is-id
-        ? "Format: .fsnap adalah paket bukti tervalidasi. E01-lite, AFF4-lite, dan wrapper disk virtual adalah subset; verifikasi dengan alat eksternal harus dicatat."
-        : "Formats: .fsnap is the verified evidence package. E01-lite, AFF4-lite, and virtual-disk wrappers are subsets; record external-tool verification.";
+        ? "Format: .fsnap (Path A kandidat), E01 (ewf-image), ZFF opsional, Split-RAW. Catat verifikasi eksternal di EVIDENCE.md."
+        : "Formats: .fsnap (Path A candidate), E01 (ewf-image), optional ZFF, Split-RAW. Record external verification in EVIDENCE.md.";
     out property <string> help_shortcuts: is-id
         ? "Pintasan: Tab memindahkan fokus, Space mengaktifkan kontrol, Esc membatalkan dialog. Gunakan fokus keyboard yang terlihat untuk meninjau sebelum akuisisi."
         : "Shortcuts: Tab moves focus, Space activates controls, Esc cancels dialogs. Use visible keyboard focus to review before acquisition.";

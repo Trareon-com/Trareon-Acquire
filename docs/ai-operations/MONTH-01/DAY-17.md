@@ -1,3 +1,5 @@
+> **HISTORICAL / pre-Slint.** Day ledger snapshot; UI is `apps/acquire-slint`. See [INDEX.md](../../INDEX.md).
+
 # Day 17 — Guided synthetic acquisition UI
 
 ## Outcome

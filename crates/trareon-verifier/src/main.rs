@@ -1,6 +1,6 @@
 use std::{env, path::Path, process::ExitCode};
 
-use trareon_verifier::{compare, export, hash_only, info, integrity, verify};
+use trareon_verifier::{compare, export, hash_only, info, verify};
 
 fn usage() -> ExitCode {
     eprintln!(
@@ -9,8 +9,7 @@ fn usage() -> ExitCode {
   trareon-verifier verify --hash-only PATH
   trareon-verifier info PATH
   trareon-verifier compare A.fsnap B.fsnap
-  trareon-verifier export PATH -o OUT
-  trareon-verifier integrity PATH"
+  trareon-verifier export PATH -o OUT"
     );
     ExitCode::from(64)
 }
@@ -25,7 +24,6 @@ fn main() -> ExitCode {
         "info" => cmd_info(&args[2..]),
         "compare" => cmd_compare(&args[2..]),
         "export" => cmd_export(&args[2..]),
-        "integrity" => cmd_integrity(&args[2..]),
         _ => usage(),
     }
 }
@@ -113,25 +111,6 @@ fn cmd_export(args: &[String]) -> ExitCode {
     match export(Path::new(&args[0]), output) {
         Ok(()) => {
             println!("EXPORTED {}", output.display());
-            ExitCode::SUCCESS
-        }
-        Err(error) => {
-            eprintln!("INVALID {error}");
-            ExitCode::from(2)
-        }
-    }
-}
-
-fn cmd_integrity(args: &[String]) -> ExitCode {
-    let [path] = args else {
-        return usage();
-    };
-    match integrity(Path::new(path)) {
-        Ok(manifest) => {
-            println!(
-                "INTEGRITY_OK {} {} audit_root={}",
-                manifest.evidence_sha256, manifest.evidence_size, manifest.audit_root
-            );
             ExitCode::SUCCESS
         }
         Err(error) => {

@@ -1,3 +1,5 @@
+> **Prep notes.** Prefer [CAPABILITY-MATRIX-M0.md](CAPABILITY-MATRIX-M0.md) for status; lab report + runbook under `platform/`.
+
 # M2 software prep status
 
 Date: 2026-07-17

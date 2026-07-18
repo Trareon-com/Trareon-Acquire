@@ -1,4 +1,4 @@
-//! Nav-surface operations for Cases / Identify / Tools / Triage / QMS / Boot.
+//! Nav-surface operations for Cases / Identify / Tools / Triage / QMS / Boot (preview).
 
 use std::path::{Path, PathBuf};
 
@@ -12,27 +12,17 @@ use crate::{
 
 pub fn format_label(index: i32) -> &'static str {
     match index {
-        1 => "E01-lite label (ewf-image writer; oracle pending)",
-        2 => "AFF4-lite (subset)",
-        3 => "VMDK wrapper (subset)",
-        4 => "VHD wrapper (subset)",
-        5 => "QCOW2 wrapper (subset)",
-        6 => "DMG wrapper (subset)",
-        7 => "Split-RAW .fsnap",
-        8 => "ZFF (via zffacquire if installed)",
-        _ => "RAW + .fsnap (court path A)",
+        1 => "E01 (ewf-image when enabled; oracle pending)",
+        2 => "ZFF (via zffacquire if installed)",
+        3 => "Split-RAW .fsnap",
+        _ => "RAW + .fsnap (Path A candidate)",
     }
 }
 
 pub fn format_from_index(index: i32) -> UiOutputFormat {
     match index {
         1 => UiOutputFormat::E01,
-        2 => UiOutputFormat::Aff4,
-        3 => UiOutputFormat::Vmdk,
-        4 => UiOutputFormat::Vhd,
-        5 => UiOutputFormat::Qcow2,
-        6 => UiOutputFormat::Dmg,
-        8 => UiOutputFormat::Zff,
+        2 => UiOutputFormat::Zff,
         _ => UiOutputFormat::RawFsnap,
     }
 }
@@ -480,7 +470,7 @@ pub fn boot_plan_text(image: &str, dest: &str) -> String {
             plan.destination_device.display(),
             plan.warnings.join("\n")
         ),
-        Err(error) => format!("Boot plan failed: {error}"),
+        Err(error) => format!("Boot plan (preview) failed: {error}"),
     }
 }
 
@@ -522,9 +512,27 @@ pub fn acquire_with_format(
     segment_mib: u64,
     sha512: bool,
 ) -> Result<(String, String, u64), String> {
-    if format_index == 7 {
-        let package =
-            acquire_formats::acquire_split_raw(source, output, segment_mib.max(1) * 1024 * 1024)?;
+    acquire_with_format_controls(source, output, format_index, segment_mib, sha512, None, None)
+}
+
+/// Acquire with cancel + progress wired for every format path.
+pub fn acquire_with_format_controls(
+    source: &Path,
+    output: &Path,
+    format_index: i32,
+    segment_mib: u64,
+    sha512: bool,
+    cancel_flag: Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,
+    progress: Option<trareon_core::ProgressCallback>,
+) -> Result<(String, String, u64), String> {
+    if format_index == 3 {
+        let package = acquire_formats::acquire_split_raw_with_controls(
+            source,
+            output,
+            segment_mib.max(1) * 1024 * 1024,
+            cancel_flag,
+            progress,
+        )?;
         let demo = crate::tools_hub::verify_package(&package).map(|v| {
             (
                 package.display().to_string(),
@@ -535,7 +543,14 @@ pub fn acquire_with_format(
         return Ok(demo);
     }
     let format = format_from_index(format_index);
-    let package = acquire_formats::acquire_to_format_with_sha512(source, output, format, sha512)?;
+    let package = acquire_formats::acquire_to_format_with_controls(
+        source,
+        output,
+        format,
+        sha512,
+        cancel_flag,
+        progress,
+    )?;
     if format == UiOutputFormat::RawFsnap {
         let verified = tools_hub::verify_package(&package)?;
         return Ok((

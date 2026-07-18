@@ -77,6 +77,8 @@ pub struct UiSnapshot {
     pub locale: UiLocale,
     pub case_identity: String,
     pub case_id: String,
+    /// Operator re-type of case id (must match `case_id` when non-empty).
+    pub case_verify: String,
     pub source_path: String,
     pub output_dir: String,
     pub confirmed_synthetic: bool,
@@ -107,6 +109,7 @@ impl Default for UiSnapshot {
             locale,
             case_identity: String::new(),
             case_id: String::new(),
+            case_verify: String::new(),
             source_path: String::new(),
             output_dir: String::new(),
             confirmed_synthetic: false,
@@ -165,16 +168,54 @@ impl UiSnapshot {
             && !self.source_path.trim().is_empty()
             && !self.output_dir.trim().is_empty()
             && !self.busy
+            && !self.dest_volume_conflict()
+            && self.free_space_ok != Some(false)
     }
 
     pub fn can_start_expert(&self) -> bool {
         self.can_start_guided()
             && !self.case_id.trim().is_empty()
+            && self.case_verify_ok()
             && (!self.is_blockish_source() || self.wb_confirmed)
             && self.free_space_ok != Some(false)
             && (!self.requires_identify_gate()
                 || !self.emergency_override_reason.trim().is_empty()
                 || (!identify_blocks_live(&self.identify_record) && self.oov_ack))
+    }
+
+    pub fn case_verify_ok(&self) -> bool {
+        let id = self.case_id.trim();
+        if id.is_empty() {
+            return true;
+        }
+        self.case_verify.trim() == id
+    }
+
+    pub fn dest_volume_conflict(&self) -> bool {
+        // Same-volume reject only for blockish sources (evidence must not land on the imaged volume).
+        if !self.is_blockish_source() {
+            return false;
+        }
+        let source = Path::new(self.source_path.trim());
+        let dest = Path::new(self.output_dir.trim());
+        if self.source_path.trim().is_empty() || self.output_dir.trim().is_empty() {
+            return false;
+        }
+        dest_equals_source_volume(source, dest)
+    }
+
+    /// Refresh free-space + same-volume gates (no full-source pre-hash).
+    pub fn refresh_preflight_gates(&mut self) {
+        let source = Path::new(self.source_path.trim());
+        let dest = Path::new(self.output_dir.trim());
+        if !source.exists() || self.output_dir.trim().is_empty() {
+            self.free_space_ok = None;
+            return;
+        }
+        match crate::preflight::preflight_opts(source, dest, false) {
+            Ok(pf) => self.free_space_ok = Some(pf.free_space_ok),
+            Err(_) => self.free_space_ok = None,
+        }
     }
 
     /// True when acquisition needs the identification checklist rather than file-demo checks.
@@ -405,6 +446,11 @@ impl UiSnapshot {
         }
     }
 
+    /// Status when acquire/hash succeeded but seal did not complete.
+    pub fn msg_seal_pending(err: &str) -> String {
+        format!("ACQUIRED (hash OK) — SEAL PENDING/FAILED: {err}")
+    }
+
     pub fn msg_cancelled(&self, err: &str) -> String {
         match self.locale {
             UiLocale::Id => format!("Dibatalkan: {err}"),
@@ -491,10 +537,10 @@ fn guidance(mode: UiMode, locale: UiLocale) -> &'static str {
             "Jelajah sumber + keluaran, konfirmasi pelatihan, lalu Mulai akuisisi."
         }
         (UiMode::Expert, UiLocale::En) => {
-            "Raw paths need an approved allowlist + elevation. System disks are denied. This demo stays file-backed."
+            "Lab Beta / NotValidated: raw paths need allowlist + elevation. Prefer file-backed. System disks denied."
         }
         (UiMode::Expert, UiLocale::Id) => {
-            "Jalur raw butuh allowlist + elevasi yang disetujui. Disk sistem ditolak. Demo ini tetap berbasis berkas."
+            "Lab Beta / NotValidated: jalur raw butuh allowlist + elevasi. Utamakan berbasis berkas. Disk sistem ditolak."
         }
     }
 }
@@ -600,6 +646,7 @@ mod tests {
         assert!(!snap.can_run());
         assert!(!snap.can_start_expert());
         snap.case_id = "CASE-1".into();
+        snap.case_verify = "CASE-1".into();
         assert!(snap.can_run());
         snap.mode = UiMode::Expert;
         assert!(!snap.can_start_expert());
@@ -623,6 +670,13 @@ mod tests {
         assert_eq!(snap.evidence_size, "1024");
         snap.clear_results();
         assert_eq!(snap.last_package, NONE_SENTINEL);
+    }
+
+    #[test]
+    fn seal_pending_status_is_not_verified_complete() {
+        let msg = UiSnapshot::msg_seal_pending("disk full");
+        assert!(msg.contains("SEAL PENDING"));
+        assert!(!msg.contains("Verified Complete"));
     }
 
     #[test]
@@ -753,6 +807,7 @@ mod tests {
         let mut snap = UiSnapshot {
             mode: UiMode::Expert,
             case_id: "CASE-1".into(),
+            case_verify: "CASE-1".into(),
             source_path: "/dev/disk10".into(),
             output_dir: "/tmp/out".into(),
             confirmed_synthetic: true,

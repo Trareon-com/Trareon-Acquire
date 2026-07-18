@@ -1,3 +1,5 @@
+> **HISTORICAL design provenance.** Operational pack: [ai-operations/START-HERE.md](../../ai-operations/START-HERE.md). [INDEX.md](../../INDEX.md).
+
 # Trareon Acquire 30-Day AI Prompt Operations Design
 
 ## Status

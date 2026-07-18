@@ -18,10 +18,9 @@ cargo run -p trareon-verifier --locked -- verify /tmp/trareon-output/foundation.
 
 In the running app, set the source path to `/tmp/trareon-source.img` and the
 output directory to `/tmp/trareon-output`, confirm the synthetic-source
-checkbox, and press Run. The UI reports `Verified Complete` only after the
-Rust core has acquired the file, built the `.fsnap` package, and the
-independent verifier has accepted it — the UI never decides success on its
-own.
+checkbox, and press Run. Success shows verified + sealed when CoC seal works;
+if seal fails the status is `ACQUIRED (hash OK) — SEAL PENDING/FAILED` (not a
+full Verified Complete). The UI never invents success on its own.
 
 ## Tamper demonstration
 

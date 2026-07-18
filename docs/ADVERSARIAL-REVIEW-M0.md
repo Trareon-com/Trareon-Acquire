@@ -1,5 +1,7 @@
 # M0 Adversarial Review (Synthetic / Local)
 
+> **FROZEN HISTORICAL** (pre-Slint / Tauri-era evidence). Current capability: [CAPABILITY-MATRIX-M0.md](CAPABILITY-MATRIX-M0.md).
+
 - **Date:** 2026-07-17
 - **Product freeze base (main):** `9e24b15e8a562a033d70732a69f55b9bf5e1c1c3` (merge of Day 26 / PR #43)
 - **Review tip (includes Day 27–28 docs/UI on this branch):** `72e855bac1a9cc9568a21855e5c3dda8f4cd3ca3`

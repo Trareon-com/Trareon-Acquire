@@ -8,8 +8,8 @@ Applies to: Trareon Acquire
 
 1. **Desktop UI** for Trareon Acquire is **Slint + Rust**, aligned with Trareon Lab (`C-SLINT`).
 2. **Project license** is **GNU General Public License v3** (`GPL-3.0-only` in Cargo/SPDX).
-3. The former **Tauri + Svelte** app (`apps/trareon-acquire`) is **archived**
-   (not a workspace member; see `DEPRECATED.md`).
+3. The former **Tauri + Svelte** app (`apps/trareon-acquire`) was archived, then
+   **removed from the tree** (2026-07-19 optimization). Do not restore it.
 
 ## Why
 
@@ -33,6 +33,6 @@ GPLv3 **allows selling** binaries. Recipients of binaries must be able to get co
 - [x] Replace `LICENSE` + workspace SPDX with GPLv3
 - [x] Add `apps/acquire-slint` foundation shell
 - [x] Wire Slint demo: path pickers, synthetic confirm, cancel_flag, verify display
-- [x] Remove Tauri/Svelte from workspace + CI (archived under `apps/trareon-acquire/`)
+- [x] Remove Tauri/Svelte from workspace + CI (tree deleted 2026-07-19)
 - [x] Progressive Guided/Standard/Expert modes on Slint
 - [x] Update commercial / user docs for “source with binary” obligation

@@ -1,3 +1,5 @@
+> **FROZEN HISTORICAL.** Current capability: [CAPABILITY-MATRIX-M0.md](CAPABILITY-MATRIX-M0.md). [INDEX.md](INDEX.md).
+
 # M1 — Injected-failure / false-complete matrix
 
 Result class: **Engineering Alpha — Lab Use Only** (file-backed).

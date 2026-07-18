@@ -1,16 +1,14 @@
-# Trareon Acquire — M0 Capability & Limitation Matrix
+# Trareon Acquire — Capability & Limitation Matrix (current)
+
+> **Status authority:** This file is the **current** capability SoT. Scope every row by OS / device / operation. M0/M1 milestone reviews and `MASTER-CHECKLIST` are **frozen historical** evidence — see [INDEX.md](INDEX.md).
 
 Result class: **Production-Directed Engineering Alpha Candidate — Lab Use Only**.
 
-This matrix consolidates evidence as of `main` tip `4dd2828` (Days 01–29
-implemented, including Days 23–25 privilege spikes) plus the Day 30 **complete
-redo** human classification. Capabilities without exact hardware acquisition
-evidence or independent Codex review remain `NotValidated`. This document does
-**not** certify Official Production readiness.
+Capabilities without exact hardware acquisition evidence or independent review remain `NotValidated`. This document does **not** certify Official Production readiness. Desktop UI is **Slint** (`apps/acquire-slint`), not Tauri.
 
-Authoritative day tracking: [`docs/ai-operations/MASTER-CHECKLIST.md`](ai-operations/MASTER-CHECKLIST.md).
-Known gaps: [`docs/WEEK-01-DISCREPANCY-REGISTER.md`](WEEK-01-DISCREPANCY-REGISTER.md).
-Milestone: [`docs/M0-MILESTONE-REVIEW.md`](M0-MILESTONE-REVIEW.md).
+Frozen day ledger: [`docs/ai-operations/MASTER-CHECKLIST.md`](ai-operations/MASTER-CHECKLIST.md).
+Known gaps (historical): [`docs/WEEK-01-DISCREPANCY-REGISTER.md`](WEEK-01-DISCREPANCY-REGISTER.md).
+Milestone snapshots: [`docs/M0-MILESTONE-REVIEW.md`](M0-MILESTONE-REVIEW.md), [`docs/M1-MILESTONE-REVIEW.md`](M1-MILESTONE-REVIEW.md).
 Risks: [`docs/M0-RISK-REGISTER.md`](M0-RISK-REGISTER.md).
 `.fsnap` reader contract: [`docs/fsnap-v0.1-read-contract.md`](fsnap-v0.1-read-contract.md).
 

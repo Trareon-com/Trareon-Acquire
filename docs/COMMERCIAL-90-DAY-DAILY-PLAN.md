@@ -1,5 +1,7 @@
 # Commercial launch — 90-day daily plan
 
+> **RETROSPECTIVE IMPLEMENTATION MAP — not a live daily tracker.** Checkboxes may reflect intended sequencing or later backfill; for live status use [`COMMERCIAL-LAUNCH-STATUS.md`](COMMERCIAL-LAUNCH-STATUS.md) and [INDEX.md](INDEX.md).
+
 Start: **2026-07-18** (Hari 1) · End: **2026-10-15** (Hari 90)
 Scope: [`COMMERCIAL-V1-SCOPE.md`](COMMERCIAL-V1-SCOPE.md) · Cash: [`ZERO-CASH-LAUNCH-PLAN.md`](ZERO-CASH-LAUNCH-PLAN.md)
 Progress tracker: [`COMMERCIAL-LAUNCH-STATUS.md`](COMMERCIAL-LAUNCH-STATUS.md)

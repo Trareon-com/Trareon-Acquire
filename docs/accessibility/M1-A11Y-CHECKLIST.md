@@ -17,7 +17,9 @@ Tooling: no automated axe/Lighthouse run (Slint native; explicitly noted)
 | 7 | Cancel reachable while running | Pass | Cancel enabled when `busy` |
 | 8 | Completion never invented by UI | Pass | Seal panel driven only from core result hashes |
 | 9 | Deny state is not color-only | Pass | Deny panel title + body + preflight text |
-| 10 | Honesty labels (E01-lite, UNSIGNED) | Pass | Format chips + unsigned banner |
+| 10 | Honesty labels (Path A candidate, UNSIGNED, Lab Beta) | Pass | Format chips + unsigned banner + Expert Lab Beta copy |
+| 14 | Boot labeled as preview | Pass | Rail: Boot (preview); dry-run only |
+| 15 | Experimental controls captioned | Pass | Advanced drawer: not applied to AcquireRequest |
 | 11 | Keyboard / focus | Residual | Custom `TouchArea` chips — Tab order depends on Slint backend; verify on target OS |
 | 12 | Reduced motion | Residual | Opacity phase animation is short; respect OS reduced-motion when Slint exposes it |
 | 13 | Automated a11y scanner | Not run | Native Slint — deferred; do not claim certification |

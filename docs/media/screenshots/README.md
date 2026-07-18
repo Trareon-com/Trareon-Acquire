@@ -1,7 +1,10 @@
 # UI screenshots
 
-Illustrative product surfaces for documentation (Evidence Control Room theme).
-Replace with captures from a live `trareon-acquire` build when publishing Official Production materials.
+Captures for the **Slint** shell (`cargo run -p acquire-slint --features gui`).
+Design SoT: [DESIGN-TRAREON-ACQUIRE.md](../../../.cursor/skills/frontend-design/DESIGN-TRAREON-ACQUIRE.md).
+
+`_archive/` holds ECR/mock/diff artifacts that are **not** current product UI.
+`plan-ecr/` holds Lab taste / wireframe references only.
 
 | File | Surface |
 |---|---|
@@ -12,5 +15,7 @@ Replace with captures from a live `trareon-acquire` build when publishing Offici
 | `05-seal-coc.png` | Seal + CoC |
 | `06-tools.png` | Tools / verify |
 | `07-triage-analysis.png` | Triage + Analysis lite |
-| `08-qms-boot.png` | QMS + Boot |
+| `08-qms-boot.png` | QMS + Boot plan (preview) |
 | `09-help.png` | Help |
+
+Refresh `01`–`09` from a live build before Official Production marketing.

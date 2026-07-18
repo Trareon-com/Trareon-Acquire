@@ -1,3 +1,5 @@
+> **FROZEN HISTORICAL.** Current capability: [CAPABILITY-MATRIX-M0.md](CAPABILITY-MATRIX-M0.md). [INDEX.md](INDEX.md).
+
 # Milestone Review — M1 Engineering Alpha exit
 
 - **Milestone:** M1 Engineering Alpha (file-backed lab slice) exit → M2 Storage Lab Beta entry

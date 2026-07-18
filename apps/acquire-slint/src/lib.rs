@@ -216,9 +216,6 @@ mod tests {
         )
         .expect("write report");
         assert!(report.is_file());
-
-        let archive = crate::preserve::archive_fsnap_zip(&package).expect("archive package");
-        assert!(archive.is_file());
     }
 
     #[test]

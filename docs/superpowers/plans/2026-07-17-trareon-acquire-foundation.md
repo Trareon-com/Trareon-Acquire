@@ -1,5 +1,7 @@
 # Trareon Acquire Foundation Implementation Plan
 
+> **HISTORICAL / pre-Slint.** Tauri + Svelte foundation plan — superseded by Slint (`apps/acquire-slint`). Do not implement from this document. See [INDEX.md](../../INDEX.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a seven-day engineering foundation that acquires a synthetic/file-backed source into RAW, records a hash-chained audit, creates a minimal `.fsnap` directory package, verifies it independently, and exposes the workflow through a minimal Tauri desktop shell.

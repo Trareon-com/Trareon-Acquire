@@ -48,10 +48,6 @@ pub fn compare(a: &Path, b: &Path) -> Result<bool, String> {
         && a.audit_root == b.audit_root)
 }
 
-pub fn integrity(package: &Path) -> Result<FsnapManifestV1, String> {
-    verify(package)
-}
-
 pub fn export_segments(
     package: &Path,
     segments: &[EvidenceSegmentV1],

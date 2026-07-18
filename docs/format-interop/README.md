@@ -1,6 +1,6 @@
 # Format interoperability operator pack
 
-**Path A (court-usable now):** RAW / `.fsnap` — see [PATH-A-RAW.md](PATH-A-RAW.md).
+**Path A (candidate RAW interoperability; external verification pending):** RAW / `.fsnap` — see [PATH-A-RAW.md](PATH-A-RAW.md). Authority for green/red rows: [EVIDENCE.md](EVIDENCE.md).
 
 **Path B (competitive E01):** `ewf-image` writer is wired (MSRV 1.96, feature `ewf`).
 UI still says **E01-lite** until libewf/Autopsy evidence is green —

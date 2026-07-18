@@ -1,6 +1,8 @@
-# Path A — RAW / `.fsnap` court track (official now)
+# Path A — RAW / `.fsnap` candidate interoperability track
 
-Trareon Acquire’s **court-usable** acquisition path today is:
+> **Not court-certified.** Record Autopsy/FTK results in [EVIDENCE.md](EVIDENCE.md) before any court or production claim.
+
+Trareon Acquire’s **candidate** RAW acquisition path today is:
 
 1. Acquire to RAW bytes inside a `.fsnap` package (or plain RAW / split-RAW).
 2. Seal with SHA-256 (optional SHA-512 sidecar).
@@ -24,4 +26,4 @@ Record Autopsy/FTK versions and hash match in `EVIDENCE.md` under **Path A**.
 ## What is not claimed
 
 - Full EnCase E01 / libewf compatibility (that is Path B — see `EWF-SPIKE.md`).
-- AFF4 full profile (AFF4-lite remains labeled subset).
+- AFF4 / VMDK / VHD / QCOW2 / DMG wrappers (removed from product surface).

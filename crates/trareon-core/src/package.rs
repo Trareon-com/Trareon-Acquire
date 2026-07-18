@@ -92,15 +92,58 @@ fn hash_files_concat(paths: &[&Path]) -> Result<(u64, String), CoreError> {
     Ok((size, hex::encode(hasher.finalize())))
 }
 
-fn copy_and_sync(source: &Path, destination: &Path) -> Result<(), CoreError> {
-    fs::copy(source, destination).map_err(|error| CoreError::Io(error.to_string()))?;
-    let file = File::options()
-        .write(true)
-        .open(destination)
+/// One pass: per-segment (size, sha256) plus concatenated digest of all segment bytes.
+fn hash_segments_and_concat(paths: &[&Path]) -> Result<(Vec<(u64, String)>, u64, String), CoreError> {
+    let mut concat = Sha256::new();
+    let mut total = 0u64;
+    let mut per = Vec::with_capacity(paths.len());
+    let mut buffer = [0u8; 64 * 1024];
+    for path in paths {
+        let mut file = File::open(path).map_err(|error| CoreError::Io(error.to_string()))?;
+        let mut seg = Sha256::new();
+        let mut size = 0u64;
+        loop {
+            let read = file
+                .read(&mut buffer)
+                .map_err(|error| CoreError::Io(error.to_string()))?;
+            if read == 0 {
+                break;
+            }
+            seg.update(&buffer[..read]);
+            concat.update(&buffer[..read]);
+            size += read as u64;
+            total += read as u64;
+        }
+        per.push((size, hex::encode(seg.finalize())));
+    }
+    Ok((per, total, hex::encode(concat.finalize())))
+}
+
+/// Copy `source` → `destination`, hashing bytes while writing (one pass).
+fn copy_hash_and_sync(source: &Path, destination: &Path) -> Result<(u64, String), CoreError> {
+    let mut input = File::open(source).map_err(|error| CoreError::Io(error.to_string()))?;
+    let mut output =
+        File::create(destination).map_err(|error| CoreError::Io(error.to_string()))?;
+    let mut hasher = Sha256::new();
+    let mut buffer = [0u8; 64 * 1024];
+    let mut size = 0u64;
+    loop {
+        let read = input
+            .read(&mut buffer)
+            .map_err(|error| CoreError::Io(error.to_string()))?;
+        if read == 0 {
+            break;
+        }
+        output
+            .write_all(&buffer[..read])
+            .map_err(|error| CoreError::Io(error.to_string()))?;
+        hasher.update(&buffer[..read]);
+        size += read as u64;
+    }
+    output
+        .sync_all()
         .map_err(|error| CoreError::Io(error.to_string()))?;
-    file.sync_all()
-        .map_err(|error| CoreError::Io(error.to_string()))?;
-    Ok(())
+    Ok((size, hex::encode(hasher.finalize())))
 }
 
 fn segment_relative_path(index: usize) -> String {
@@ -143,11 +186,8 @@ pub fn create_fsnap(raw: &Path, audit: &Path, package: &Path) -> Result<(), Core
 
     let evidence_path = package.join(EVIDENCE_RELATIVE_PATH);
     let audit_path = package.join(AUDIT_RELATIVE_PATH);
-    copy_and_sync(raw, &evidence_path)?;
-    copy_and_sync(audit, &audit_path)?;
-
-    let (evidence_size, evidence_sha256) = hash_file(&evidence_path)?;
-    let (_, audit_sha256) = hash_file(&audit_path)?;
+    let (evidence_size, evidence_sha256) = copy_hash_and_sync(raw, &evidence_path)?;
+    let (_, audit_sha256) = copy_hash_and_sync(audit, &audit_path)?;
     let audit_root = AuditJournal::read_jsonl(&audit_path)?.verify()?;
 
     let manifest = FsnapManifestV1 {
@@ -182,26 +222,49 @@ pub fn create_fsnap_from_segments(
 
     prepare_package_dirs(package)?;
     let audit_path = package.join(AUDIT_RELATIVE_PATH);
-    copy_and_sync(audit, &audit_path)?;
+    let (_, audit_sha256) = copy_hash_and_sync(audit, &audit_path)?;
 
     let mut segment_metas = Vec::with_capacity(segments.len());
-    let mut packaged_paths = Vec::with_capacity(segments.len());
+    let mut concat = Sha256::new();
+    let mut evidence_size = 0u64;
+    let mut buffer = [0u8; 64 * 1024];
     for (index, source) in segments.iter().enumerate() {
         let relative = segment_relative_path(index + 1);
         let dest = package.join(&relative);
-        copy_and_sync(source, &dest)?;
-        let (size, sha256) = hash_file(&dest)?;
-        packaged_paths.push(dest);
+        let (size, sha256) = {
+            let mut input =
+                File::open(source).map_err(|error| CoreError::Io(error.to_string()))?;
+            let mut output =
+                File::create(&dest).map_err(|error| CoreError::Io(error.to_string()))?;
+            let mut seg = Sha256::new();
+            let mut size = 0u64;
+            loop {
+                let read = input
+                    .read(&mut buffer)
+                    .map_err(|error| CoreError::Io(error.to_string()))?;
+                if read == 0 {
+                    break;
+                }
+                output
+                    .write_all(&buffer[..read])
+                    .map_err(|error| CoreError::Io(error.to_string()))?;
+                seg.update(&buffer[..read]);
+                concat.update(&buffer[..read]);
+                size += read as u64;
+                evidence_size += read as u64;
+            }
+            output
+                .sync_all()
+                .map_err(|error| CoreError::Io(error.to_string()))?;
+            (size, hex::encode(seg.finalize()))
+        };
         segment_metas.push(EvidenceSegmentV1 {
             relative_path: relative,
             size,
             sha256,
         });
     }
-
-    let path_refs: Vec<&Path> = packaged_paths.iter().map(PathBuf::as_path).collect();
-    let (evidence_size, evidence_sha256) = hash_files_concat(&path_refs)?;
-    let (_, audit_sha256) = hash_file(&audit_path)?;
+    let evidence_sha256 = hex::encode(concat.finalize());
     let audit_root = AuditJournal::read_jsonl(&audit_path)?.verify()?;
 
     let manifest = FsnapManifestV1 {
@@ -346,31 +409,32 @@ pub fn verify_fsnap(package: &Path) -> Result<FsnapManifestV1, CoreError> {
         }
     }
 
-    if let Some(segments) = &manifest.evidence_segments {
+    let path_refs: Vec<&Path> = evidence_paths.iter().map(PathBuf::as_path).collect();
+    let (evidence_size, evidence_sha256) = if let Some(segments) = &manifest.evidence_segments {
         if segments.len() != evidence_paths.len() {
             return Err(CoreError::Verification(
                 "evidence segment count mismatch".to_string(),
             ));
         }
-        for (segment, path) in segments.iter().zip(evidence_paths.iter()) {
-            let (size, sha256) = hash_file(path)?;
-            if size != segment.size {
+        let (per_seg, total, digest) = hash_segments_and_concat(&path_refs)?;
+        for (segment, (size, sha256)) in segments.iter().zip(per_seg.iter()) {
+            if *size != segment.size {
                 return Err(CoreError::Verification(format!(
                     "segment size does not match manifest: {}",
                     segment.relative_path
                 )));
             }
-            if sha256 != segment.sha256 {
+            if sha256 != &segment.sha256 {
                 return Err(CoreError::Verification(format!(
                     "segment sha256 does not match manifest: {}",
                     segment.relative_path
                 )));
             }
         }
-    }
-
-    let path_refs: Vec<&Path> = evidence_paths.iter().map(PathBuf::as_path).collect();
-    let (evidence_size, evidence_sha256) = hash_files_concat(&path_refs)?;
+        (total, digest)
+    } else {
+        hash_files_concat(&path_refs)?
+    };
     if evidence_size != manifest.evidence_size {
         return Err(CoreError::Verification(
             "evidence size does not match manifest".to_string(),

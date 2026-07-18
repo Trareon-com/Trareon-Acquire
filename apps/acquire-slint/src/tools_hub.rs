@@ -44,10 +44,6 @@ pub fn compare(a: &Path, b: &Path) -> Result<bool, String> {
     trareon_verifier::compare(a, b)
 }
 
-pub fn integrity(package: &Path) -> Result<FsnapManifestV1, String> {
-    trareon_verifier::integrity(package)
-}
-
 pub fn export(package: &Path, output: &Path) -> Result<(), String> {
     trareon_verifier::export(package, output)
 }

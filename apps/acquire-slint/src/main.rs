@@ -1,8 +1,8 @@
 #[cfg(feature = "gui")]
 fn main() -> Result<(), slint::PlatformError> {
     use acquire_slint::{
-        AppWindow, DiskLine, UiMode, UiSnapshot, prefs::AcquirePrefs, preserve, recent,
-        run_foundation_demo_with_progress, shell_ops, write_coc_summary,
+        AppWindow, DiskLine, UiMode, UiSnapshot, prefs::AcquirePrefs, preserve, recent, shell_ops,
+        write_coc_summary,
     };
     use slint::{ComponentHandle, ModelRc, VecModel};
     use std::path::PathBuf;
@@ -43,10 +43,10 @@ fn main() -> Result<(), slint::PlatformError> {
         };
         ui.set_selected_disk(index);
         ui.set_detail_interface(row.bus.clone().into());
-        ui.set_detail_sectors("—".into());
-        ui.set_detail_sector_size("512 Bytes".into());
-        ui.set_detail_partitions("—".into());
-        ui.set_detail_type("GPT".into());
+        ui.set_detail_sectors("Unavailable / not probed".into());
+        ui.set_detail_sector_size("Unavailable / not probed".into());
+        ui.set_detail_partitions("Unavailable / not probed".into());
+        ui.set_detail_type("Unavailable / not probed".into());
         ui.set_detail_readonly(
             if write_blocker_ready {
                 "Yes (operator-confirmed / blocked)"
@@ -93,8 +93,8 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.set_footer_host(host.into());
         ui.set_app_version("Version 0.1.0".into());
         ui.set_app_build(format!("Build {}", trareon_core::build_identity()).into());
-        let sealed = snap.evidence_sha256 != acquire_slint::NONE_SENTINEL;
-        ui.set_status_evidence_text(shell_ops::evidence_status_count(sealed).into());
+        let disk_n = shell_ops::list_disk_ui_rows().len();
+        ui.set_status_evidence_text(disk_n.to_string().into());
         ui.set_status_coverage_text(
             shell_ops::coverage_status_text(ui.get_coverage_ok(), ui.get_coverage_err()).into(),
         );
@@ -168,6 +168,7 @@ fn main() -> Result<(), slint::PlatformError> {
     fn sync_fields_from_ui(ui: &AppWindow, snap: &mut UiSnapshot) {
         snap.case_identity = ui.get_case_identity().as_str().to_string();
         snap.case_id = ui.get_case_id().as_str().to_string();
+        snap.case_verify = ui.get_case_verify().as_str().to_string();
         snap.source_path = ui.get_source_path().as_str().to_string();
         snap.output_dir = ui.get_output_dir().as_str().to_string();
         snap.confirmed_synthetic = ui.get_confirmed_synthetic();
@@ -180,6 +181,7 @@ fn main() -> Result<(), slint::PlatformError> {
         snap.identify_record.checklist_complete.network = ui.get_id_network();
         snap.identify_record.checklist_complete.encryption = ui.get_id_encryption();
         snap.identify_record.checklist_complete.anti_forensics = ui.get_id_anti();
+        snap.refresh_preflight_gates();
     }
 
     fn save_prefs(snap: &UiSnapshot) {
@@ -383,7 +385,13 @@ fn main() -> Result<(), slint::PlatformError> {
                     s.can_start_expert()
                 };
                 if !gated {
-                    let msg = if !s.can_run() {
+                    let msg = if s.dest_volume_conflict() {
+                        "DENY: destination is on the same volume as the block source — choose another disk.".into()
+                    } else if s.free_space_ok == Some(false) {
+                        "DENY: destination free space is insufficient for the source size.".into()
+                    } else if !s.case_verify_ok() {
+                        "DENY: case verify does not match case id.".into()
+                    } else if !s.can_run() {
                         s.msg_need_confirm_paths().to_string()
                     } else {
                         format!(
@@ -463,46 +471,31 @@ fn main() -> Result<(), slint::PlatformError> {
             });
 
             thread::spawn(move || {
-                let result = if format_index == 0 && !write_sha512 {
-                    run_foundation_demo_with_progress(
-                        &source,
-                        &output,
-                        Some(cancel_job),
-                        Some(progress_cb),
-                    )
-                    .map(|demo| {
-                        (
-                            demo.package_path,
-                            demo.evidence_sha256,
-                            demo.evidence_size,
-                            String::new(),
-                        )
-                    })
-                } else {
-                    shell_ops::acquire_with_format(
-                        &source,
-                        &output,
-                        format_index,
-                        segment_mib,
-                        write_sha512,
-                    )
-                    .map(|(pkg, hash, size)| {
-                        let sha512 = if write_sha512 {
-                            let path = PathBuf::from(&pkg);
-                            let side = path.with_extension(format!(
-                                "{}.sha512",
-                                path.extension().and_then(|e| e.to_str()).unwrap_or("")
-                            ));
-                            std::fs::read_to_string(side)
-                                .unwrap_or_default()
-                                .trim()
-                                .to_string()
-                        } else {
-                            String::new()
-                        };
-                        (pkg, hash, size, sha512)
-                    })
-                };
+                let result = shell_ops::acquire_with_format_controls(
+                    &source,
+                    &output,
+                    format_index,
+                    segment_mib,
+                    write_sha512,
+                    Some(cancel_job),
+                    Some(progress_cb),
+                )
+                .map(|(pkg, hash, size)| {
+                    let sha512 = if write_sha512 {
+                        let path = PathBuf::from(&pkg);
+                        let side = path.with_extension(format!(
+                            "{}.sha512",
+                            path.extension().and_then(|e| e.to_str()).unwrap_or("")
+                        ));
+                        std::fs::read_to_string(side)
+                            .unwrap_or_default()
+                            .trim()
+                            .to_string()
+                    } else {
+                        String::new()
+                    };
+                    (pkg, hash, size, sha512)
+                });
                 let _ = slint::invoke_from_event_loop(move || {
                     if let Some(ui) = ui_weak.upgrade() {
                         let mut s = snap_done.lock().expect("snapshot lock");
@@ -514,8 +507,14 @@ fn main() -> Result<(), slint::PlatformError> {
                                 } else {
                                     s.case_identity.as_str()
                                 };
-                                let seal_note = if package_path.ends_with(".fsnap") {
-                                    preserve::seal_package(
+                                let (status_msg, sealed_ok) = if package_path.ends_with(".fsnap")
+                                    || PathBuf::from(&package_path)
+                                        .extension()
+                                        .and_then(|e| e.to_str())
+                                        == Some("fsnap")
+                                    || PathBuf::from(&package_path).is_dir()
+                                {
+                                    match preserve::seal_package(
                                         &package,
                                         if s.case_id.trim().is_empty() {
                                             "TRAINING"
@@ -524,16 +523,34 @@ fn main() -> Result<(), slint::PlatformError> {
                                         },
                                         examiner,
                                         &s.source_path,
-                                    )
-                                    .map(|coc| format!("; sealed {}", coc.evidence_id))
-                                    .unwrap_or_else(|err| format!("; seal deferred: {err}"))
+                                    ) {
+                                        Ok(coc) => (
+                                            format!(
+                                                "{} — sealed {}",
+                                                s.msg_verified(),
+                                                coc.evidence_id
+                                            ),
+                                            true,
+                                        ),
+                                        Err(err) => (UiSnapshot::msg_seal_pending(&err), false),
+                                    }
                                 } else {
-                                    "; container written (verify externally if not .fsnap)".into()
+                                    (
+                                        format!(
+                                            "ACQUIRED — container written (external verify if not .fsnap)"
+                                        ),
+                                        false,
+                                    )
                                 };
-                                let ok = format!("{}{seal_note}", s.msg_verified());
                                 let recent_entry =
                                     recent::RecentEntry::completed(&s.case_id, &package_path);
-                                s.set_ok(package_path, evidence_sha256, evidence_size, ok);
+                                s.set_ok(
+                                    package_path,
+                                    evidence_sha256,
+                                    evidence_size,
+                                    status_msg,
+                                );
+                                let _ = sealed_ok;
                                 s.progress_fraction = 1.0;
                                 s.progress_phase = "DONE".into();
                                 s.progress_label = format!("{evidence_size} B");

@@ -1,5 +1,7 @@
 # Trareon Acquire AI-Assisted Development Workflow
 
+> **HISTORICAL / pre-Slint in places** (TypeScript/Tauri contracts). Active desktop: Slint. Prefer [ai-operations/START-HERE.md](ai-operations/START-HERE.md) and [INDEX.md](INDEX.md).
+
 ## Status dan tujuan
 
 - **Status:** Prosedur implementasi turunan RFC v1.0.

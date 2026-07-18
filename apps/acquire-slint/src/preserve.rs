@@ -11,7 +11,7 @@ use ed25519_dalek::SigningKey;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use trareon_core::{
-    CustodyEntry, EvidenceCoC, EvidenceId, append_custody_jsonl, generate_signing_key, pack_fsnap,
+    CustodyEntry, EvidenceCoC, EvidenceId, append_custody_jsonl, generate_signing_key,
     sign_package_seal, verify_fsnap, write_detached_signature,
 };
 
@@ -160,13 +160,6 @@ pub fn write_acquisition_report(
     );
     write_file(&report, html.as_bytes())?;
     Ok(report)
-}
-
-/// Create a verified ZIP archive adjacent to the package.
-pub fn archive_fsnap_zip(package: &Path) -> Result<PathBuf, String> {
-    let archive = package.with_extension("fsnap.zip");
-    pack_fsnap(package, &archive).map_err(core_error)?;
-    Ok(archive)
 }
 
 /// Record the semantic meaning of an `acquire_file` cancellation beside its checkpoint.

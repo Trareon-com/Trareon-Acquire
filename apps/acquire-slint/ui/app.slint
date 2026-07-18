@@ -610,10 +610,10 @@ component SourceZone inherits Rectangle {
                 padding-left: 10px;
                 spacing: 6px;
                 Text { text: ""; width: 18px; }
-                Text { text: "DEV"; width: 60px; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
-                Text { text: "MODEL"; horizontal-stretch: 1; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
-                Text { text: "SIZE"; width: 68px; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
-                Text { text: "BUS"; width: 48px; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
+                Text { text: Strings.col-dev; width: 60px; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
+                Text { text: Strings.col-model; horizontal-stretch: 1; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
+                Text { text: Strings.col-size; width: 68px; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
+                Text { text: Strings.col-bus; width: 48px; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
             }
         }
         if !root.is-guided && root.disk-rows.length > 0: VerticalLayout {
@@ -759,16 +759,16 @@ component PrepareZone inherits Rectangle {
                 HorizontalLayout {
                     spacing: 2px;
                     FormatOpt { label: "fsnap"; active: root.format-index == 0; locked: root.busy; clicked => { root.format-index = 0; root.format-changed(0); } }
-                    FormatOpt { label: "E01-lite"; active: root.format-index == 1; locked: root.busy; clicked => { root.format-index = 1; root.format-changed(1); } }
-                    FormatOpt { label: "AFF4"; active: root.format-index == 2; locked: root.busy; clicked => { root.format-index = 2; root.format-changed(2); } }
-                    FormatOpt { label: "ZFF"; active: root.format-index == 8; locked: root.busy; clicked => { root.format-index = 8; root.format-changed(8); } }
+                    FormatOpt { label: "E01"; active: root.format-index == 1; locked: root.busy; clicked => { root.format-index = 1; root.format-changed(1); } }
+                    FormatOpt { label: "ZFF"; active: root.format-index == 2; locked: root.busy; clicked => { root.format-index = 2; root.format-changed(2); } }
+                    FormatOpt { label: "Split"; active: root.format-index == 3; locked: root.busy; clicked => { root.format-index = 3; root.format-changed(3); } }
                 }
                 HorizontalLayout {
                     padding-left: 6px;
                     padding-right: 6px;
                     spacing: 8px;
                     Text {
-                        text: root.format-index == 0 ? Strings.court-path-a : ("Compat subset · " + root.format-caption);
+                        text: root.format-index == 0 ? Strings.court-path-a : root.format-caption;
                         color: Theme.faint;
                         font-size: 10px;
                         font-family: "Avenir Next";
@@ -813,18 +813,17 @@ component PrepareZone inherits Rectangle {
 
         if root.show-advanced && !root.is-guided: VerticalLayout {
             spacing: Theme.space-sm;
-            HorizontalLayout {
-                spacing: 4px;
-                FormatChip { label: "VMDK"; active: root.format-index == 3; locked: root.busy; clicked => { root.format-index = 3; root.format-changed(3); } }
-                FormatChip { label: "VHD"; active: root.format-index == 4; locked: root.busy; clicked => { root.format-index = 4; root.format-changed(4); } }
-                FormatChip { label: "QCOW2"; active: root.format-index == 5; locked: root.busy; clicked => { root.format-index = 5; root.format-changed(5); } }
-                FormatChip { label: "DMG"; active: root.format-index == 6; locked: root.busy; clicked => { root.format-index = 6; root.format-changed(6); } }
-                FormatChip { label: "Split-RAW"; active: root.format-index == 7; locked: root.busy; clicked => { root.format-index = 7; root.format-changed(7); } }
+            Text {
+                text: Strings.experimental-not-applied;
+                color: Theme.mute;
+                font-size: 10px;
+                font-family: "Avenir Next";
+                wrap: word-wrap;
             }
             HorizontalLayout {
                 spacing: 6px;
                 Text { text: Strings.segment-mib; color: Theme.mute; font-size: 10px; font-family: "Avenir Next"; vertical-alignment: center; }
-                LineEdit { text <=> root.segment-mib; enabled: !root.busy; horizontal-stretch: 1; }
+                LineEdit { text <=> root.segment-mib; enabled: !root.busy && root.format-index == 3; horizontal-stretch: 1; }
             }
             Text { text: Strings.profile-label; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; }
             HorizontalLayout {
@@ -912,7 +911,7 @@ component PrepareZone inherits Rectangle {
                 }
             }
             if !root.case-verify-ok: Text {
-                text: "Case verify does not match case ID.";
+                text: Strings.case-verify-mismatch;
                 color: Theme.deny;
                 font-size: 10px;
                 font-weight: 600;
@@ -1214,7 +1213,7 @@ export component AppWindow inherits Window {
     in-out property <float> coverage-ok: 0.0;
     in-out property <float> coverage-err: 0.0;
     in-out property <int> format-index: 0;
-    in-out property <string> format-caption: "RAW + .fsnap (court path A)";
+    in-out property <string> format-caption: "RAW + .fsnap (Path A candidate)";
     in-out property <bool> write-sha512: true;
     in-out property <string> segment-mib: "4096";
     in-out property <string> evidence-sha512: "(none)";
@@ -1649,14 +1648,14 @@ export component AppWindow inherits Window {
                         spacing: 10px;
                         alignment: start;
                         Text {
-                            text: "Identify gate incomplete — checklist required before Expert/blockish acquire.";
+                            text: Strings.identify-gate-banner;
                             color: Theme.unsigned-text;
                             font-size: 11px;
                             font-weight: 700;
                             vertical-alignment: center;
                             horizontal-stretch: 1;
                         }
-                        Button { text: "Open Identify"; clicked => { root.nav-index = 2; } }
+                        Button { text: Strings.open-identify; clicked => { root.nav-index = 2; } }
                     }
                 }
 
@@ -1856,15 +1855,15 @@ export component AppWindow inherits Window {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
                                     padding: 14px; spacing: 8px;
-                                    Text { text: "CREATE CASE"; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
-                                    LineEdit { placeholder-text: "Case title"; text <=> root.case-title; }
-                                    LineEdit { placeholder-text: "Examiner"; text <=> root.case-identity; }
+                                    Text { text: Strings.create-case-heading; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                    LineEdit { placeholder-text: Strings.case-title-ph; text <=> root.case-title; }
+                                    LineEdit { placeholder-text: Strings.examiner-ph; text <=> root.case-identity; }
                                     HorizontalLayout {
                                         spacing: 8px;
                                         Button { text: Strings.create-case; clicked => { root.create-case-clicked(); } }
                                         Button { text: Strings.refresh-cases; clicked => { root.refresh-cases-clicked(); } }
-                                        Button { text: "Continue to Identify"; clicked => { root.nav-index = 2; } }
-                                        Button { text: "Open Acquire"; clicked => { root.nav-index = 0; } }
+                                        Button { text: Strings.continue-identify; clicked => { root.nav-index = 2; } }
+                                        Button { text: Strings.open-acquire; clicked => { root.nav-index = 0; } }
                                     }
                                 }
                             }
@@ -1872,7 +1871,7 @@ export component AppWindow inherits Window {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
                                     padding: 14px; spacing: 6px;
-                                    Text { text: "CASE LIST"; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                    Text { text: Strings.case-list; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
                                     Text { text: root.panel-detail; color: Theme.readout; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
                                 }
                             }
@@ -1891,18 +1890,18 @@ export component AppWindow inherits Window {
                                 VerticalLayout {
                                     padding: 14px; spacing: 10px;
                                     Text { text: "Case: " + (root.case-id == "" ? "—" : root.case-id); color: Theme.readout; font-size: 13px; font-weight: 700; font-family: "Avenir Next"; }
-                                    CheckBox { text: "Power isolated / stable"; checked <=> root.id-power; }
-                                    CheckBox { text: "Network isolated"; checked <=> root.id-network; }
-                                    CheckBox { text: "Encryption noted"; checked <=> root.id-encryption; }
-                                    CheckBox { text: "Anti-forensics considered"; checked <=> root.id-anti; }
-                                    CheckBox { text: "Out-of-scope acknowledged (OoV)"; checked <=> root.id-oov; }
-                                    Text { text: "Emergency override (optional)"; color: Theme.faint; font-size: 10px; font-weight: 700; }
-                                    LineEdit { placeholder-text: "Supervisor reason — audited"; text <=> root.emergency-override; }
+                                    CheckBox { text: Strings.id-power; checked <=> root.id-power; }
+                                    CheckBox { text: Strings.id-network; checked <=> root.id-network; }
+                                    CheckBox { text: Strings.id-encryption; checked <=> root.id-encryption; }
+                                    CheckBox { text: Strings.id-anti; checked <=> root.id-anti; }
+                                    CheckBox { text: Strings.id-oov; checked <=> root.id-oov; }
+                                    Text { text: Strings.emergency-override-label; color: Theme.faint; font-size: 10px; font-weight: 700; }
+                                    LineEdit { placeholder-text: Strings.emergency-override-ph; text <=> root.emergency-override; }
                                     HorizontalLayout {
                                         spacing: 8px;
                                         Button { text: Strings.save-identify; clicked => { root.save-identify-clicked(); } }
                                         Button { text: Strings.probe-encryption; clicked => { root.probe-encryption-clicked(); } }
-                                        Button { text: "Continue to Acquire"; clicked => { root.nav-index = 0; } }
+                                        Button { text: Strings.continue-acquire; clicked => { root.nav-index = 0; } }
                                     }
                                     Text { text: root.panel-detail; color: Theme.mute; font-size: 11px; font-family: "Menlo"; wrap: word-wrap; }
                                 }
@@ -1941,7 +1940,7 @@ export component AppWindow inherits Window {
                                     background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                     VerticalLayout {
                                         padding: 14px; spacing: 6px;
-                                        Text { text: "LAST PACKAGE"; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                        Text { text: Strings.last-package; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
                                         Text { text: root.last-package; color: Theme.readout; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
                                         Text { text: "SHA-256: " + root.evidence-sha256; color: Theme.mute; font-size: 11px; font-family: "Menlo"; wrap: word-wrap; }
                                         Text { text: "SHA-512: " + root.evidence-sha512; color: Theme.mute; font-size: 11px; font-family: "Menlo"; wrap: word-wrap; }
@@ -1954,11 +1953,11 @@ export component AppWindow inherits Window {
                                     background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                     VerticalLayout {
                                         padding: 14px; spacing: 8px;
-                                        Text { text: "ACTIONS"; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
-                                        Button { text: "Browse package"; clicked => { root.browse-package-clicked(); } }
+                                        Text { text: Strings.tools-actions; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                        Button { text: Strings.browse-package; clicked => { root.browse-package-clicked(); } }
                                         Button { text: Strings.run-verify; clicked => { root.verify-package-clicked(); } }
                                         Button { text: Strings.run-hash; clicked => { root.hash-only-clicked(); } }
-                                        LineEdit { placeholder-text: "Compare package B"; text <=> root.compare-package-b; }
+                                        LineEdit { placeholder-text: Strings.compare-package-b-ph; text <=> root.compare-package-b; }
                                         HorizontalLayout {
                                             spacing: 6px;
                                             Button { text: Strings.browse-compare; clicked => { root.browse-compare-clicked(); } }
@@ -1983,7 +1982,7 @@ export component AppWindow inherits Window {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
                                     padding: 14px;
-                                    Text { text: "LOG / DETAIL"; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                    Text { text: Strings.log-detail; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
                                     Text { text: root.panel-detail == "" ? root.status-line : root.panel-detail; color: Theme.readout; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
                                 }
                             }
@@ -2017,7 +2016,7 @@ export component AppWindow inherits Window {
                             Text { text: Strings.shell-boot-body; color: Theme.mute; font-size: 12px; wrap: word-wrap; }
                             HorizontalLayout {
                                 spacing: 8px;
-                                LineEdit { placeholder-text: "Boot image path"; text <=> root.boot-image-path; horizontal-stretch: 1; }
+                                LineEdit { placeholder-text: Strings.boot-image-ph; text <=> root.boot-image-path; horizontal-stretch: 1; }
                                 Button { text: Strings.boot-plan; clicked => { root.boot-plan-clicked(); } }
                             }
                             Rectangle {
@@ -2040,7 +2039,7 @@ export component AppWindow inherits Window {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
                                     padding: 14px; spacing: 8px;
-                                    Text { text: "SETTINGS"; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                    Text { text: Strings.settings-label; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
                                     HorizontalLayout {
                                         spacing: 8px;
                                         CheckBox {
@@ -2054,14 +2053,14 @@ export component AppWindow inherits Window {
                                         LocaleChip { label: Strings.lang-en; active: root.locale == "en"; clicked => { root.locale = "en"; root.locale-toggled("en"); } }
                                         LocaleChip { label: Strings.lang-id; active: root.locale == "id"; clicked => { root.locale = "id"; root.locale-toggled("id"); } }
                                     }
-                                    LineEdit { placeholder-text: "Default examiner"; text <=> root.case-identity; }
+                                    LineEdit { placeholder-text: Strings.default-examiner-ph; text <=> root.case-identity; }
                                 }
                             }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
                                 VerticalLayout {
                                     padding: 14px; spacing: 8px;
-                                    Text { text: "OPERATOR HELP"; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
+                                    Text { text: Strings.operator-help; color: Theme.faint; font-size: 10px; font-weight: 700; font-family: "Avenir Next"; }
                                     Text { text: Strings.help_wb; color: Theme.readout; font-size: 12px; wrap: word-wrap; }
                                     Text { text: Strings.help_oov; color: Theme.readout; font-size: 12px; wrap: word-wrap; }
                                     Text { text: Strings.help_seal_vs_sig; color: Theme.readout; font-size: 12px; wrap: word-wrap; }

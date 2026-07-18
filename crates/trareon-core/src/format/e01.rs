@@ -23,19 +23,6 @@ pub const E01_MAGIC: &[u8; 8] = b"EVF\x09\x0d\x0a\xff\x00";
 pub const FOOTER_MAGIC: &[u8; 4] = b"FTR\0";
 pub const DEFAULT_CHUNK: usize = 64 * 1024;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum OutputFormat {
-    Raw,
-    SplitRaw,
-    E01,
-    Aff4,
-    Vmdk,
-    Vhd,
-    Qcow2,
-    Dmg,
-}
-
 #[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct CaseMetadata {
     pub case_number: String,

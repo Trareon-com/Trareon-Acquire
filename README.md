@@ -16,7 +16,7 @@ Trareon Acquire is a multi-OS acquisition workstation (Slint + Rust) aimed at th
 | Strength | What you get |
 |---|---|
 | Honesty UX | `UNSIGNED` banner, **E01-lite** until libewf/Autopsy evidence, write-blocker “not detected” until confirmed |
-| Court Path A | RAW / `.fsnap` + SHA-256 seal + CoC/QR — open as raw in Autopsy/FTK |
+| Path A (candidate) | RAW / `.fsnap` + SHA-256 seal + CoC/QR — Autopsy/FTK rows in EVIDENCE pending |
 | Path B (EWF) | Real EWF1 writer via `ewf-image` (MSRV 1.96); UI stays **E01-lite** until oracle green |
 | Open verify | `trareon-verifier` + in-app Tools (verify / hash / compare / export) |
 | Operator workflow | Cases → Identify → Acquire → Triage/Tools/QMS/Boot — ISO/IEC 27037 language |
@@ -78,11 +78,14 @@ docs/format-interop/       # Path A RAW + Path B EWF evidence packs
 
 | Doc | Purpose |
 |---|---|
+| [Docs index](docs/INDEX.md) | Authority, Now/Next/Not Yet, archive boundaries |
 | [Operator tutorial](docs/tutorials/OPERATOR-TUTORIAL.md) | Step-by-step every surface |
 | [User guide](docs/USER-GUIDE.md) | Short operator reference |
-| [Capability matrix](docs/CAPABILITY-MATRIX-M0.md) | What is implemented vs NotValidated |
-| [Format interop](docs/format-interop/README.md) | RAW court path + EWF spike/oracle |
+| [Capability matrix](docs/CAPABILITY-MATRIX-M0.md) | **Current** implemented vs NotValidated |
+| [Format interop](docs/format-interop/README.md) | Path A candidate + EWF spike; [EVIDENCE.md](docs/format-interop/EVIDENCE.md) owns rows |
 | [Live-gate checklist](docs/live-gate-checklist.md) | Human lab gates (AI does not check these) |
+| [PRD](PRD-Digital-Forensic-Acquisition.md) / [RFC](RFC-Digital-Forensic-Acquisition.md) | Product authority (not daily guides) |
+| [UI design SoT](.cursor/skills/frontend-design/DESIGN-TRAREON-ACQUIRE.md) | Internal visual authority |
 | [Security](SECURITY.md) | Vulnerability reporting |
 
 ## Honest limits

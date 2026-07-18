@@ -58,17 +58,6 @@ fn hash_only_skips_full_verify_path_but_reads_manifest() {
 }
 
 #[test]
-fn integrity_accepts_valid() {
-    let output = Command::new(env!("CARGO_BIN_EXE_trareon-verifier"))
-        .arg("integrity")
-        .arg(fixtures_root().join("valid"))
-        .output()
-        .unwrap();
-    assert_eq!(output.status.code(), Some(0));
-    assert!(String::from_utf8_lossy(&output.stdout).contains("INTEGRITY_OK"));
-}
-
-#[test]
 fn compare_identical_packages() {
     let output = Command::new(env!("CARGO_BIN_EXE_trareon-verifier"))
         .arg("compare")

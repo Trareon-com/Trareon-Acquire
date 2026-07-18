@@ -84,9 +84,9 @@ Follow **Case → Source → Write-blocker → Confirm → Start**. Only one pri
 
 ### Format & policy
 
-1. Prefer **fsnap** (court Path A).
+1. Prefer **fsnap** (Path A candidate).
 2. **E01-lite** uses the `ewf-image` writer but stays labeled `-lite` until libewf/Autopsy evidence is filed.
-3. Optional: AFF4-lite, ZFF (needs `zffacquire`), split + segment MiB.
+3. Optional: E01, ZFF (needs `zffacquire`), Split-RAW + segment MiB. Advanced profiles are experimental (not applied to the run).
 4. Toggle **SHA-512 sidecar**.
 5. Choose **bad-sector policy**: skip / retry×3 / fail-closed (recorded for custody).
 6. Fill **CoC form** fields (device, media #, seq #, description) for later QR export.
@@ -181,7 +181,7 @@ On Acquire, set **Source B** and **Run dual-source**. The governor chooses paral
 
 | Path | When |
 |---|---|
-| **A — RAW / `.fsnap`** | Default court-usable track — [PATH-A-RAW.md](../format-interop/PATH-A-RAW.md) |
+| **A — RAW / `.fsnap`** | Default candidate RAW path (external verify pending) — [PATH-A-RAW.md](../format-interop/PATH-A-RAW.md) |
 | **B — EWF** | Writer shipped; fill [EVIDENCE.md](../format-interop/EVIDENCE.md) with Autopsy/FTK + `ewfverify` before dropping `-lite` |
 
 ```bash

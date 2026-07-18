@@ -23,7 +23,7 @@ cargo run -p acquire-slint --features gui
 | Tools | Verify / hash / compare / export |
 | Triage | Read-only triage + Analysis lite |
 | QMS | Self-test + known dataset |
-| Boot | Portable pack dry-run plan |
+| Boot (preview) | Portable pack dry-run plan only — no media write |
 | Help | SOP + deep-links; EN/ID; light/dark |
 
 ## Verify independently

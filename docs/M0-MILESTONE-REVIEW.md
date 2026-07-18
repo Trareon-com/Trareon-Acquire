@@ -1,3 +1,5 @@
+> **FROZEN HISTORICAL.** Current capability: [CAPABILITY-MATRIX-M0.md](CAPABILITY-MATRIX-M0.md). [INDEX.md](INDEX.md).
+
 # Milestone Review — M0 Day 30 (complete redo)
 
 - **Milestone:** M0 complete → handoff to M1 Engineering Alpha rolling wave

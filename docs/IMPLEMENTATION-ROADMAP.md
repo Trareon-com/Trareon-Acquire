@@ -1,5 +1,7 @@
 # Trareon Acquire Implementation Roadmap
 
+> **HISTORICAL / pre-Slint in places.** Product UI is `apps/acquire-slint`. Current capability: [CAPABILITY-MATRIX-M0.md](CAPABILITY-MATRIX-M0.md). Nav: [INDEX.md](INDEX.md).
+
 ## Status dan tujuan
 
 - **Baseline:** RFC Trareon Acquire v1.0, 17 Juli 2026

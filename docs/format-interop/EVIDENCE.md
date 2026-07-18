@@ -6,7 +6,7 @@ Reviewer: _(pending human)_
 Commit: _(fill at sign-off)_  
 OS and version: _(fill at sign-off)_
 
-## Path A — RAW / `.fsnap` (official court track)
+## Path A — RAW / `.fsnap` (candidate; fill rows before claims)
 
 See [PATH-A-RAW.md](PATH-A-RAW.md).
 

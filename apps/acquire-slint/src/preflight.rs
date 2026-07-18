@@ -16,8 +16,16 @@ pub struct PreflightResult {
     pub pre_hash_hex: String,
 }
 
-/// Calculate capacity and a source SHA-256 before acquisition. This only reads the source.
+/// Capacity check before acquisition. Optional full-source SHA-256 via `with_pre_hash`.
 pub fn preflight(source: &Path, output_dir: &Path) -> Result<PreflightResult, String> {
+    preflight_opts(source, output_dir, false)
+}
+
+pub fn preflight_opts(
+    source: &Path,
+    output_dir: &Path,
+    with_pre_hash: bool,
+) -> Result<PreflightResult, String> {
     let source_size = source.metadata().map_err(|error| error.to_string())?.len();
     let destination_free_bytes = trareon_core::freespace::destination_free_bytes(output_dir)
         .map_err(|error| error.to_string())?;
@@ -25,7 +33,11 @@ pub fn preflight(source: &Path, output_dir: &Path) -> Result<PreflightResult, St
         source_size,
         destination_free_bytes,
         free_space_ok: trareon_core::freespace::freespace_ok(destination_free_bytes, source_size),
-        pre_hash_hex: sha256_file(source).map_err(|error| error.to_string())?,
+        pre_hash_hex: if with_pre_hash {
+            sha256_file(source).map_err(|error| error.to_string())?
+        } else {
+            String::new()
+        },
     })
 }
 
@@ -48,12 +60,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn preflight_hashes_source_and_checks_destination() {
+    fn preflight_checks_destination_without_forced_hash() {
         let temp = tempfile::tempdir().unwrap();
         let source = temp.path().join("source.bin");
         std::fs::write(&source, b"test").unwrap();
         let result = preflight(&source, temp.path()).unwrap();
-        assert_eq!(result.pre_hash_hex.len(), 64);
+        assert!(result.pre_hash_hex.is_empty());
         assert!(result.destination_free_bytes > 0);
+        let hashed = preflight_opts(&source, temp.path(), true).unwrap();
+        assert_eq!(hashed.pre_hash_hex.len(), 64);
     }
 }

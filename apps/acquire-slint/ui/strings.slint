@@ -30,18 +30,38 @@ export global Strings {
     out property <string> stage-prepare: is-id ? "PREPARE" : "PREPARE";
     out property <string> stage-acquire: is-id ? "ACQUIRE" : "ACQUIRE";
     out property <string> stage-seal: is-id ? "SEAL" : "SEAL";
-    out property <string> zone-source: is-id ? "1 · SOURCE" : "1 · SOURCE";
-    out property <string> zone-prepare: is-id ? "2 · PREPARE" : "2 · PREPARE";
-    out property <string> zone-run: is-id ? "3 · RUN / SEAL" : "3 · RUN / SEAL";
-    out property <string> no-package-yet: is-id ? "Belum ada paket" : "No package yet";
+    out property <string> zone-source: is-id ? "SUMBER" : "SOURCE";
+    out property <string> zone-prepare: is-id ? "SIAPKAN" : "PREPARE";
+    out property <string> zone-run: is-id ? "JALANKAN / SEGEL" : "RUN / SEAL";
+    out property <string> no-package-yet: is-id ? "Paket belum dibuat" : "Package not yet generated";
     out property <string> start-acquire: is-id ? "START ACQUIRE" : "START ACQUIRE";
-    out property <string> advanced-toggle: is-id ? "Advanced ▸" : "Advanced ▸";
-    out property <string> advanced-hide: is-id ? "Advanced ▾" : "Advanced ▾";
+    out property <string> advanced-toggle: is-id ? "Advanced" : "Advanced";
+    out property <string> advanced-hide: is-id ? "Hide advanced" : "Hide advanced";
     out property <string> shell-about-title: is-id ? "Tentang" : "About";
     out property <string> hash-seal-not-signature: is-id
         ? "Hash segel bukan tanda tangan digital."
         : "A hash seal is not a digital signature.";
     out property <string> about-build: is-id ? "Identitas build" : "Build identity";
+    out property <string> about-product: is-id ? "Meja akuisisi forensik" : "Forensic acquisition bench";
+    out property <string> about-version-label: is-id ? "Versi" : "Version";
+    out property <string> empty-disks-title: is-id ? "Tidak ada disk terhubung." : "No disks connected.";
+    out property <string> empty-disks-body: is-id ? "Hubungkan perangkat keras untuk mulai." : "Connect hardware to start.";
+    out property <string> device-details: is-id ? "DETAIL PERANGKAT" : "DEVICE DETAILS";
+    out property <string> detail-interface: is-id ? "Interface" : "Interface";
+    out property <string> detail-sectors: is-id ? "Sectors" : "Sectors";
+    out property <string> detail-sector-size: is-id ? "Sector size" : "Sector size";
+    out property <string> detail-partitions: is-id ? "Partitions" : "Partitions";
+    out property <string> detail-type: is-id ? "Type" : "Type";
+    out property <string> detail-readonly: is-id ? "Read-only" : "Read-only";
+    out property <string> path-source: is-id ? "SOURCE PATH" : "SOURCE PATH";
+    out property <string> path-output: is-id ? "OUTPUT PATH" : "OUTPUT PATH";
+    out property <string> case-verify-label: is-id ? "EVIDENCE / CASE ID" : "EVIDENCE / CASE ID";
+    out property <string> case-verify-placeholder: is-id ? "Harus cocok dengan ID kasus" : "Matches case ID";
+    out property <string> hw-disks: is-id ? "Disk" : "Disks";
+    out property <string> hw-blocker: is-id ? "Blocker" : "Blocker";
+    out property <string> hw-integrity: is-id ? "Integrity" : "Integrity";
+    out property <string> mode-in-header: is-id ? "Mode" : "Mode";
+    out property <string> court-path-a: is-id ? "Path A pengadilan — RAW + .fsnap" : "Court path A — RAW + .fsnap";
 
     out property <string> rail-workflow: is-id ? "ALUR" : "WORKFLOW";
     out property <string> rail-lab: is-id ? "LAB" : "LAB";
@@ -157,7 +177,7 @@ export global Strings {
     out property <string> evidence-seal: is-id ? "SEGEL BUKTI" : "EVIDENCE SEAL";
     out property <string> verified: is-id ? "TERVERIFIKASI" : "VERIFIED";
     out property <string> awaiting: is-id ? "BELUM ADA" : "NO SEAL YET";
-    out property <string> seal-empty-title: is-id ? "Belum ada segel" : "No seal yet";
+    out property <string> seal-empty-title: is-id ? "Paket belum dibuat" : "Package not yet generated";
     out property <string> seal-empty-body: is-id
         ? "Setelah akuisisi berhasil, SHA-256 dan paket .fsnap muncul di sini."
         : "After a successful acquire, the SHA-256 and .fsnap package appear here.";

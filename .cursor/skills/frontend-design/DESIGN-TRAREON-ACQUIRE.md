@@ -14,9 +14,9 @@ Structured Slint shell with progressive disclosure (Guided density, Advanced dra
 |--------|----------------|---------|
 | Disclosure banner | 26px | Lab use only · NOT court-ready · NOT ISO-certified |
 | Header | 48px | TRAREON \| ACQUIRE \| Case \| Search \| EN\|ID \| theme |
-| Rail | 180px wide (56px compact) | WORKFLOW / LAB / SUPPORT (+ About) |
-| Safety strip | 36px | CASE · WB · INT \| PREPARE — ACQUIRE — SEAL |
-| Status bar | 28px | Evidence · Coverage · Extra: acquire-mode |
+| Rail | 188px wide (56px compact) | WORKFLOW / LAB / SUPPORT (version lives in About) |
+| Safety strip | 40px | CASE · WB · INT \| icon stage tabs PREPARE / ACQUIRE / SEAL |
+| Status bar | 30px | Hardware status icons (disks / blocker / integrity) · Coverage |
 
 ## Perfect Product IA (M14)
 

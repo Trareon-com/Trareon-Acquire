@@ -33,7 +33,7 @@ impl Default for EncryptionStatus {
 }
 
 /// Identification checklist retained beside a local case record.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct IdentifyRecord {
     pub power_state: String,
     pub network_isolated: bool,
@@ -55,20 +55,6 @@ pub struct IdentifyChecklist {
 impl IdentifyChecklist {
     pub fn complete(&self) -> bool {
         self.power && self.network && self.encryption && self.anti_forensics
-    }
-}
-
-impl Default for IdentifyRecord {
-    fn default() -> Self {
-        Self {
-            power_state: String::new(),
-            network_isolated: false,
-            encryption_status: EncryptionStatus::default(),
-            oov_ack: false,
-            checklist_complete: IdentifyChecklist::default(),
-            attachments: Vec::new(),
-            clock_offset_note: String::new(),
-        }
     }
 }
 
@@ -151,24 +137,23 @@ pub fn probe_encryption(path: &Path) -> EncryptionStatus {
     {
         // Host FileVault status is only meaningful for whole-disk sources.
         let looks_block = path.to_string_lossy().contains("/dev/");
-        if looks_block {
-            if let Ok(output) = std::process::Command::new("fdesetup")
+        if looks_block
+            && let Ok(output) = std::process::Command::new("fdesetup")
                 .arg("status")
                 .output()
-            {
-                let text = String::from_utf8_lossy(&output.stdout);
-                if text.contains("FileVault is On") {
-                    return EncryptionStatus {
-                        state: EncryptionState::Detected,
-                        note: "FileVault reported enabled by fdesetup".into(),
-                    };
-                }
-                if text.contains("FileVault is Off") {
-                    return EncryptionStatus {
-                        state: EncryptionState::Unavailable,
-                        note: "FileVault reported disabled by fdesetup".into(),
-                    };
-                }
+        {
+            let text = String::from_utf8_lossy(&output.stdout);
+            if text.contains("FileVault is On") {
+                return EncryptionStatus {
+                    state: EncryptionState::Detected,
+                    note: "FileVault reported enabled by fdesetup".into(),
+                };
+            }
+            if text.contains("FileVault is Off") {
+                return EncryptionStatus {
+                    state: EncryptionState::Unavailable,
+                    note: "FileVault reported disabled by fdesetup".into(),
+                };
             }
         }
     }

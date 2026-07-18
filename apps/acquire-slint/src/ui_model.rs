@@ -132,10 +132,12 @@ impl Default for UiSnapshot {
 
 impl UiSnapshot {
     pub fn from_prefs(prefs: &AcquirePrefs) -> Self {
-        let mut snapshot = Self::default();
-        snapshot.dark_mode = prefs.dark_mode;
+        let mut snapshot = Self {
+            dark_mode: prefs.dark_mode,
+            output_dir: prefs.last_output_dir.clone(),
+            ..Self::default()
+        };
         snapshot.set_locale(&prefs.locale);
-        snapshot.output_dir = prefs.last_output_dir.clone();
         snapshot
     }
 
@@ -507,16 +509,16 @@ pub fn dest_equals_source_volume(source: &Path, destination: &Path) -> bool {
         use std::os::unix::fs::MetadataExt;
         let source = source.metadata();
         let destination = destination.metadata();
-        return matches!((source, destination), (Ok(source), Ok(destination)) if source.dev() == destination.dev());
+        matches!((source, destination), (Ok(source), Ok(destination)) if source.dev() == destination.dev())
     }
     #[cfg(windows)]
     {
         let source = source.to_string_lossy();
         let destination = destination.to_string_lossy();
-        return source
+        source
             .get(..2)
             .zip(destination.get(..2))
-            .is_some_and(|(left, right)| left.eq_ignore_ascii_case(right));
+            .is_some_and(|(left, right)| left.eq_ignore_ascii_case(right))
     }
     #[cfg(not(any(unix, windows)))]
     {

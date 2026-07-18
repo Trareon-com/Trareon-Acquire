@@ -46,7 +46,7 @@ pub fn destination_free_bytes(path: &Path) -> Result<u64, CoreError> {
         }
         String::from_utf8_lossy(&output.stdout)
             .trim()
-            .parse()
+            .parse::<u64>()
             .map_err(|error| CoreError::Io(error.to_string()))
     }
 }

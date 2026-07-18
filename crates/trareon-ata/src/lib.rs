@@ -67,7 +67,7 @@ pub fn detect_hpa_dco(device: &Path) -> Result<HpaDcoResult, AtaError> {
     {
         // Live ATA IDENTIFY via SG_IO is lab-gated; report sysfs size with Unavailable ATA detail.
         let _ = device;
-        return Ok(HpaDcoResult {
+        Ok(HpaDcoResult {
             reported_size: reported,
             hpa_detected: false,
             hpa_native_max: None,
@@ -78,7 +78,7 @@ pub fn detect_hpa_dco(device: &Path) -> Result<HpaDcoResult, AtaError> {
                 reason: "linux ATA passthrough not enabled in this build; reported size from sysfs/stat only"
                     .into(),
             },
-        });
+        })
     }
     #[cfg(not(target_os = "linux"))]
     {

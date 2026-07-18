@@ -27,9 +27,9 @@ pub fn destination_free_bytes(path: &Path) -> Result<u64, CoreError> {
             .ok_or_else(|| CoreError::Io("df output had no available-space column".to_string()))?
             .parse::<u64>()
             .map_err(|error| CoreError::Io(error.to_string()))?;
-        return available_kib
+        available_kib
             .checked_mul(1024)
-            .ok_or_else(|| CoreError::Io("free-space value overflowed".to_string()));
+            .ok_or_else(|| CoreError::Io("free-space value overflowed".to_string()))
     }
     #[cfg(target_os = "windows")]
     {

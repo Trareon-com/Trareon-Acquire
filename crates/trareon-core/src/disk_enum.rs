@@ -1,3 +1,4 @@
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::process::Command;
 
 #[cfg(target_os = "linux")]
@@ -30,7 +31,7 @@ pub fn enumerate_disks() -> Result<Vec<DiskRow>, EnumError> {
                 String::from_utf8_lossy(&output.stderr).trim().to_string(),
             ));
         }
-        return parse_lsblk(&String::from_utf8_lossy(&output.stdout));
+        parse_lsblk(&String::from_utf8_lossy(&output.stdout))
     }
     #[cfg(target_os = "macos")]
     {
@@ -43,9 +44,9 @@ pub fn enumerate_disks() -> Result<Vec<DiskRow>, EnumError> {
                 String::from_utf8_lossy(&output.stderr).trim().to_string(),
             ));
         }
-        return Ok(parse_diskutil_text(&String::from_utf8_lossy(
+        Ok(parse_diskutil_text(&String::from_utf8_lossy(
             &output.stdout,
-        )));
+        )))
     }
     #[cfg(target_os = "windows")]
     {

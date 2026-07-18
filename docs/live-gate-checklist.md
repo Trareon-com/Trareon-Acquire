@@ -16,6 +16,8 @@ A part that touches hardware or forensic claims is **not done** until this check
 ### Part 1 — HPA/DCO
 - [ ] Linux lab disk: `detect_hpa_dco` returns size + status
 - [ ] Windows / macOS: Unavailable reason documented if ATA not available
+- Operator helper: `cargo run -p trareon-ata --example lab_hpa_dco_probe -- <path>`
+  (prints write-blocker heuristic + HPA/DCO status; does not unlock HPA)
 
 ### Part 2 — Write-blocker
 - [ ] Hardware blocker plugged → Detected

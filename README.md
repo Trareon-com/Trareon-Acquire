@@ -1,151 +1,98 @@
 # Trareon Acquire
 
-**Production-Directed Engineering Alpha Candidate — Lab Use Only.**
+**Digital forensic acquisition for the lab bench** — custody-first, honest about limits, open to verify.
 
-Trareon Acquire is a digital forensic acquisition tool under active
-development. Milestone M0 is classified (Day 30) as a **file-backed
-foundation slice**: streaming acquisition of a synthetic/file source,
-SHA-256 hashing, an append-only hash-chained audit journal, `.fsnap`
-packaging (Analysis-frozen single-`evidence.raw` layout), and an
-independent CLI verifier.
+[![CI](https://github.com/Trareon-com/Trareon-Acquire/actions/workflows/ci.yml/badge.svg)](https://github.com/Trareon-com/Trareon-Acquire/actions/workflows/ci.yml)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-It is **not** validated for Official Production evidence on real devices.
-Capability without exact hardware evidence remains `NotValidated`.
-Milestone review: [`docs/M0-MILESTONE-REVIEW.md`](docs/M0-MILESTONE-REVIEW.md).
+Trareon Acquire is a multi-OS acquisition workstation (Slint + Rust) aimed at the same job as FTK Imager / Guymager / Magnet Acquire: **identify → acquire → seal → verify**, with native EN/ID copy and an open verifier.
 
-**Commercial (zero-cash):** sellable **unsigned** Founder builds under GPLv3 when
-Gates 1–2 open. Windows raw lab is deferred to
-[`docs/platform/WINDOWS-LAB-OPERATOR-PACK.md`](docs/platform/WINDOWS-LAB-OPERATOR-PACK.md).
-Waitlist/Founder page **drafts** live under `docs/commercial/` (not live signup).
+> **Lab use / Engineering Alpha.** Builds are **UNSIGNED**. Do not claim production evidence fitness until live-gate and interop rows in the capability matrix are green.
 
-## What works today (M0 foundation)
+![Acquire bench](docs/media/screenshots/01-acquire-bench.png)
 
-| Area | Status |
+## Why Trareon
+
+| Strength | What you get |
 |---|---|
-| Portable Rust core (`trareon-core`) | Implemented — file-backed acquire, audit chain, `.fsnap` create/verify |
-| Independent verifier CLI (`trareon-verifier`) | Implemented — golden fixtures + fail-closed checks |
-| Desktop shell (**Slint + Rust**, GPLv3) | **Primary** — Guided/Standard/Expert, cancel, verify, CoC export |
-| Desktop shell (Tauri + Svelte) | **Removed from build** — archived under `apps/trareon-acquire/` |
-| Cross-platform CI (Ubuntu / Windows / macOS) | Hosted CI green for the foundation slice |
-| DevSecOps gates (`cargo deny`, npm audit, secret scan) | Implemented on `main` |
-| Bounded property tests / fuzz corpus docs | Implemented on `main` (Day 22); full `cargo-fuzz` still deferred |
-| Performance baseline (synthetic) | Implemented on `main` (Day 26); peak RSS `NotValidated` |
-| Capability / limitation matrix | See [`docs/CAPABILITY-MATRIX-M0.md`](docs/CAPABILITY-MATRIX-M0.md) |
-| `.fsnap` v0.1 Analysis freeze | Frozen for Analysis (single-`evidence.raw`); see read contract |
-| Linux raw-device privilege probe | Feasibility spike (Day 23 / Kali); physical disk still `NotValidated` |
-| Windows raw-device UAC probe | Feasibility spike (Day 24 / Win10); elevation required for `PhysicalDrive0` |
-| macOS raw-device privilege probe | Feasibility spike (Day 25 / M4 Pro); open `/dev/rdisk0` denied without elevation |
-| Production release / signing / certification | **Out of scope** — Lab Use Only EAC only |
+| Honesty UX | `UNSIGNED` banner, **E01-lite** until libewf/Autopsy evidence, write-blocker “not detected” until confirmed |
+| Court Path A | RAW / `.fsnap` + SHA-256 seal + CoC/QR — open as raw in Autopsy/FTK |
+| Path B (EWF) | Real EWF1 writer via `ewf-image` (MSRV 1.96); UI stays **E01-lite** until oracle green |
+| Open verify | `trareon-verifier` + in-app Tools (verify / hash / compare / export) |
+| Operator workflow | Cases → Identify → Acquire → Triage/Tools/QMS/Boot — ISO/IEC 27037 language |
 
-Authoritative status tracking: [`docs/ai-operations/MASTER-CHECKLIST.md`](docs/ai-operations/MASTER-CHECKLIST.md).
-Shell / license decision: [`docs/ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md`](docs/ai-operations/DECISIONS/2026-07-17-acquire-slint-gplv3.md).
+Full walkthrough: **[docs/tutorials/OPERATOR-TUTORIAL.md](docs/tutorials/OPERATOR-TUTORIAL.md)**
+
+## Screenshots
+
+| Acquire | Cases | Identify |
+|:---:|:---:|:---:|
+| ![Acquire](docs/media/screenshots/01-acquire-bench.png) | ![Cases](docs/media/screenshots/02-cases.png) | ![Identify](docs/media/screenshots/03-identify.png) |
+| **Telemetry** | **Seal / CoC** | **Tools** |
+| ![Telemetry](docs/media/screenshots/04-telemetry-coverage.png) | ![Seal](docs/media/screenshots/05-seal-coc.png) | ![Tools](docs/media/screenshots/06-tools.png) |
+| **Triage** | **QMS / Boot** | **Help** |
+| ![Triage](docs/media/screenshots/07-triage-analysis.png) | ![QMS](docs/media/screenshots/08-qms-boot.png) | ![Help](docs/media/screenshots/09-help.png) |
+
+## Quick start
+
+**Requirements:** Rust **1.96** ([`rust-toolchain.toml`](rust-toolchain.toml)). Prefer rustup (`~/.cargo/bin` ahead of Homebrew on macOS).
+
+```bash
+# Tests
+cargo test --workspace --locked --exclude acquire-slint
+cargo test -p acquire-slint --features gui --locked
+
+# Launch desktop app
+cargo run -p acquire-slint --features gui
+```
+
+Guided mode: **Load synthetic demo** → confirm → **Start acquire** → verify with:
+
+```bash
+cargo run -p trareon-verifier --locked -- verify "$TMPDIR/trareon-acquire-slint-demo/foundation.fsnap"
+```
+
+## Workflow at a glance
+
+1. **Cases** — create case + examiner (custody start).
+2. **Identify** — power / network / encryption / OoV checklist; save beside the case.
+3. **Acquire** — pick disk or file, format (`.fsnap` default), write-blocker confirm, run with MiB/s + ETA + coverage map.
+4. **Seal** — SHA-256 (+ optional SHA-512), CoC JSON + QR.
+5. **Tools** — independent verify / compare / export.
+6. **Triage** — read-only Analysis lite timeline (field triage, not a full exam suite).
 
 ## Repository layout
 
 ```
-crates/trareon-core/          # Domain, acquisition, audit, .fsnap package API
-crates/trareon-verifier/      # Independent CLI: `trareon-verifier verify PATH`
-apps/acquire-slint/           # Slint desktop shell (primary UI)
-apps/trareon-acquire/          # Archived Tauri+Svelte demo (not built)
-fixtures/fsnap-v0.1/          # Synthetic golden packages (no real evidence)
-schemas/                      # Manifest JSON Schema
-docs/                         # Roadmap, demo guide, contracts, AI ops
-```
-
-Core and verifier do **not** depend on Slint/Tauri. The UI depends on core; core
-never depends on the UI.
-
-## Requirements
-
-- Rust toolchain pinned in [`rust-toolchain.toml`](rust-toolchain.toml) (`1.95.0`)
-- Linux GUI builds need Slint system libraries (see `.github/workflows/ci.yml`)
-
-## Quick start
-
-### Build and test
-
-```bash
-cargo test --workspace --locked --exclude acquire-slint
-cargo test -p acquire-slint --features gui --locked
-cargo fmt --all --check
-cargo clippy --workspace --all-targets --all-features --exclude acquire-slint -- -D warnings
-cargo clippy -p acquire-slint --all-targets --features gui -- -D warnings
-```
-
-### Foundation demo (Slint)
-
-```bash
-cargo run -p acquire-slint --features gui
-```
-
-In the UI: **Fill synthetic demo paths** (or Browse), confirm synthetic checkbox, **Run**.
-**Cancel** cooperatively stops an in-flight acquire via the core `cancel_flag`.
-
-```bash
-# After a successful run (default fill paths):
-cargo run -p trareon-verifier --locked -- verify "$TMPDIR/trareon-acquire-slint-demo/foundation.fsnap"
-```
-
-Or headless (no GUI):
-
-```bash
-cargo test -p acquire-slint --features gui foundation_demo -- --nocapture
-```
-
-### Verify a golden fixture
-
-```bash
-cargo run -p trareon-verifier --locked -- verify fixtures/fsnap-v0.1/valid
+crates/trareon-core/       # Acquire, .fsnap, EWF/e01-lite, CoC, broker
+crates/trareon-verifier/   # Independent CLI verifier
+crates/trareon-analysis/   # Read-only Analysis lite
+crates/trareon-ata/        # Write-blocker / HPA-DCO probes
+apps/acquire-slint/        # Primary desktop UI (Slint)
+docs/tutorials/            # Full operator tutorial
+docs/media/screenshots/    # UI surfaces for this README
+docs/format-interop/       # Path A RAW + Path B EWF evidence packs
 ```
 
 ## Documentation
 
 | Doc | Purpose |
 |---|---|
-| [`docs/FOUNDATION-DEMO.md`](docs/FOUNDATION-DEMO.md) | End-to-end synthetic demo + tamper demo |
-| [`docs/COMMERCIAL-V1-SCOPE.md`](docs/COMMERCIAL-V1-SCOPE.md) | Commercial v1 scope (zero-cash, unsigned) |
-| [`docs/COMMERCIAL-90-DAY-DAILY-PLAN.md`](docs/COMMERCIAL-90-DAY-DAILY-PLAN.md) | 90-day daily execution checklist |
-| [`docs/platform/WINDOWS-LAB-OPERATOR-PACK.md`](docs/platform/WINDOWS-LAB-OPERATOR-PACK.md) | Deferred Windows lab checklist |
-| [`docs/install/UNSIGNED-LIMITATIONS.md`](docs/install/UNSIGNED-LIMITATIONS.md) | Unsigned install limitations |
-| [`docs/ZERO-CASH-LAUNCH-PLAN.md`](docs/ZERO-CASH-LAUNCH-PLAN.md) | Business model without personal spend |
-| [`docs/IMPLEMENTATION-ROADMAP.md`](docs/IMPLEMENTATION-ROADMAP.md) | Tracks, result classes, exit criteria |
-| [`docs/fsnap-v0.1-read-contract.md`](docs/fsnap-v0.1-read-contract.md) | `.fsnap` v0.1 reader/verifier contract (Analysis-frozen) |
-| [`docs/CAPABILITY-MATRIX-M0.md`](docs/CAPABILITY-MATRIX-M0.md) | Capability / limitation matrix |
-| [`docs/M0-MILESTONE-REVIEW.md`](docs/M0-MILESTONE-REVIEW.md) | Day 30 EAC classification |
-| [`docs/USER-GUIDE.md`](docs/USER-GUIDE.md) | Operator user guide |
-| [`docs/LEGAL-LIMITATIONS-DRAFT.md`](docs/LEGAL-LIMITATIONS-DRAFT.md) | Legal limitations draft (`LEGAL_DRAFT_ONLY`) |
-| [`docs/WEEK-01-DISCREPANCY-REGISTER.md`](docs/WEEK-01-DISCREPANCY-REGISTER.md) | Known gaps vs Day-by-day runbook |
-| [`SECURITY.md`](SECURITY.md) | Vulnerability reporting + automated checks |
-| [`RFC-Digital-Forensic-Acquisition.md`](RFC-Digital-Forensic-Acquisition.md) | Architecture authority |
+| [Operator tutorial](docs/tutorials/OPERATOR-TUTORIAL.md) | Step-by-step every surface |
+| [User guide](docs/USER-GUIDE.md) | Short operator reference |
+| [Capability matrix](docs/CAPABILITY-MATRIX-M0.md) | What is implemented vs NotValidated |
+| [Format interop](docs/format-interop/README.md) | RAW court path + EWF spike/oracle |
+| [Live-gate checklist](docs/live-gate-checklist.md) | Human lab gates (AI does not check these) |
+| [Security](SECURITY.md) | Vulnerability reporting |
 
+## Honest limits
 
-## Known limitations (honest)
-
-- **File-backed / synthetic only** in this slice — no raw-disk, elevated
-  broker, live/RAM, mobile, or cloud acquisition.
-- **No production evidence claim** — do not use on real case media.
-- UI cancellation is wired in the Slint shell to the core `cancel_flag`
-  (background acquire thread).
-- Split-RAW segmentation exists in the core but is not yet packaged into
-  multi-segment `.fsnap` output.
-- Formal accessibility audit tooling has not been run (manual ARIA review only).
-- Independent Codex review of Day runbooks is still outstanding even where
-  hosted CI is green.
-
-## Security
-
-Report vulnerabilities privately via
-[GitHub Security Advisories](https://github.com/Trareon-com/Trareon-Acquire/security/advisories/new).
-See [`SECURITY.md`](SECURITY.md). Do not open a public issue with exploit
-details or sensitive data.
+- Live raw-disk / ATA HPA passthrough / hardware write-blocker VID enum still need **human live-gate** evidence.
+- Marketing must match the capability matrix — no “E01” without `-lite` until `EVIDENCE.md` Path B is green.
+- Analysis deep dive (Autopsy/AXIOM-class) is **out of scope**; use a separate Lab product later.
 
 ## License
 
-[GNU General Public License v3](LICENSE) (`GPL-3.0-only`).
+[GPL-3.0-only](LICENSE). Binaries may be sold; corresponding source must be provided.
 
-You may sell binaries. If you distribute binaries, you must also provide
-corresponding source under GPLv3. See the decision record for monetization notes.
-
-## Attribution
-
-Trareon Acquire — author attribution: Yusuf Shalahuddin Al Ayyubi As Sobari.
+**Author:** Yusuf Shalahuddin Al Ayyubi As Sobari

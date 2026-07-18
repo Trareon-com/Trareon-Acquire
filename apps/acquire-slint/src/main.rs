@@ -86,17 +86,6 @@ fn main() -> Result<(), slint::PlatformError> {
         .save();
     }
 
-    fn save_prefs(snap: &UiSnapshot) {
-        AcquirePrefs {
-            dark_mode: snap.dark_mode,
-            locale: snap.locale.as_str().into(),
-            examiner: snap.case_identity.clone(),
-            last_output_dir: snap.output_dir.clone(),
-            ..AcquirePrefs::default()
-        }
-        .save();
-    }
-
     let ui = AppWindow::new()?;
     let mut initial_snapshot = UiSnapshot::from_prefs(&AcquirePrefs::load());
     initial_snapshot.restore_draft();

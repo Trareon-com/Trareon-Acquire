@@ -150,11 +150,12 @@ pub fn probe_encryption(path: &Path) -> EncryptionStatus {
     #[cfg(target_os = "macos")]
     {
         // Host FileVault status is only meaningful for whole-disk sources.
-        let looks_block = path
-            .to_string_lossy()
-            .contains("/dev/");
+        let looks_block = path.to_string_lossy().contains("/dev/");
         if looks_block {
-            if let Ok(output) = std::process::Command::new("fdesetup").arg("status").output() {
+            if let Ok(output) = std::process::Command::new("fdesetup")
+                .arg("status")
+                .output()
+            {
                 let text = String::from_utf8_lossy(&output.stdout);
                 if text.contains("FileVault is On") {
                     return EncryptionStatus {

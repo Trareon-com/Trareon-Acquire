@@ -79,7 +79,8 @@ pub fn acquire_to_format_with_sha512(
                 #[cfg(not(feature = "zff"))]
                 {
                     return Err(
-                        "ZFF output requires trareon-core feature `zff` + zffacquire on PATH".into(),
+                        "ZFF output requires trareon-core feature `zff` + zffacquire on PATH"
+                            .into(),
                     );
                 }
             }

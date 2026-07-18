@@ -31,7 +31,10 @@ pub fn resolve_zffacquire() -> Option<PathBuf> {
 /// Write a physical ZFF container from a raw file using `zffacquire` when installed.
 ///
 /// `output_prefix` is the `-o` argument (tool appends segment extensions).
-pub fn write_zff_physical(raw_input: &Path, output_prefix: &Path) -> Result<ZffWriteResult, CoreError> {
+pub fn write_zff_physical(
+    raw_input: &Path,
+    output_prefix: &Path,
+) -> Result<ZffWriteResult, CoreError> {
     let Some(bin) = resolve_zffacquire() else {
         return Err(CoreError::Verification(
             "zffacquire not on PATH (install zffacquire or set TRAREON_ZFFACQUIRE); ZFF optional"

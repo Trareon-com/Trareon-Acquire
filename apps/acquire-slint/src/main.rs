@@ -1,8 +1,8 @@
 #[cfg(feature = "gui")]
 fn main() -> Result<(), slint::PlatformError> {
     use acquire_slint::{
-        AppWindow, UiMode, UiSnapshot, prefs::AcquirePrefs, preserve, recent, shell_ops,
-        run_foundation_demo_with_progress, write_coc_summary,
+        AppWindow, UiMode, UiSnapshot, prefs::AcquirePrefs, preserve, recent,
+        run_foundation_demo_with_progress, shell_ops, write_coc_summary,
     };
     use slint::ComponentHandle;
     use std::path::PathBuf;
@@ -41,8 +41,13 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.set_blockish_source(snap.is_blockish_source());
         let sealed = snap.evidence_sha256 != acquire_slint::NONE_SENTINEL;
         ui.set_custody_timeline_text(
-            shell_ops::custody_timeline(&snap.case_id, &snap.last_package, &snap.evidence_sha256, sealed)
-                .into(),
+            shell_ops::custody_timeline(
+                &snap.case_id,
+                &snap.last_package,
+                &snap.evidence_sha256,
+                sealed,
+            )
+            .into(),
         );
         let (ok, err) = shell_ops::coverage_fractions(
             (snap.progress_fraction * snap.evidence_size.parse::<f64>().unwrap_or(1.0)) as u64,
@@ -343,9 +348,7 @@ fn main() -> Result<(), slint::PlatformError> {
                             let path = PathBuf::from(&pkg);
                             let side = path.with_extension(format!(
                                 "{}.sha512",
-                                path.extension()
-                                    .and_then(|e| e.to_str())
-                                    .unwrap_or("")
+                                path.extension().and_then(|e| e.to_str()).unwrap_or("")
                             ));
                             std::fs::read_to_string(side)
                                 .unwrap_or_default()
@@ -529,7 +532,9 @@ fn main() -> Result<(), slint::PlatformError> {
                         }
                         s.case_identity = examiner;
                         apply(&ui, &s);
-                        ui.set_panel_detail(format!("{msg}\n{}", shell_ops::refresh_cases_text()).into());
+                        ui.set_panel_detail(
+                            format!("{msg}\n{}", shell_ops::refresh_cases_text()).into(),
+                        );
                     }
                     Err(err) => ui.set_panel_detail(err.into()),
                 }
@@ -574,7 +579,9 @@ fn main() -> Result<(), slint::PlatformError> {
         let ui_weak = ui.as_weak();
         ui.on_verify_package_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
-                ui.set_panel_detail(shell_ops::verify_tools_text(ui.get_last_package().as_str()).into());
+                ui.set_panel_detail(
+                    shell_ops::verify_tools_text(ui.get_last_package().as_str()).into(),
+                );
             }
         });
     }
@@ -582,7 +589,9 @@ fn main() -> Result<(), slint::PlatformError> {
         let ui_weak = ui.as_weak();
         ui.on_hash_only_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
-                ui.set_panel_detail(shell_ops::hash_only_text(ui.get_last_package().as_str()).into());
+                ui.set_panel_detail(
+                    shell_ops::hash_only_text(ui.get_last_package().as_str()).into(),
+                );
             }
         });
     }

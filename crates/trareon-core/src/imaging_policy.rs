@@ -51,6 +51,10 @@ mod tests {
             BadSectorPolicy::RetryThenSkip { retries: 3 }
         ));
         assert_eq!(BadSectorPolicy::from_index(2), BadSectorPolicy::FailClosed);
-        assert!(BadSectorPolicy::FailClosed.custody_note().contains("fail-closed"));
+        assert!(
+            BadSectorPolicy::FailClosed
+                .custody_note()
+                .contains("fail-closed")
+        );
     }
 }

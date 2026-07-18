@@ -3,7 +3,10 @@
 //! UI must keep the `E01-lite` product label until libewf/Autopsy evidence is green
 //! (see `docs/format-interop/EWF-SPIKE.md`). This module is the Path B writer.
 
-use std::{io::Read, path::{Path, PathBuf}};
+use std::{
+    io::Read,
+    path::{Path, PathBuf},
+};
 
 use ewf_image::{EwfWriter, WriteCompression, WriteFormat, WriteOptions};
 use md5::{Digest as Md5Digest, Md5};
@@ -70,8 +73,7 @@ pub fn write_ewf_physical(
             break;
         }
         let chunk = &buf[..n];
-        std::io::Write::write_all(&mut writer, chunk)
-            .map_err(|e| CoreError::Io(e.to_string()))?;
+        std::io::Write::write_all(&mut writer, chunk).map_err(|e| CoreError::Io(e.to_string()))?;
         Md5Digest::update(&mut md5, chunk);
         Sha1Digest::update(&mut sha1, chunk);
         Sha2Digest::update(&mut sha256, chunk);

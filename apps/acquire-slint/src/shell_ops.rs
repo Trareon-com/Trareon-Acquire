@@ -5,9 +5,9 @@ use std::path::{Path, PathBuf};
 use trareon_core::{BadSectorPolicy, enumerate_disks};
 
 use crate::{
+    acquire_formats::{self, UiOutputFormat},
     analysis_ui, boot_media, cases, identify, multisource, preserve, profiles, qms, tools_hub,
     triage_ui,
-    acquire_formats::{self, UiOutputFormat},
 };
 
 pub fn format_label(index: i32) -> &'static str {
@@ -263,9 +263,21 @@ pub fn export_full_coc(
     if path.is_dir() || path.extension().and_then(|e| e.to_str()) == Some("fsnap") {
         let coc = preserve::seal_package_with_ids(
             path,
-            if case_id.is_empty() { "TRAINING" } else { case_id },
-            if examiner.is_empty() { "operator" } else { examiner },
-            if device_id.is_empty() { "device" } else { device_id },
+            if case_id.is_empty() {
+                "TRAINING"
+            } else {
+                case_id
+            },
+            if examiner.is_empty() {
+                "operator"
+            } else {
+                examiner
+            },
+            if device_id.is_empty() {
+                "device"
+            } else {
+                device_id
+            },
             media_num.max(1),
             seq_num.max(1),
         )?;
@@ -388,7 +400,8 @@ pub fn acquire_with_format(
     sha512: bool,
 ) -> Result<(String, String, u64), String> {
     if format_index == 7 {
-        let package = acquire_formats::acquire_split_raw(source, output, segment_mib.max(1) * 1024 * 1024)?;
+        let package =
+            acquire_formats::acquire_split_raw(source, output, segment_mib.max(1) * 1024 * 1024)?;
         let demo = crate::tools_hub::verify_package(&package).map(|v| {
             (
                 package.display().to_string(),
@@ -413,7 +426,11 @@ pub fn acquire_with_format(
     Ok((package.display().to_string(), hash, size))
 }
 
-pub fn throughput_eta(bytes_done: u64, bytes_total: Option<u64>, elapsed_secs: f64) -> (String, String) {
+pub fn throughput_eta(
+    bytes_done: u64,
+    bytes_total: Option<u64>,
+    elapsed_secs: f64,
+) -> (String, String) {
     if elapsed_secs <= 0.05 || bytes_done == 0 {
         return ("— MB/s".into(), "ETA —".into());
     }
@@ -436,7 +453,11 @@ pub fn throughput_eta(bytes_done: u64, bytes_total: Option<u64>, elapsed_secs: f
     (throughput, eta)
 }
 
-pub fn coverage_fractions(bytes_done: u64, bytes_total: Option<u64>, had_error: bool) -> (f32, f32) {
+pub fn coverage_fractions(
+    bytes_done: u64,
+    bytes_total: Option<u64>,
+    had_error: bool,
+) -> (f32, f32) {
     let ok = match bytes_total.filter(|t| *t > 0) {
         Some(total) => (bytes_done as f32 / total as f32).clamp(0.0, 1.0),
         None => 0.0,
@@ -457,8 +478,16 @@ pub fn custody_timeline(case_id: &str, package: &str, sha: &str, sealed: bool) -
         ));
         lines.push(format!(
             "4 · Sealed SHA-256 {} · case {}",
-            if sha == "(none)" { "—" } else { &sha[..sha.len().min(16)] },
-            if case_id.is_empty() { "TRAINING" } else { case_id }
+            if sha == "(none)" {
+                "—"
+            } else {
+                &sha[..sha.len().min(16)]
+            },
+            if case_id.is_empty() {
+                "TRAINING"
+            } else {
+                case_id
+            }
         ));
         lines.push("5 · Export CoC / independent verify required".into());
     } else {

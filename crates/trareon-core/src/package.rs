@@ -20,6 +20,16 @@ pub struct EvidenceSegmentV1 {
     pub sha256: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct FsnapCoverageV1 {
+    pub imaged_bytes: u64,
+    pub total_bytes: u64,
+    #[serde(default)]
+    pub gaps: Vec<String>,
+    #[serde(default)]
+    pub errors: Vec<String>,
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct FsnapManifestV1 {
     pub schema: String,
@@ -39,6 +49,9 @@ pub struct FsnapManifestV1 {
     /// Omitted on classic single-file packages (Analysis freeze golden set).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub evidence_segments: Option<Vec<EvidenceSegmentV1>>,
+    /// Optional read coverage supplied by an acquisition source.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage: Option<FsnapCoverageV1>,
 }
 
 fn hash_file(path: &Path) -> Result<(u64, String), CoreError> {
@@ -147,6 +160,7 @@ pub fn create_fsnap(raw: &Path, audit: &Path, package: &Path) -> Result<(), Core
         audit_sha256,
         audit_root,
         evidence_segments: None,
+        coverage: None,
     };
     write_manifest(package, &manifest)
 }
@@ -200,6 +214,7 @@ pub fn create_fsnap_from_segments(
         audit_sha256,
         audit_root,
         evidence_segments: Some(segment_metas),
+        coverage: None,
     };
     write_manifest(package, &manifest)
 }

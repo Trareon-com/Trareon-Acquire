@@ -16,11 +16,7 @@ use std::{env, path::PathBuf, process};
 use trareon_ata::{DetectionStatus, detect_hpa_dco, probe_write_blocker};
 
 fn main() {
-    let path = PathBuf::from(
-        env::args()
-            .nth(1)
-            .unwrap_or_else(|| "/dev/rdisk10".into()),
-    );
+    let path = PathBuf::from(env::args().nth(1).unwrap_or_else(|| "/dev/rdisk10".into()));
 
     let wb = probe_write_blocker(&path);
     println!("WRITE_BLOCKER {wb:?}");

@@ -43,8 +43,7 @@ pub fn write_aff4(mut reader: impl Read, output: &Path) -> Result<Aff4Summary, C
         .map_err(|e| CoreError::Io(e.to_string()))?;
     out.write_all(&raw)
         .map_err(|e| CoreError::Io(e.to_string()))?;
-    out.sync_all()
-        .map_err(|e| CoreError::Io(e.to_string()))?;
+    out.sync_all().map_err(|e| CoreError::Io(e.to_string()))?;
     Ok(Aff4Summary {
         path: output.to_path_buf(),
         raw_size: raw.len() as u64,

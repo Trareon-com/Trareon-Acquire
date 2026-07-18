@@ -32,7 +32,7 @@ component PrefChip inherits Rectangle {
     background: root.active ? Theme.raised : transparent;
     border-radius: 4px;
     border-width: root.active ? 1px : 0px;
-    border-color: Theme.copper-dim;
+    border-color: root.active ? Theme.focus-ring : Theme.copper-dim;
 
     HorizontalLayout {
         padding-left: 9px;
@@ -214,6 +214,7 @@ export component AppWindow inherits Window {
     in-out property <string> mode-guidance: "";
     in-out property <bool> show-path-editors: false;
     in-out property <string> case-identity: "";
+    in-out property <string> case-id: "";
     in-out property <string> source-path: "";
     in-out property <string> output-dir: "";
     in-out property <bool> confirmed-synthetic: false;
@@ -224,13 +225,16 @@ export component AppWindow inherits Window {
     in-out property <string> preflight-hint: "";
     in-out property <bool> preflight-is-deny: false;
     in-out property <bool> busy: false;
-    in-out property <bool> dark-mode: true;
+    in-out property <bool> dark-mode: false;
     in-out property <string> locale: "en";
+    // M0 navigation: 0 is the working Acquire bench; remaining sections are shells.
+    in-out property <int> nav-index: 0;
+    in-out property <string> about-text: "";
     in-out property <float> progress-fraction: 0.0;
     in-out property <string> progress-label: "";
     in-out property <string> progress-phase: "";
 
-    property <bool> can-run: root.confirmed-synthetic && root.source-path != "" && root.output-dir != "" && !root.busy;
+    property <bool> can-run: root.confirmed-synthetic && root.source-path != "" && root.output-dir != "" && !root.busy && (root.mode-index == 0 || root.case-id != "");
     property <bool> has-package: root.last-package != "(none)";
     property <bool> has-hash: root.evidence-sha256 != "(none)";
     property <bool> prepared: root.source-path != "" && root.output-dir != "" && root.confirmed-synthetic;
@@ -330,6 +334,71 @@ export component AppWindow inherits Window {
                     active: root.mode-index == 2;
                     enabled: !root.busy;
                     clicked => { root.mode-changed(2); }
+                }
+
+                Rectangle { height: 10px; background: transparent; }
+                ModeRailItem {
+                    label: Strings.nav-cases;
+                    hint: "M0";
+                    active: root.nav-index == 1;
+                    enabled: !root.busy;
+                    clicked => { root.nav-index = 1; }
+                }
+                ModeRailItem {
+                    label: Strings.nav-identify;
+                    hint: "M0";
+                    active: root.nav-index == 2;
+                    enabled: !root.busy;
+                    clicked => { root.nav-index = 2; }
+                }
+                ModeRailItem {
+                    label: Strings.nav-acquire;
+                    hint: Strings.evidence-station;
+                    active: root.nav-index == 0;
+                    enabled: !root.busy;
+                    clicked => { root.nav-index = 0; }
+                }
+                ModeRailItem {
+                    label: Strings.nav-triage;
+                    hint: "M0";
+                    active: root.nav-index == 3;
+                    enabled: !root.busy;
+                    clicked => { root.nav-index = 3; }
+                }
+                ModeRailItem {
+                    label: Strings.nav-tools;
+                    hint: "M0";
+                    active: root.nav-index == 4;
+                    enabled: !root.busy;
+                    clicked => { root.nav-index = 4; }
+                }
+                ModeRailItem {
+                    label: Strings.nav-qms;
+                    hint: "M0";
+                    active: root.nav-index == 5;
+                    enabled: !root.busy;
+                    clicked => { root.nav-index = 5; }
+                }
+                ModeRailItem {
+                    label: Strings.nav-boot;
+                    hint: "M0";
+                    active: root.nav-index == 6;
+                    enabled: !root.busy;
+                    clicked => { root.nav-index = 6; }
+                }
+                ModeRailItem {
+                    label: Strings.nav-help;
+                    hint: "M0";
+                    active: root.nav-index == 7;
+                    enabled: !root.busy;
+                    clicked => { root.nav-index = 7; }
+                }
+                ModeRailItem {
+                    label: Strings.nav-about;
+                    hint: "M0";
+                    active: root.nav-index == 8;
+                    enabled: !root.busy;
+                    clicked => { root.nav-index = 8; }
                 }
 
                 Rectangle { vertical-stretch: 1; background: transparent; }
@@ -487,6 +556,27 @@ export component AppWindow inherits Window {
 
                 Hairline {}
 
+                Rectangle {
+                    background: Theme.warning;
+                    border-width: 1px;
+                    border-color: Theme.focus-ring;
+                    HorizontalLayout {
+                        padding-left: 24px;
+                        padding-right: 24px;
+                        padding-top: 7px;
+                        padding-bottom: 7px;
+                        Text {
+                            text: Strings.unsigned-banner;
+                            color: Theme.on-copper;
+                            font-size: 11px;
+                            font-weight: 700;
+                            font-family: "Avenir Next";
+                            horizontal-stretch: 1;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+
                 Flickable {
                     vertical-stretch: 1;
                     viewport-width: parent.width;
@@ -496,6 +586,36 @@ export component AppWindow inherits Window {
                         padding-top: 18px;
                         padding-bottom: 18px;
                         spacing: 14px;
+
+                        if root.nav-index != 0: Panel {
+                            VerticalLayout {
+                                padding: 18px;
+                                spacing: 8px;
+                                Text {
+                                    text: root.nav-index == 8 ? Strings.about-build : "M0";
+                                    color: Theme.copper;
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    letter-spacing: 1.2px;
+                                    font-family: "Avenir Next";
+                                }
+                                Text {
+                                    text: root.nav-index == 8 ? root.about-text
+                                        : "This section is a shell placeholder in M0. The Acquire bench remains available from the rail.";
+                                    color: Theme.readout;
+                                    font-size: 14px;
+                                    font-family: "Avenir Next";
+                                    wrap: word-wrap;
+                                }
+                                Text {
+                                    text: Strings.hash-seal-not-signature;
+                                    color: Theme.info;
+                                    font-size: 12px;
+                                    font-family: "Avenir Next";
+                                    wrap: word-wrap;
+                                }
+                            }
+                        }
 
                         // STEP 1 — Prepare
                         Panel {
@@ -583,6 +703,16 @@ export component AppWindow inherits Window {
                                                 clicked => { root.browse-output-clicked(); }
                                             }
                                         }
+                                    }
+                                }
+
+                                VerticalLayout {
+                                    spacing: 6px;
+                                    Eyebrow { label: "CASE ID"; }
+                                    FieldShell {
+                                        text <=> root.case-id;
+                                        placeholder: root.guided ? "Optional for Guided" : "Required for Standard / Expert";
+                                        enabled: !root.busy;
                                     }
                                 }
 

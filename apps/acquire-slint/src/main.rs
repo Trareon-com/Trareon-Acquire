@@ -1,18 +1,22 @@
 #[cfg(feature = "gui")]
 fn main() -> Result<(), slint::PlatformError> {
-    use acquire_slint::{AppWindow, UiMode, UiSnapshot, run_foundation_demo_with_progress, write_coc_summary};
+    use acquire_slint::{
+        AppWindow, UiMode, UiSnapshot, prefs::AcquirePrefs, preserve, recent,
+        run_foundation_demo_with_progress, write_coc_summary,
+    };
     use slint::ComponentHandle;
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::{Arc, Mutex};
     use std::thread;
-    use trareon_core::{AcquireProgress, ProgressCallback};
+    use trareon_core::{AcquireProgress, ProgressCallback, default_checkpoint_path};
 
     fn apply(ui: &AppWindow, snap: &UiSnapshot) {
         ui.set_mode_index(snap.mode.index());
         ui.set_mode_guidance(snap.guidance().into());
         ui.set_show_path_editors(snap.show_path_editors());
         ui.set_case_identity(snap.case_identity.clone().into());
+        ui.set_case_id(snap.case_id.clone().into());
         ui.set_source_path(snap.source_path.clone().into());
         ui.set_output_dir(snap.output_dir.clone().into());
         ui.set_confirmed_synthetic(snap.confirmed_synthetic);
@@ -29,17 +33,32 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.set_progress_fraction(snap.progress_fraction as f32);
         ui.set_progress_label(snap.progress_label.clone().into());
         ui.set_progress_phase(snap.progress_phase.clone().into());
+        ui.set_about_text(snap.about_text().into());
     }
 
     fn sync_fields_from_ui(ui: &AppWindow, snap: &mut UiSnapshot) {
         snap.case_identity = ui.get_case_identity().as_str().to_string();
+        snap.case_id = ui.get_case_id().as_str().to_string();
         snap.source_path = ui.get_source_path().as_str().to_string();
         snap.output_dir = ui.get_output_dir().as_str().to_string();
         snap.confirmed_synthetic = ui.get_confirmed_synthetic();
     }
 
+    fn save_prefs(snap: &UiSnapshot) {
+        AcquirePrefs {
+            dark_mode: snap.dark_mode,
+            locale: snap.locale.as_str().into(),
+            examiner: snap.case_identity.clone(),
+            last_output_dir: snap.output_dir.clone(),
+            ..AcquirePrefs::default()
+        }
+        .save();
+    }
+
     let ui = AppWindow::new()?;
-    let snapshot = Arc::new(Mutex::new(UiSnapshot::default()));
+    let mut initial_snapshot = UiSnapshot::from_prefs(&AcquirePrefs::load());
+    initial_snapshot.restore_draft();
+    let snapshot = Arc::new(Mutex::new(initial_snapshot));
     let cancel_flag = Arc::new(AtomicBool::new(false));
     apply(&ui, &snapshot.lock().expect("snapshot lock"));
 
@@ -64,6 +83,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 let mut s = snap.lock().expect("snapshot lock");
                 sync_fields_from_ui(&ui, &mut s);
                 s.set_dark_mode(dark);
+                save_prefs(&s);
                 apply(&ui, &s);
             }
         });
@@ -77,6 +97,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 let mut s = snap.lock().expect("snapshot lock");
                 sync_fields_from_ui(&ui, &mut s);
                 s.set_locale(loc.as_str());
+                save_prefs(&s);
                 apply(&ui, &s);
             }
         });
@@ -152,8 +173,22 @@ fn main() -> Result<(), slint::PlatformError> {
             {
                 let mut s = snap.lock().expect("snapshot lock");
                 sync_fields_from_ui(&ui, &mut s);
-                if !s.can_run() {
-                    let msg = s.msg_need_confirm_paths().to_string();
+                let gated = if matches!(s.mode, UiMode::Guided) {
+                    s.can_start_guided()
+                } else {
+                    s.can_start_expert()
+                };
+                if !gated {
+                    let msg = if !s.can_run() {
+                        s.msg_need_confirm_paths().to_string()
+                    } else {
+                        format!(
+                            "Preflight blocked: {}",
+                            s.override_audit_line().unwrap_or_else(|| {
+                                "case / write-blocker / capacity / identify checklist".into()
+                            })
+                        )
+                    };
                     s.set_err(msg);
                     apply(&ui, &s);
                     return;
@@ -165,6 +200,7 @@ fn main() -> Result<(), slint::PlatformError> {
                     return;
                 }
                 cancel.store(false, Ordering::SeqCst);
+                s.save_draft();
                 s.set_busy(true);
                 s.status_line = s.msg_running().into();
                 s.progress_fraction = 0.0;
@@ -215,7 +251,27 @@ fn main() -> Result<(), slint::PlatformError> {
                         let mut s = snap_done.lock().expect("snapshot lock");
                         match result {
                             Ok(demo) => {
-                                let ok = s.msg_verified().to_string();
+                                let package = PathBuf::from(&demo.package_path);
+                                let examiner = if s.case_id.trim().is_empty() {
+                                    "lab-operator"
+                                } else {
+                                    s.case_id.as_str()
+                                };
+                                let seal_note = preserve::seal_package(
+                                    &package,
+                                    if s.case_id.trim().is_empty() {
+                                        "TRAINING"
+                                    } else {
+                                        s.case_id.as_str()
+                                    },
+                                    examiner,
+                                    &s.source_path,
+                                )
+                                .map(|coc| format!("; sealed {}", coc.evidence_id))
+                                .unwrap_or_else(|err| format!("; seal deferred: {err}"));
+                                let ok = format!("{}{seal_note}", s.msg_verified());
+                                let recent_entry =
+                                    recent::RecentEntry::completed(&s.case_id, &demo.package_path);
                                 s.set_ok(
                                     demo.package_path,
                                     demo.evidence_sha256,
@@ -225,10 +281,18 @@ fn main() -> Result<(), slint::PlatformError> {
                                 s.progress_fraction = 1.0;
                                 s.progress_phase = "DONE".into();
                                 s.progress_label = format!("{} B", demo.evidence_size);
+                                recent::append(recent_entry);
+                                UiSnapshot::clear_draft();
                             }
                             Err(err) => {
                                 let lower = err.to_lowercase();
+                                let evidence = PathBuf::from(&s.output_dir).join("evidence.raw");
+                                let checkpoint = default_checkpoint_path(&evidence);
                                 if lower.contains("cancel") {
+                                    let _ = preserve::write_stop_reason(
+                                        &checkpoint,
+                                        preserve::StopReason::Cancelled,
+                                    );
                                     let msg = s.msg_cancelled(&err);
                                     s.set_err(msg);
                                 } else {

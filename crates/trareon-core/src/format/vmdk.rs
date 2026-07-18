@@ -32,8 +32,7 @@ pub fn write_vmdk(mut reader: impl Read, output: &Path) -> Result<VmdkSummary, C
         .map_err(|e| CoreError::Io(e.to_string()))?;
     out.write_all(&raw)
         .map_err(|e| CoreError::Io(e.to_string()))?;
-    out.sync_all()
-        .map_err(|e| CoreError::Io(e.to_string()))?;
+    out.sync_all().map_err(|e| CoreError::Io(e.to_string()))?;
     Ok(VmdkSummary {
         path: output.to_path_buf(),
         raw_size: raw.len() as u64,

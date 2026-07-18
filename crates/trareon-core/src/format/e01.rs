@@ -112,9 +112,7 @@ pub fn write_e01(
         encoder
             .write_all(chunk)
             .map_err(|e| CoreError::Io(e.to_string()))?;
-        let compressed = encoder
-            .finish()
-            .map_err(|e| CoreError::Io(e.to_string()))?;
+        let compressed = encoder.finish().map_err(|e| CoreError::Io(e.to_string()))?;
         let crc = crc32fast::hash(chunk);
         out.write_all(&(compressed.len() as u32).to_le_bytes())
             .map_err(|e| CoreError::Io(e.to_string()))?;
@@ -134,8 +132,7 @@ pub fn write_e01(
     out.write_all(FOOTER_MAGIC)
         .map_err(|e| CoreError::Io(e.to_string()))?;
     write_len_prefixed_json(&mut out, &footer)?;
-    out.sync_all()
-        .map_err(|e| CoreError::Io(e.to_string()))?;
+    out.sync_all().map_err(|e| CoreError::Io(e.to_string()))?;
 
     Ok(E01Summary {
         path: output.to_path_buf(),

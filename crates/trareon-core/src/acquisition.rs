@@ -3,9 +3,8 @@ use std::{
     io::{Read, Seek, SeekFrom, Write},
     path::{Path, PathBuf},
     sync::{
-        Arc,
+        Arc, Mutex,
         atomic::{AtomicBool, Ordering},
-        Mutex,
     },
     time::{Duration, Instant},
 };
@@ -436,12 +435,7 @@ pub fn acquire_file(request: &AcquireRequest) -> Result<AcquisitionSummary, Core
                 }
             };
             if should {
-                emit(
-                    AcquirePhase::Acquiring,
-                    done,
-                    bytes_total,
-                    "acquiring",
-                );
+                emit(AcquirePhase::Acquiring, done, bytes_total, "acquiring");
             }
         };
         emit(

@@ -32,8 +32,7 @@ pub fn write_vhd(mut reader: impl Read, output: &Path) -> Result<VhdSummary, Cor
         .map_err(|e| CoreError::Io(e.to_string()))?;
     out.write_all(&(raw.len() as u64).to_le_bytes())
         .map_err(|e| CoreError::Io(e.to_string()))?;
-    out.sync_all()
-        .map_err(|e| CoreError::Io(e.to_string()))?;
+    out.sync_all().map_err(|e| CoreError::Io(e.to_string()))?;
     Ok(VhdSummary {
         path: output.to_path_buf(),
         raw_size: raw.len() as u64,

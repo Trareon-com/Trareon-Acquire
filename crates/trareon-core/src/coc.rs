@@ -82,7 +82,10 @@ impl EvidenceCoC {
     pub fn to_qr_png(&self) -> Result<Vec<u8>, CoreError> {
         let code = QrCode::new(self.qr_payload().as_bytes())
             .map_err(|e| CoreError::Verification(format!("QR encode: {e}")))?;
-        let image = code.render::<image::Luma<u8>>().max_dimensions(300, 300).build();
+        let image = code
+            .render::<image::Luma<u8>>()
+            .max_dimensions(300, 300)
+            .build();
         let mut png = Vec::new();
         let mut cursor = std::io::Cursor::new(&mut png);
         image::DynamicImage::ImageLuma8(image)
@@ -139,7 +142,13 @@ mod tests {
     #[test]
     fn qr_png_non_empty() {
         let id = EvidenceId::new("CASE", 2, 3);
-        let coc = EvidenceCoC::build(&id, &"a".repeat(64), "2026-07-18T00:00:00Z", "lab", "serial");
+        let coc = EvidenceCoC::build(
+            &id,
+            &"a".repeat(64),
+            "2026-07-18T00:00:00Z",
+            "lab",
+            "serial",
+        );
         let png = coc.to_qr_png().unwrap();
         assert!(png.starts_with(b"\x89PNG"));
         assert!(png.len() > 100);

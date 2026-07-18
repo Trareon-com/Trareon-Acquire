@@ -81,8 +81,8 @@ pub fn write_triage_bundle(bundle: &TriageBundle, path: &Path) -> Result<PathBuf
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| CoreError::Io(e.to_string()))?;
     }
-    let json = serde_json::to_string_pretty(bundle)
-        .map_err(|e| CoreError::Verification(e.to_string()))?;
+    let json =
+        serde_json::to_string_pretty(bundle).map_err(|e| CoreError::Verification(e.to_string()))?;
     std::fs::write(path, json).map_err(|e| CoreError::Io(e.to_string()))?;
     Ok(path.to_path_buf())
 }

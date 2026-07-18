@@ -16,6 +16,38 @@ export global Strings {
     out property <string> lab-only: is-id ? "HANYA LAB" : "LAB USE ONLY";
     out property <string> alpha-line: is-id ? "Alpha v0.1 · GPLv3" : "Alpha v0.1 · GPLv3";
     out property <string> founder-badge: "UNSIGNED";
+    out property <string> unsigned-banner: is-id
+        ? "BELUM DITANDATANGANI — hash segel bukan tanda tangan digital."
+        : "UNSIGNED — hash seal is not a digital signature.";
+    out property <string> hash-seal-not-signature: is-id
+        ? "Hash segel bukan tanda tangan digital."
+        : "A hash seal is not a digital signature.";
+    out property <string> about-build: is-id ? "Identitas build" : "Build identity";
+
+    out property <string> nav-cases: is-id ? "Kasus" : "Cases";
+    out property <string> nav-identify: is-id ? "Identifikasi" : "Identify";
+    out property <string> nav-acquire: "Acquire";
+    out property <string> nav-triage: "Triage";
+    out property <string> nav-tools: "Tools";
+    out property <string> nav-qms: "QMS";
+    out property <string> nav-boot: "Boot";
+    out property <string> nav-help: is-id ? "Bantuan" : "Help";
+    out property <string> nav-about: is-id ? "Tentang" : "About";
+    out property <string> help_wb: is-id
+        ? "Write-blocker: gunakan blocker perangkat keras bila tersedia. Jika tidak, catat konfirmasi manual di audit. Jangan klaim terdeteksi tanpa bukti."
+        : "Write-blocker: use a hardware blocker when available. Otherwise record manual confirmation in the audit. Do not claim detection without evidence.";
+    out property <string> help_oov: is-id
+        ? "Sumber di luar validasi: hentikan bila sumber, tujuan, atau metode tidak tercakup kebijakan lab. Buat prosedur baru sebelum melanjutkan."
+        : "Out of validation: stop when the source, destination, or method is outside the lab policy. Create a new procedure before proceeding.";
+    out property <string> help_seal_vs_sig: is-id
+        ? "Segel hash membuktikan konsistensi byte yang diperiksa; bukan tanda tangan digital, otorisasi, atau pengganti verifikasi independen."
+        : "A hash seal proves consistency of the checked bytes; it is not a digital signature, authorization, or a substitute for independent verification.";
+    out property <string> help_formats: is-id
+        ? "Format: .fsnap adalah paket bukti tervalidasi. E01-lite, AFF4-lite, dan wrapper disk virtual adalah subset; verifikasi dengan alat eksternal harus dicatat."
+        : "Formats: .fsnap is the verified evidence package. E01-lite, AFF4-lite, and virtual-disk wrappers are subsets; record external-tool verification.";
+    out property <string> help_shortcuts: is-id
+        ? "Pintasan: Tab memindahkan fokus, Space mengaktifkan kontrol, Esc membatalkan dialog. Gunakan fokus keyboard yang terlihat untuk meninjau sebelum akuisisi."
+        : "Shortcuts: Tab moves focus, Space activates controls, Esc cancels dialogs. Use visible keyboard focus to review before acquisition.";
 
     out property <string> step-prepare: is-id ? "1 · Siapkan" : "1 · Prepare";
     out property <string> step-run: is-id ? "2 · Akuisisi" : "2 · Acquire";

@@ -93,9 +93,9 @@ fn hash_files_concat(paths: &[&Path]) -> Result<(u64, String), CoreError> {
 }
 
 /// One pass: per-segment (size, sha256) plus concatenated digest of all segment bytes.
-fn hash_segments_and_concat(
-    paths: &[&Path],
-) -> Result<(Vec<(u64, String)>, u64, String), CoreError> {
+type SegmentHashPass = (Vec<(u64, String)>, u64, String);
+
+fn hash_segments_and_concat(paths: &[&Path]) -> Result<SegmentHashPass, CoreError> {
     let mut concat = Sha256::new();
     let mut total = 0u64;
     let mut per = Vec::with_capacity(paths.len());

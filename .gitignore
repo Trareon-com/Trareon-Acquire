@@ -1,5 +1,7 @@
 /target/
 target/
+/tmp/
+tmp/
 /node_modules/
 node_modules/
 /apps/trareon-acquire/dist/

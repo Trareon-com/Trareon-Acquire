@@ -20,8 +20,8 @@ export global Strings {
         ? "BELUM DITANDATANGANI — hash segel bukan tanda tangan digital."
         : "UNSIGNED — hash seal is not a digital signature.";
     out property <string> disclosure-banner: is-id
-        ? "⚠ Hanya lab · BUKAN siap pengadilan · BUKAN bersertifikat ISO"
-        : "⚠ Lab use only · NOT court-ready · NOT ISO-certified";
+        ? "LAB · Hanya lab · BUKAN siap pengadilan · BUKAN bersertifikat ISO"
+        : "LAB · Lab use only · NOT court-ready · NOT ISO-certified";
     out property <string> search-placeholder: is-id ? "Cari menu…" : "Search…";
     out property <string> status-evidence: is-id ? "Evidence" : "Evidence";
     out property <string> status-coverage: is-id ? "Coverage" : "Coverage";
@@ -35,6 +35,9 @@ export global Strings {
     out property <string> zone-run: is-id ? "JALANKAN / SEGEL" : "RUN / SEAL";
     out property <string> no-package-yet: is-id ? "Paket belum dibuat" : "Package not yet generated";
     out property <string> start-acquire: is-id ? "START ACQUIRE" : "START ACQUIRE";
+    out property <string> run-ready-hint: is-id
+        ? "Alur: kasus → sumber → konfirmasi → START. Segel mengisi setelah akuisisi."
+        : "Flow: case → source → confirm → START. Seal fills after a successful acquire.";
     out property <string> advanced-toggle: is-id ? "Advanced" : "Advanced";
     out property <string> advanced-hide: is-id ? "Hide advanced" : "Hide advanced";
     out property <string> shell-about-title: is-id ? "Tentang" : "About";
@@ -87,7 +90,7 @@ export global Strings {
     out property <string> id-encryption: is-id ? "Enkripsi dicatat" : "Encryption noted";
     out property <string> id-anti: is-id ? "Anti-forensik dipertimbangkan" : "Anti-forensics considered";
     out property <string> id-oov: is-id ? "Out-of-scope diakui (OoV)" : "Out-of-scope acknowledged (OoV)";
-    out property <string> emergency-override-label: is-id ? "Override darurat (opsional)" : "Emergency override (optional)";
+    out property <string> emergency-override-label: is-id ? "OVERRIDE DARURAT (OPSIONAL)" : "EMERGENCY OVERRIDE (OPTIONAL)";
     out property <string> emergency-override-ph: is-id ? "Alasan supervisor — diaudit" : "Supervisor reason — audited";
     out property <string> continue-acquire: is-id ? "Lanjut ke Acquire" : "Continue to Acquire";
     out property <string> last-package: is-id ? "PAKET TERAKHIR" : "LAST PACKAGE";
@@ -211,6 +214,14 @@ export global Strings {
     out property <string> clear: is-id ? "Reset hasil" : "Reset results";
     out property <string> ready-hint: is-id ? "Siap diakuisisi" : "Ready to acquire";
     out property <string> need-confirm: is-id ? "Konfirmasi sumber dulu" : "Confirm the source first";
+    out property <string> reason-busy: is-id ? "Akuisisi berjalan…" : "Acquisition running…";
+    out property <string> reason-case: is-id ? "Setel ID kasus (Cases) sebelum START." : "Set a case ID (Cases) before start";
+    out property <string> reason-verify: is-id ? "Verifikasi kasus harus cocok dengan ID kasus" : "Case verify must match case ID";
+    out property <string> reason-source: is-id ? "Pilih disk atau jalur sumber" : "Select a source disk or path";
+    out property <string> reason-output: is-id ? "Setel direktori keluaran" : "Set an output directory";
+    out property <string> reason-confirm: is-id ? "Konfirmasi sumber dan tujuan" : "Confirm source and destination";
+    out property <string> reason-wb: is-id ? "Konfirmasi write-blocker (langkah WB)" : "Confirm write-blocker (step WB)";
+    out property <string> reason-identify: is-id ? "Lengkapi checklist Identify (atau override darurat)" : "Complete Identify checklist (or emergency override)";
 
     out property <string> evidence-seal: is-id ? "SEGEL BUKTI" : "EVIDENCE SEAL";
     out property <string> verified: is-id ? "TERVERIFIKASI" : "VERIFIED";
@@ -229,6 +240,7 @@ export global Strings {
         : "Independent verify required · cancel stops in-flight acquire · not validated for production evidence";
     out property <string> theme-dark: is-id ? "Gelap" : "Dark";
     out property <string> theme-light: is-id ? "Terang" : "Light";
+    out property <string> locale-label: is-id ? "Bahasa" : "Language";
     out property <string> lang-en: "EN";
     out property <string> lang-id: "ID";
     out property <string> state-standby: is-id ? "Siaga" : "Standby";
@@ -318,7 +330,7 @@ export global Strings {
     out property <string> col-updated: is-id ? "DIUBAH" : "UPDATED";
     out property <string> archive-case: is-id ? "Arsipkan" : "Archive";
     out property <string> filter-cases: is-id ? "Saring kasus…" : "Filter cases…";
-    out property <string> active-case: is-id ? "Kasus aktif" : "Active case";
+    out property <string> active-case: is-id ? "KASUS AKTIF" : "ACTIVE CASE";
     out property <string> triage-empty: is-id ? "Triage belum dijalankan." : "Triage not run yet.";
     out property <string> qms-empty: is-id ? "Jalankan QMS untuk melihat hasil." : "Run QMS to see results.";
     out property <string> boot-empty: is-id ? "Tetapkan jalur image lalu dry-run." : "Set an image path, then dry-run.";
@@ -328,6 +340,7 @@ export global Strings {
         ? "Lisensi GPLv3. Hash segel bukan tanda tangan digital."
         : "Licensed under GPLv3. A hash seal is not a digital signature.";
     out property <string> open-user-guide: is-id ? "Buka panduan pengguna" : "Open user guide";
+    out property <string> draft-caption: is-id ? "DRAF" : "DRAFT";
     out property <string> draft-resume: is-id ? "Lanjutkan" : "Resume";
     out property <string> draft-discard: is-id ? "Buang" : "Discard";
     out property <string> draft-banner: is-id ? "Draf akuisisi tersimpan — lanjutkan atau buang." : "Acquire draft saved — resume or discard.";
@@ -338,6 +351,7 @@ export global Strings {
     out property <string> confirm-archive: is-id ? "Arsipkan kasus ini?" : "Archive this case?";
     out property <string> confirm-discard-draft: is-id ? "Buang draf akuisisi?" : "Discard acquire draft?";
     out property <string> confirm-clear: is-id ? "Reset hasil segel?" : "Reset seal results?";
+    out property <string> confirm-heading: is-id ? "KONFIRMASI" : "CONFIRM";
     out property <string> confirm-yes: is-id ? "Ya" : "Yes";
     out property <string> confirm-no: is-id ? "Batal" : "Cancel";
     out property <string> pause-acquire: is-id ? "Jeda" : "Pause";

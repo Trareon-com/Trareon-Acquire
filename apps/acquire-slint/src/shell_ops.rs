@@ -856,8 +856,10 @@ pub fn custody_timeline(case_id: &str, package: &str, sha: &str, sealed: bool) -
 #[cfg(test)]
 mod disk_ui_tests {
     use super::{
-        bus_from_kind, format_size_label, list_case_ui_rows, nav_index_for_search, qms_check_ui_rows,
-        text_to_log_rows,
+        analysis_lite_rows, boot_plan_text, bus_from_kind, compare_packages_text,
+        compare_summary_rows, export_report_text, format_size_label, hash_only_text,
+        identify_probe_text, list_case_ui_rows, nav_index_for_search, qms_check_ui_rows,
+        run_qms_text, text_to_log_rows, verify_tools_text,
     };
 
     #[test]
@@ -886,5 +888,57 @@ mod disk_ui_tests {
         assert_eq!(logs.len(), 2);
         assert_eq!(logs[0].level, "ok");
         assert_eq!(logs[1].level, "err");
+    }
+
+    /// End-to-end shell surfaces against synthetic .fsnap packages (no real disks).
+    #[test]
+    fn synthetic_shell_smoke_covers_tools_pipeline() {
+        let a_dir = tempfile::tempdir().unwrap();
+        let b_dir = tempfile::tempdir().unwrap();
+        let out = tempfile::tempdir().unwrap();
+        let package_a = crate::run_synthetic_demo(a_dir.path()).expect("synthetic A");
+        let package_b = crate::run_synthetic_demo(b_dir.path()).expect("synthetic B");
+        let pkg_a = package_a.to_string_lossy();
+        let pkg_b = package_b.to_string_lossy();
+        let source = a_dir.path().join("synthetic-source.bin");
+
+        let verify = verify_tools_text(&pkg_a);
+        assert!(verify.starts_with("VERIFY OK"), "{verify}");
+
+        let hash = hash_only_text(&pkg_a);
+        assert!(hash.contains("hash-only"), "{hash}");
+        assert!(hash.contains("262144"), "{hash}");
+
+        let compare = compare_packages_text(&pkg_a, &pkg_b);
+        assert!(
+            compare.starts_with("COMPARE OK") || compare.starts_with("COMPARE DIFF"),
+            "{compare}"
+        );
+        let rows = compare_summary_rows(&pkg_a, &pkg_b);
+        assert!(!rows.is_empty());
+        assert!(rows.iter().all(|r| !r.detail.is_empty()));
+
+        let export = export_report_text(&pkg_a, &out.path().to_string_lossy());
+        assert!(export.contains("Export written"), "{export}");
+        assert!(out.path().join("export-evidence.bin").is_file());
+
+        let (timeline, listing, summary) =
+            analysis_lite_rows(&pkg_a, &out.path().to_string_lossy()).expect("analysis");
+        assert!(summary.contains("Analysis lite OK"), "{summary}");
+        assert!(!listing.is_empty());
+        let _ = timeline;
+
+        let identify = identify_probe_text(&source.to_string_lossy());
+        assert!(!identify.contains("Set a source path"), "{identify}");
+
+        let boot = boot_plan_text(&source.to_string_lossy(), "/dev/null");
+        assert!(boot.contains("DRY-RUN") || boot.contains("failed"), "{boot}");
+
+        let qms = run_qms_text();
+        assert!(qms.contains("self-test: PASS"), "{qms}");
+        assert!(qms.contains("known-dataset: PASS"), "{qms}");
+
+        let checks = qms_check_ui_rows();
+        assert!(checks.iter().any(|c| c.ok), "{checks:?}");
     }
 }

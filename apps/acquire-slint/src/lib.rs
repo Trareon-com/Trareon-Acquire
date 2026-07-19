@@ -118,6 +118,83 @@ pub fn run_synthetic_demo(out_dir: &Path) -> Result<PathBuf, String> {
     Ok(PathBuf::from(result.package_path))
 }
 
+/// Fixed-folder synthetic packages for manual GUI smoke (Tools / Recent / Compare).
+///
+/// Layout under `root`:
+/// - `pkg-a/foundation.fsnap` — sealed package (zeros)
+/// - `pkg-b/foundation.fsnap` — different bytes (compare DIFF)
+/// - `PATHS.txt` — operator copy paths
+/// - seeds `~/.trareon/acquire-recent.json` + prefs `last_output_dir`
+pub fn seed_synthetic_gui_smoke(root: &Path) -> Result<PathBuf, String> {
+    let _ = std::fs::remove_dir_all(root);
+    std::fs::create_dir_all(root).map_err(|e| e.to_string())?;
+    let a_dir = root.join("pkg-a");
+    let b_dir = root.join("pkg-b");
+    let out_dir = root.join("out");
+    std::fs::create_dir_all(&out_dir).map_err(|e| e.to_string())?;
+
+    let package_a = std::fs::canonicalize(run_synthetic_demo(&a_dir)?)
+        .map_err(|e| e.to_string())?;
+    let source_b = b_dir.join("synthetic-source.bin");
+    std::fs::create_dir_all(&b_dir).map_err(|e| e.to_string())?;
+    std::fs::write(&source_b, vec![0xA5u8; 256 * 1024]).map_err(|e| e.to_string())?;
+    let package_b = std::fs::canonicalize(PathBuf::from(
+        run_foundation_demo(&source_b, &b_dir, None)
+            .map_err(|e| e.to_string())?
+            .package_path,
+    ))
+    .map_err(|e| e.to_string())?;
+    let source_a = std::fs::canonicalize(a_dir.join("synthetic-source.bin"))
+        .map_err(|e| e.to_string())?;
+    let source_b = std::fs::canonicalize(&source_b).map_err(|e| e.to_string())?;
+    let out_dir = std::fs::canonicalize(&out_dir).map_err(|e| e.to_string())?;
+    let root = std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf());
+
+    let _ = preserve::seal_package(
+        &package_a,
+        "SYNTH-GUI-SMOKE",
+        "Synthetic Examiner",
+        "synth-disk-a",
+    )?;
+    let _ = preserve::sign_package(&package_a, &a_dir.join("keys"))?;
+
+    recent::append(recent::RecentEntry::completed(
+        "SYNTH-GUI-SMOKE",
+        package_a.to_string_lossy().as_ref(),
+    ));
+    recent::append(recent::RecentEntry::completed(
+        "SYNTH-GUI-SMOKE-B",
+        package_b.to_string_lossy().as_ref(),
+    ));
+
+    let mut prefs = prefs::AcquirePrefs::load();
+    prefs.last_output_dir = out_dir.display().to_string();
+    prefs.save();
+
+    let paths = format!(
+        "Synthetic GUI smoke packages\n\
+         \n\
+         Package A (sealed, in Recent):\n  {}\n\
+         Package B (compare DIFF):\n  {}\n\
+         Source A (Identify / Acquire file):\n  {}\n\
+         Source B:\n  {}\n\
+         Output dir (prefs):\n  {}\n\
+         CoC / QR (beside A):\n  {}\n  {}\n\
+         \n\
+         GUI: Tools → click Recent row, or Browse package → pick foundation.fsnap folder.\n\
+         Compare: paste Package B path into compare B, then Compare.\n",
+        package_a.display(),
+        package_b.display(),
+        source_a.display(),
+        source_b.display(),
+        out_dir.display(),
+        a_dir.join("coc.json").display(),
+        a_dir.join("qr.png").display(),
+    );
+    std::fs::write(root.join("PATHS.txt"), &paths).map_err(|e| e.to_string())?;
+    Ok(package_a)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -130,6 +207,17 @@ mod tests {
         assert!(package.is_dir());
         assert!(package.join("manifest/manifest.json").is_file());
         assert!(package.join("acquisitions/0001/evidence.raw").is_file());
+    }
+
+    #[test]
+    #[ignore = "writes tmp/ + seeds ~/.trareon recent; run via scripts/seed-synthetic-gui-smoke.sh"]
+    fn seed_fixed_synthetic_packages_for_gui_smoke() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tmp/synthetic-gui-smoke");
+        let package = seed_synthetic_gui_smoke(&root).expect("seed");
+        assert!(package.join("manifest/manifest.json").is_file());
+        assert!(root.join("PATHS.txt").is_file());
+        assert!(root.join("pkg-a/qr.png").is_file());
+        eprintln!("{}", std::fs::read_to_string(root.join("PATHS.txt")).unwrap());
     }
 
     #[test]

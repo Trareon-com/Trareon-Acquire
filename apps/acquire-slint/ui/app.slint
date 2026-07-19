@@ -2,11 +2,11 @@
 // Responsive: >=1100px shows 3 zones side-by-side; <1100px stacks in a ScrollView with icon rail.
 // All in-out properties and callbacks below are consumed by Rust (src/main.rs) — do not rename.
 
-import { Button, CheckBox, LineEdit, ScrollView, Palette } from "std-widgets.slint";
+import { LineEdit, ScrollView, Palette } from "std-widgets.slint";
 import { Theme } from "theme.slint";
 import { Strings } from "strings.slint";
 import {
-    PageHeader, FieldLabel, PrimaryBtn, GhostBtn, StatusBadge, CheckRow, MetaRow,
+    PageHeader, ZoneCaption, PrimaryBtn, GhostBtn, StatusBadge, LabCheck, CheckRow, MetaRow,
     EmptyHint, HelpTopic, CaseRow, ResultRow, LogLineRow, CoverageBar, DraftBanner,
 } from "widgets.slint";
 
@@ -57,14 +57,119 @@ export struct RecentLine {
 
 // -------------------------------------------------------------------- primitives
 
+// Geometric rail marks — always render (no emoji / icon font).
+component NavMark inherits Rectangle {
+    in-out property <string> kind;
+    in-out property <bool> active;
+    width: Theme.icon-box;
+    height: Theme.icon-box;
+    border-radius: 8px;
+    background: root.active ? Theme.unsigned-well : Theme.icon-well;
+    border-width: 1px;
+    border-color: root.active ? Theme.unsigned-border : Theme.hairline;
+    // cases — stacked rows
+    if root.kind == "cases": VerticalLayout {
+        padding: 7px;
+        spacing: 3px;
+        alignment: center;
+        Rectangle { height: 3px; border-radius: 1.5px; background: root.active ? Theme.copper : Theme.icon-soft; }
+        Rectangle { height: 3px; border-radius: 1.5px; background: root.active ? Theme.copper : Theme.icon-soft; }
+        Rectangle { height: 3px; width: 70%; border-radius: 1.5px; background: root.active ? Theme.copper : Theme.icon-soft; }
+    }
+    // identify — ring
+    if root.kind == "identify": Rectangle {
+        width: 14px;
+        height: 14px;
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        border-radius: 7px;
+        border-width: 2px;
+        border-color: root.active ? Theme.copper : Theme.icon-soft;
+        background: transparent;
+    }
+    // acquire — down chevron bars
+    if root.kind == "acquire": VerticalLayout {
+        padding: 8px;
+        spacing: 3px;
+        alignment: center;
+        Rectangle { height: 3px; width: 70%; border-radius: 1.5px; background: root.active ? Theme.copper : Theme.icon-soft; }
+        Rectangle { height: 3px; width: 50%; border-radius: 1.5px; background: root.active ? Theme.copper : Theme.icon-soft; }
+        Rectangle { height: 3px; width: 30%; border-radius: 1.5px; background: root.active ? Theme.copper : Theme.icon-soft; }
+    }
+    // triage — 2×2 grid
+    if root.kind == "triage": GridLayout {
+        padding: 8px;
+        spacing: 3px;
+        Row {
+            Rectangle { width: 6px; height: 6px; border-radius: 1.5px; background: root.active ? Theme.copper : Theme.icon-soft; }
+            Rectangle { width: 6px; height: 6px; border-radius: 1.5px; background: root.active ? Theme.copper : Theme.icon-soft; }
+        }
+        Row {
+            Rectangle { width: 6px; height: 6px; border-radius: 1.5px; background: root.active ? Theme.copper : Theme.icon-soft; }
+            Rectangle { width: 6px; height: 6px; border-radius: 1.5px; background: root.active ? Theme.copper : Theme.icon-soft; }
+        }
+    }
+    // tools — cross
+    if root.kind == "tools": Rectangle {
+        width: 14px;
+        height: 14px;
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        Rectangle {
+            width: 14px; height: 3px; y: 5.5px; border-radius: 1.5px;
+            background: root.active ? Theme.copper : Theme.icon-soft;
+        }
+        Rectangle {
+            width: 3px; height: 14px; x: 5.5px; border-radius: 1.5px;
+            background: root.active ? Theme.copper : Theme.icon-soft;
+        }
+    }
+    // qms — diamond-ish square
+    if root.kind == "qms": Rectangle {
+        width: 12px;
+        height: 12px;
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        border-radius: 2px;
+        border-width: 2px;
+        border-color: root.active ? Theme.copper : Theme.icon-soft;
+        background: transparent;
+    }
+    // boot — media stick
+    if root.kind == "boot": VerticalLayout {
+        padding: 7px;
+        spacing: 2px;
+        alignment: center;
+        Rectangle {
+            height: 4px; width: 40%; border-radius: 1px;
+            background: root.active ? Theme.copper : Theme.icon-soft;
+        }
+        Rectangle {
+            height: 12px; border-radius: 2px;
+            background: root.active ? Theme.copper : Theme.icon-soft;
+        }
+    }
+    // help / about — letter (ASCII always available)
+    if root.kind == "help" || root.kind == "about": Text {
+        text: root.kind == "help" ? "?" : "i";
+        color: root.active ? Theme.copper : Theme.icon-soft;
+        font-size: Theme.font-label;
+        font-weight: 800;
+        font-family: "Menlo";
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
+
 component NavItem inherits Rectangle {
-    in-out property <string> glyph: "·";
+    in-out property <string> kind: "cases";
     in-out property <string> label;
     in-out property <bool> active;
     in-out property <bool> enabled: true;
     in-out property <bool> compact: false;
     callback clicked;
-    height: 38px;
+    height: Theme.nav-item-h;
+    opacity: root.enabled ? 1.0 : 0.45;
     background: root.active ? Theme.rail-active : ta.has-hover && root.enabled ? Theme.raised : transparent;
     border-radius: Theme.radius-sm;
     if !root.compact: HorizontalLayout {
@@ -76,25 +181,15 @@ component NavItem inherits Rectangle {
             background: root.active ? Theme.copper : transparent;
             border-radius: 1.5px;
         }
-        Rectangle {
-            width: 26px;
-            height: 26px;
+        NavMark {
+            kind: root.kind;
+            active: root.active;
             y: (parent.height - self.height) / 2;
-            border-radius: 6px;
-            background: root.active ? Theme.unsigned-well : Theme.icon-well;
-            Text {
-                text: root.glyph;
-                color: root.active ? Theme.copper : Theme.icon-soft;
-                font-size: 12px;
-                font-weight: 600;
-                horizontal-alignment: center;
-                vertical-alignment: center;
-            }
         }
         Text {
             text: root.label;
             color: root.active ? Theme.copper : Theme.readout;
-            font-size: 12px;
+            font-size: Theme.font-ui;
             font-weight: root.active ? 700 : 500;
             font-family: "Avenir Next";
             vertical-alignment: center;
@@ -103,20 +198,7 @@ component NavItem inherits Rectangle {
     }
     if root.compact: HorizontalLayout {
         alignment: center;
-        Rectangle {
-            width: 30px;
-            height: 30px;
-            border-radius: 7px;
-            background: root.active ? Theme.unsigned-well : Theme.icon-well;
-            Text {
-                text: root.glyph;
-                color: root.active ? Theme.copper : Theme.icon-soft;
-                font-size: 13px;
-                font-weight: 700;
-                horizontal-alignment: center;
-                vertical-alignment: center;
-            }
-        }
+        NavMark { kind: root.kind; active: root.active; }
     }
     ta := TouchArea {
         enabled: root.enabled;
@@ -131,15 +213,15 @@ component ModeSeg inherits Rectangle {
     in-out property <bool> locked: false;
     callback clicked;
     horizontal-stretch: 1;
-    height: 30px;
+    height: 34px;
     border-radius: Theme.radius-sm;
-    background: root.active ? Theme.copper : (ta.has-hover && !root.locked ? Theme.panel : transparent);
+    background: root.active ? Theme.copper : (ta.has-hover && !root.locked ? Theme.unsigned-well : transparent);
     HorizontalLayout {
         alignment: center;
         Text {
             text: root.label;
             color: root.active ? Theme.on-copper : Theme.readout;
-            font-size: 11px;
+            font-size: Theme.font-label;
             font-weight: 700;
             font-family: "Avenir Next";
             vertical-alignment: center;
@@ -157,18 +239,19 @@ component FormatOpt inherits Rectangle {
     in-out property <bool> active;
     in-out property <bool> locked: false;
     callback clicked;
-    height: 30px;
-    min-width: 58px;
+    horizontal-stretch: 1;
+    height: 38px;
+    min-width: 72px;
     border-radius: Theme.radius-sm;
-    background: root.active ? Theme.copper : (ta.has-hover && !root.locked ? Theme.panel : transparent);
+    background: root.active ? Theme.copper : (ta.has-hover && !root.locked ? Theme.unsigned-well : transparent);
     HorizontalLayout {
-        padding-left: 10px;
-        padding-right: 10px;
+        padding-left: 12px;
+        padding-right: 12px;
         alignment: center;
         Text {
             text: root.label;
             color: root.active ? Theme.on-copper : Theme.readout;
-            font-size: 11px;
+            font-size: Theme.font-label;
             font-weight: 600;
             font-family: "Avenir Next";
             vertical-alignment: center;
@@ -186,20 +269,20 @@ component FormatChip inherits Rectangle {
     in-out property <bool> active;
     in-out property <bool> locked: false;
     callback clicked;
-    height: 28px;
-    min-width: 56px;
+    height: 34px;
+    min-width: 68px;
     border-radius: Theme.radius-sm;
     background: root.active ? Theme.copper : Theme.raised;
     border-width: 1px;
     border-color: root.active ? Theme.copper : Theme.hairline;
     HorizontalLayout {
-        padding-left: 8px;
-        padding-right: 8px;
+        padding-left: 12px;
+        padding-right: 12px;
         alignment: center;
         Text {
             text: root.label;
             color: root.active ? Theme.on-copper : Theme.readout;
-            font-size: 11px;
+            font-size: Theme.font-label;
             font-weight: 600;
             font-family: "Avenir Next";
             vertical-alignment: center;
@@ -216,26 +299,26 @@ component LocaleChip inherits Rectangle {
     in-out property <string> label;
     in-out property <bool> active;
     callback clicked;
-    height: 26px;
-    min-width: 34px;
+    height: 34px;
+    min-width: 48px;
     border-radius: Theme.radius-sm;
-    background: root.active ? Theme.copper : Theme.panel;
+    background: root.active ? Theme.copper : (ta.has-hover ? Theme.unsigned-well : Theme.panel);
     border-width: 1px;
-    border-color: root.active ? Theme.copper : Theme.hairline;
+    border-color: root.active ? Theme.copper : (ta.has-hover ? Theme.unsigned-border : Theme.hairline);
     HorizontalLayout {
-        padding-left: 8px;
-        padding-right: 8px;
+        padding-left: 10px;
+        padding-right: 10px;
         alignment: center;
         Text {
             text: root.label;
             color: root.active ? Theme.on-copper : Theme.readout;
-            font-size: 11px;
+            font-size: Theme.font-label;
             font-weight: 700;
             font-family: "Avenir Next";
             vertical-alignment: center;
         }
     }
-    TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+    ta := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
 }
 
 component StageTab inherits Rectangle {
@@ -243,29 +326,32 @@ component StageTab inherits Rectangle {
     in-out property <string> label;
     in-out property <bool> done;
     in-out property <bool> current;
-    height: 32px;
-    min-width: 96px;
+    height: 38px;
+    min-width: 110px;
     border-radius: Theme.radius-sm;
-    background: root.current ? Theme.rail-active : transparent;
+    background: root.current ? Theme.unsigned-well : transparent;
+    border-width: root.current ? 1px : 0;
+    border-color: Theme.unsigned-border;
     VerticalLayout {
         spacing: 0;
         HorizontalLayout {
-            padding-left: 12px;
-            padding-right: 12px;
-            spacing: 7px;
+            padding-left: 14px;
+            padding-right: 14px;
+            spacing: 8px;
             alignment: center;
             vertical-stretch: 1;
             Text {
                 text: root.glyph;
-                color: root.current ? Theme.copper : (root.done ? Theme.readout : Theme.mute);
-                font-size: 12px;
-                font-weight: 700;
+                color: root.current ? Theme.copper : (root.done ? Theme.ok-glow : Theme.mute);
+                font-size: Theme.font-label;
+                font-weight: 800;
+                font-family: "Menlo";
                 vertical-alignment: center;
             }
             Text {
                 text: root.label;
-                color: root.current ? Theme.copper : (root.done ? Theme.readout : Theme.mute);
-                font-size: 11px;
+                color: root.current ? Theme.copper : (root.done ? Theme.ok-glow : Theme.mute);
+                font-size: Theme.font-label;
                 font-weight: root.current ? 800 : 600;
                 font-family: "Avenir Next";
                 vertical-alignment: center;
@@ -286,13 +372,20 @@ component SafetyChip inherits Rectangle {
     in-out property <bool> warn: false;
     in-out property <bool> clickable: true;
     callback clicked;
+    height: 32px;
+    border-radius: Theme.radius-sm;
+    background: root.warn ? Theme.unsigned-well : (root.ok ? Theme.ok-mist : transparent);
+    border-width: root.warn || root.ok ? 1px : 0;
+    border-color: root.warn ? Theme.unsigned-border : (root.ok ? Theme.ok-glow : transparent);
     HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
         spacing: 6px;
         alignment: center;
         Text {
             text: root.caption + ":";
             color: Theme.faint;
-            font-size: 10px;
+            font-size: Theme.font-caption;
             font-weight: 700;
             font-family: "Avenir Next";
             vertical-alignment: center;
@@ -300,7 +393,7 @@ component SafetyChip inherits Rectangle {
         Text {
             text: root.value;
             color: root.ok ? Theme.ok-glow : (root.warn ? Theme.copper : Theme.readout);
-            font-size: 11px;
+            font-size: Theme.font-mono;
             font-weight: 600;
             font-family: "Menlo";
             vertical-alignment: center;
@@ -315,49 +408,42 @@ component SafetyChip inherits Rectangle {
 }
 
 component DetailTile inherits Rectangle {
-    in-out property <string> glyph;
     in-out property <string> caption;
     in-out property <string> value;
     in-out property <bool> ok: false;
     horizontal-stretch: 1;
-    min-height: 44px;
+    min-height: 56px;
     background: Theme.raised;
     border-radius: Theme.radius-sm;
     border-width: 1px;
     border-color: Theme.hairline;
     HorizontalLayout {
-        padding: 8px;
-        spacing: 8px;
+        spacing: 0;
         Rectangle {
-            width: 26px;
-            height: 26px;
-            y: (parent.height - self.height) / 2;
-            border-radius: 6px;
-            background: Theme.icon-circle;
-            border-width: 1px;
-            border-color: Theme.hairline;
-            Text {
-                text: root.glyph;
-                color: Theme.icon-soft;
-                font-size: 11px;
-                horizontal-alignment: center;
-                vertical-alignment: center;
-            }
+            width: 4px;
+            background: root.ok ? Theme.ok-glow
+                : (root.value == "—" || root.value == "-" || root.value == "" ? Theme.hairline : Theme.copper-dim);
+            border-top-left-radius: Theme.radius-sm;
+            border-bottom-left-radius: Theme.radius-sm;
         }
         VerticalLayout {
-            spacing: 2px;
+            padding: 12px;
+            spacing: 4px;
             alignment: center;
+            horizontal-stretch: 1;
             Text {
                 text: root.caption;
                 color: Theme.faint;
-                font-size: 9px;
-                font-weight: 700;
+                font-size: Theme.font-caption;
+                font-weight: 800;
                 font-family: "Avenir Next";
+                letter-spacing: 0.4px;
             }
             Text {
                 text: root.value;
-                color: root.ok ? Theme.ok-glow : Theme.readout;
-                font-size: 11px;
+                color: root.ok ? Theme.ok-glow
+                    : (root.value == "—" || root.value == "-" || root.value == "" ? Theme.faint : Theme.readout);
+                font-size: Theme.font-mono;
                 font-weight: 600;
                 font-family: "Menlo";
                 overflow: elide;
@@ -366,91 +452,53 @@ component DetailTile inherits Rectangle {
     }
 }
 
-component ActionBtn inherits Rectangle {
-    in-out property <string> glyph: "";
-    in-out property <string> label;
-    in-out property <bool> enabled: true;
-    callback clicked;
-    height: 32px;
-    border-radius: Theme.radius-sm;
-    background: ta.has-hover && root.enabled ? Theme.badge-bg : Theme.raised;
-    border-width: 1px;
-    border-color: Theme.hairline;
-    HorizontalLayout {
-        padding-left: 12px;
-        padding-right: 12px;
-        spacing: 7px;
-        alignment: center;
-        if root.glyph != "": Text {
-            text: root.glyph;
-            color: root.enabled ? Theme.copper : Theme.faint;
-            font-size: 12px;
-            font-weight: 700;
-            vertical-alignment: center;
-        }
-        Text {
-            text: root.label;
-            color: root.enabled ? Theme.readout : Theme.faint;
-            font-size: 11px;
-            font-weight: 700;
-            font-family: "Avenir Next";
-            vertical-alignment: center;
-        }
-    }
-    ta := TouchArea {
-        enabled: root.enabled;
-        mouse-cursor: pointer;
-        clicked => { root.clicked(); }
-    }
-}
-
 component PathField inherits Rectangle {
     in-out property <string> caption;
-    in-out property <string> glyph: "📁";
     in-out property <string> value;
     in-out property <string> placeholder;
     in-out property <bool> enabled: true;
     callback browse-clicked;
     VerticalLayout {
         spacing: 6px;
-        Text {
-            text: root.caption;
-            color: Theme.faint;
-            font-size: 9px;
-            font-weight: 700;
-            font-family: "Avenir Next";
-        }
+        ZoneCaption { caption: root.caption; }
         Rectangle {
-            height: 36px;
+            height: Theme.btn-h;
             border-radius: Theme.radius-sm;
             background: Theme.raised;
             border-width: 1px;
             border-color: Theme.hairline;
             HorizontalLayout {
-                padding-left: 10px;
-                padding-right: 4px;
-                spacing: 6px;
+                padding-left: 12px;
+                padding-right: 6px;
+                spacing: 8px;
                 LineEdit {
                     text <=> root.value;
                     placeholder-text: root.placeholder;
                     enabled: root.enabled;
                     horizontal-stretch: 1;
                     font-family: "Menlo";
-                    font-size: 11px;
+                    font-size: Theme.font-mono;
                 }
                 Rectangle {
-                    width: 32px;
-                    height: 28px;
+                    min-width: 108px;
+                    height: 36px;
                     y: (parent.height - self.height) / 2;
                     border-radius: Theme.radius-sm;
                     background: browse.has-hover && root.enabled ? Theme.unsigned-well : Theme.panel;
                     border-width: 1px;
-                    border-color: Theme.hairline;
-                    Text {
-                        text: root.glyph;
-                        font-size: 13px;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    border-color: browse.has-hover && root.enabled ? Theme.unsigned-border : Theme.hairline;
+                    HorizontalLayout {
+                        padding-left: 14px;
+                        padding-right: 14px;
+                        alignment: center;
+                        Text {
+                            text: Strings.browse;
+                            color: Theme.copper;
+                            font-size: Theme.font-label;
+                            font-weight: 700;
+                            font-family: "Avenir Next";
+                            vertical-alignment: center;
+                        }
                     }
                     browse := TouchArea {
                         enabled: root.enabled;
@@ -469,25 +517,27 @@ component HwStatus inherits Rectangle {
     in-out property <bool> ok: false;
     in-out property <bool> warn: false;
     HorizontalLayout {
-        spacing: 5px;
+        spacing: 8px;
         alignment: center;
         Rectangle {
-            width: 8px;
-            height: 8px;
-            border-radius: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 5px;
             background: root.ok ? Theme.ok-glow : (root.warn ? Theme.copper : Theme.faint);
             y: (parent.height - self.height) / 2;
         }
         Text {
             text: root.glyph;
-            color: root.ok ? Theme.ok-glow : Theme.mute;
-            font-size: 11px;
+            color: root.ok ? Theme.ok-glow : (root.warn ? Theme.copper : Theme.mute);
+            font-size: Theme.font-ui;
+            font-weight: 800;
+            font-family: "Menlo";
             vertical-alignment: center;
         }
         Text {
             text: root.label;
-            color: Theme.mute;
-            font-size: 11px;
+            color: root.ok ? Theme.readout : (root.warn ? Theme.copper : Theme.mute);
+            font-size: Theme.font-mono;
             font-family: "Menlo";
             vertical-alignment: center;
         }
@@ -503,10 +553,19 @@ component EmptyDisksPlaceholder inherits Rectangle {
     border-radius: Theme.radius;
     border-width: 1px;
     border-color: Theme.hairline;
+    HorizontalLayout {
+        spacing: 0;
+        Rectangle {
+            width: 4px;
+            background: Theme.copper-dim;
+            border-top-left-radius: Theme.radius;
+            border-bottom-left-radius: Theme.radius;
+        }
     VerticalLayout {
         padding: Theme.space-lg;
         spacing: 14px;
         alignment: center;
+        horizontal-stretch: 1;
         // Outline illustration: empty disk bay
         Rectangle {
             height: 72px;
@@ -550,7 +609,7 @@ component EmptyDisksPlaceholder inherits Rectangle {
         Text {
             text: Strings.empty-disks-title;
             color: Theme.readout;
-            font-size: 13px;
+            font-size: Theme.font-ui;
             font-weight: 700;
             font-family: "Avenir Next";
             horizontal-alignment: center;
@@ -558,10 +617,11 @@ component EmptyDisksPlaceholder inherits Rectangle {
         Text {
             text: Strings.empty-disks-body;
             color: Theme.mute;
-            font-size: 11px;
+            font-size: Theme.font-body;
             font-family: "Avenir Next";
             horizontal-alignment: center;
         }
+    }
     }
 }
 
@@ -590,11 +650,14 @@ component SourceZone inherits Rectangle {
     border-width: 1px;
     border-color: Theme.hairline;
     border-radius: Theme.radius;
+    drop-shadow-blur: 12px;
+    drop-shadow-color: Theme.card-shadow;
+    drop-shadow-offset-y: 2px;
     VerticalLayout {
-        padding: Theme.space-md;
+        padding: Theme.space-lg;
         spacing: Theme.space-md;
 
-        FieldLabel { caption: Strings.zone-source-caption; }
+        ZoneCaption { caption: Strings.zone-source-caption; }
 
         if root.is-guided: Rectangle {
             background: Theme.unsigned-well;
@@ -614,22 +677,33 @@ component SourceZone inherits Rectangle {
                 Text {
                     text: Strings.prepare-guided-body;
                     color: Theme.readout;
-                    font-size: 11px;
+                    font-size: Theme.font-body;
                     wrap: word-wrap;
                 }
             }
         }
         if root.is-guided: HorizontalLayout {
             spacing: Theme.space-sm;
-            Button { text: Strings.fill-demo; enabled: !root.busy; clicked => { root.fill-synthetic-clicked(); } }
-            Button { text: Strings.use-selected-disk; enabled: !root.busy; clicked => { root.use-first-disk-clicked(); root.wizard-focus = 2; } }
+            PrimaryBtn {
+                label: Strings.fill-demo;
+                enabled: !root.busy;
+                horizontal-stretch: 1;
+                clicked => { root.fill-synthetic-clicked(); }
+            }
+            GhostBtn {
+                label: Strings.use-selected-disk;
+                enabled: !root.busy;
+                horizontal-stretch: 1;
+                clicked => { root.use-first-disk-clicked(); root.wizard-focus = 2; }
+            }
         }
 
         if !root.is-guided: HorizontalLayout {
-            ActionBtn {
-                glyph: "↻";
+            GhostBtn {
                 label: Strings.refresh-disks;
                 enabled: !root.busy;
+                horizontal-stretch: 0;
+                min-width: 160px;
                 clicked => { root.refresh-clicked(); }
             }
             Rectangle { horizontal-stretch: 1; }
@@ -639,46 +713,60 @@ component SourceZone inherits Rectangle {
 
         if !root.is-guided && root.disk-rows.length == 0: HorizontalLayout {
             spacing: Theme.space-sm;
-            ActionBtn { glyph: "📂"; label: Strings.browse; enabled: !root.busy; clicked => { root.browse-source-clicked(); } }
-            ActionBtn { glyph: "◈"; label: Strings.fill-demo; enabled: !root.busy; clicked => { root.fill-synthetic-clicked(); } }
-            Rectangle { horizontal-stretch: 1; }
+            GhostBtn {
+                label: Strings.browse;
+                enabled: !root.busy;
+                horizontal-stretch: 1;
+                min-width: Theme.btn-min-w;
+                clicked => { root.browse-source-clicked(); }
+            }
+            PrimaryBtn {
+                label: Strings.fill-demo;
+                enabled: !root.busy;
+                horizontal-stretch: 2;
+                clicked => { root.fill-synthetic-clicked(); }
+            }
         }
 
         if !root.is-guided && root.disk-rows.length > 0: Rectangle {
-            height: 24px;
+            height: 32px;
             background: Theme.table-head;
             border-radius: Theme.radius-sm;
             HorizontalLayout {
-                padding-left: 10px;
-                spacing: 6px;
-                Text { text: ""; width: 18px; }
-                Text { text: Strings.col-dev; width: 60px; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
-                Text { text: Strings.col-model; horizontal-stretch: 1; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
-                Text { text: Strings.col-size; width: 68px; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
-                Text { text: Strings.col-bus; width: 48px; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
+                padding-left: 12px;
+                spacing: 8px;
+                Text { text: ""; width: 22px; }
+                Text { text: Strings.col-dev; width: 64px; color: Theme.faint; font-size: Theme.font-caption; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
+                Text { text: Strings.col-model; horizontal-stretch: 1; color: Theme.faint; font-size: Theme.font-caption; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
+                Text { text: Strings.col-size; width: 72px; color: Theme.faint; font-size: Theme.font-caption; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
+                Text { text: Strings.col-bus; width: 52px; color: Theme.faint; font-size: Theme.font-caption; font-weight: 700; font-family: "Avenir Next"; vertical-alignment: center; }
             }
         }
         if !root.is-guided && root.disk-rows.length > 0: VerticalLayout {
-            spacing: 2px;
+            spacing: 3px;
             vertical-stretch: 1;
             for row[idx] in root.disk-rows: Rectangle {
-                height: 34px;
+                height: 42px;
                 border-radius: Theme.radius-sm;
                 background: root.selected-disk == idx ? Theme.rail-active : transparent;
+                border-width: root.selected-disk == idx ? 1px : 0;
+                border-color: Theme.unsigned-border;
                 HorizontalLayout {
-                    padding-left: 10px;
-                    spacing: 6px;
+                    padding-left: 12px;
+                    spacing: 8px;
                     Text {
-                        text: root.selected-disk == idx ? "●" : "○";
-                        width: 18px;
+                        text: root.selected-disk == idx ? "*" : "-";
+                        width: 22px;
                         color: Theme.copper;
-                        font-size: 13px;
+                        font-size: Theme.font-ui;
+                        font-weight: 800;
+                        font-family: "Menlo";
                         vertical-alignment: center;
                     }
-                    Text { text: row.device; width: 60px; color: Theme.readout; font-size: 11px; font-family: "Menlo"; vertical-alignment: center; }
-                    Text { text: row.model; horizontal-stretch: 1; color: Theme.readout; font-size: 11px; font-family: "Avenir Next"; vertical-alignment: center; overflow: elide; }
-                    Text { text: row.size; width: 68px; color: Theme.mute; font-size: 11px; font-family: "Menlo"; vertical-alignment: center; }
-                    Text { text: row.bus; width: 48px; color: Theme.mute; font-size: 11px; font-family: "Menlo"; vertical-alignment: center; }
+                    Text { text: row.device; width: 60px; color: Theme.readout; font-size: Theme.font-body; font-family: "Menlo"; vertical-alignment: center; }
+                    Text { text: row.model; horizontal-stretch: 1; color: Theme.readout; font-size: Theme.font-body; font-family: "Avenir Next"; vertical-alignment: center; overflow: elide; }
+                    Text { text: row.size; width: 68px; color: Theme.mute; font-size: Theme.font-body; font-family: "Menlo"; vertical-alignment: center; }
+                    Text { text: row.bus; width: 48px; color: Theme.mute; font-size: Theme.font-body; font-family: "Menlo"; vertical-alignment: center; }
                 }
                 TouchArea {
                     enabled: !root.busy;
@@ -688,30 +776,24 @@ component SourceZone inherits Rectangle {
             }
         }
 
-        Text {
-            text: Strings.device-details;
-            color: Theme.faint;
-            font-size: 9px;
-            font-weight: 700;
-            font-family: "Avenir Next";
-        }
+        ZoneCaption { caption: Strings.device-details; }
         GridLayout {
             spacing: Theme.space-sm;
             Row {
-                DetailTile { glyph: "⏻"; caption: Strings.detail-interface; value: root.detail-interface; }
-                DetailTile { glyph: "☰"; caption: Strings.detail-partitions; value: root.detail-partitions; }
+                DetailTile { caption: Strings.detail-interface; value: root.detail-interface; }
+                DetailTile { caption: Strings.detail-partitions; value: root.detail-partitions; }
             }
             Row {
-                DetailTile { glyph: "#"; caption: Strings.detail-sectors; value: root.detail-sectors; }
-                DetailTile { glyph: "▤"; caption: Strings.detail-type; value: root.detail-type; }
+                DetailTile { caption: Strings.detail-sectors; value: root.detail-sectors; }
+                DetailTile { caption: Strings.detail-type; value: root.detail-type; }
             }
             Row {
-                DetailTile { glyph: "▦"; caption: Strings.detail-sector-size; value: root.detail-sector-size; }
-                DetailTile { glyph: "🔒"; caption: Strings.detail-readonly; value: root.detail-readonly; ok: root.detail-readonly-ok; }
+                DetailTile { caption: Strings.detail-sector-size; value: root.detail-sector-size; }
+                DetailTile { caption: Strings.detail-readonly; value: root.detail-readonly; ok: root.detail-readonly-ok; }
             }
         }
-        if root.blockish-source || root.is-expert: CheckBox {
-            text: Strings.confirm-wb;
+        if root.blockish-source || root.is-expert: LabCheck {
+            label: Strings.confirm-wb;
             checked <=> root.wb-confirmed;
             enabled: !root.busy;
             toggled => { root.wizard-focus = 3; }
@@ -756,35 +838,32 @@ component PrepareZone inherits Rectangle {
     border-width: 1px;
     border-color: Theme.hairline;
     border-radius: Theme.radius;
+    drop-shadow-blur: 12px;
+    drop-shadow-color: Theme.card-shadow;
+    drop-shadow-offset-y: 2px;
     VerticalLayout {
-        padding: Theme.space-md;
+        padding: Theme.space-lg;
         spacing: Theme.space-md;
 
-        FieldLabel { caption: Strings.zone-prepare-caption; }
-        FieldLabel { caption: Strings.operator-mode; }
+        ZoneCaption { caption: Strings.zone-prepare-caption; }
+        ZoneCaption { caption: Strings.operator-mode; }
         // Compact mode switcher
         Rectangle {
-            height: 34px;
+            height: 40px;
             border-radius: Theme.radius-sm;
             background: Theme.raised;
             border-width: 1px;
             border-color: Theme.hairline;
             HorizontalLayout {
-                padding: 2px;
-                spacing: 2px;
+                padding: 3px;
+                spacing: 3px;
                 ModeSeg { label: Strings.mode-guided; active: root.mode-index == 0; locked: root.busy; clicked => { root.mode-index = 0; root.mode-changed(0); } }
                 ModeSeg { label: Strings.mode-standard; active: root.mode-index == 1; locked: root.busy; clicked => { root.mode-index = 1; root.mode-changed(1); } }
                 ModeSeg { label: Strings.mode-expert; active: root.mode-index == 2; locked: root.busy; clicked => { root.mode-index = 2; root.mode-changed(2); } }
             }
         }
 
-        Text {
-            text: Strings.format-label;
-            color: Theme.faint;
-            font-size: 9px;
-            font-weight: 700;
-            font-family: "Avenir Next";
-        }
+        ZoneCaption { caption: Strings.format-label; }
         // Multi-option format selector
         Rectangle {
             border-radius: Theme.radius-sm;
@@ -807,34 +886,38 @@ component PrepareZone inherits Rectangle {
                     spacing: 8px;
                     Text {
                         text: root.format-index == 0 ? Strings.court-path-a : root.format-caption;
-                        color: Theme.faint;
-                        font-size: 10px;
+                        color: root.format-index == 0 ? Theme.copper : Theme.faint;
+                        font-size: Theme.font-caption;
+                        font-weight: root.format-index == 0 ? 700 : 500;
                         font-family: "Avenir Next";
                         vertical-alignment: center;
                         horizontal-stretch: 1;
                     }
                     if !root.is-guided: Rectangle {
-                        height: 26px;
+                        height: 34px;
+                        min-width: 118px;
                         border-radius: Theme.radius-sm;
                         background: root.show-advanced ? Theme.unsigned-well : Theme.panel;
                         border-width: 1px;
                         border-color: root.show-advanced ? Theme.unsigned-border : Theme.hairline;
                         HorizontalLayout {
-                            padding-left: 10px;
-                            padding-right: 10px;
-                            spacing: 5px;
+                            padding-left: 12px;
+                            padding-right: 12px;
+                            spacing: 6px;
                             alignment: center;
                             Text {
-                                text: root.show-advanced ? "▾" : "▸";
+                                text: root.show-advanced ? "v" : ">";
                                 color: Theme.copper;
-                                font-size: 10px;
+                                font-size: Theme.font-label;
+                                font-weight: 800;
+                                font-family: "Menlo";
                                 vertical-alignment: center;
                             }
                             Text {
                                 text: root.show-advanced ? Strings.advanced-hide : Strings.advanced-toggle;
                                 color: Theme.readout;
-                                font-size: 11px;
-                                font-weight: 600;
+                                font-size: Theme.font-ui;
+                                font-weight: 700;
                                 font-family: "Avenir Next";
                                 vertical-alignment: center;
                             }
@@ -854,25 +937,31 @@ component PrepareZone inherits Rectangle {
             Text {
                 text: Strings.experimental-not-applied;
                 color: Theme.mute;
-                font-size: 10px;
+                font-size: Theme.font-caption;
                 font-family: "Avenir Next";
                 wrap: word-wrap;
             }
             HorizontalLayout {
                 spacing: 6px;
-                Text { text: Strings.segment-mib; color: Theme.mute; font-size: 10px; font-family: "Avenir Next"; vertical-alignment: center; }
+                Text { text: Strings.segment-mib; color: Theme.mute; font-size: Theme.font-caption; font-family: "Avenir Next"; vertical-alignment: center; }
                 LineEdit { text <=> root.segment-mib; enabled: !root.busy && root.format-index == 3; horizontal-stretch: 1; }
             }
-            Text { text: Strings.profile-label; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; }
+            ZoneCaption { caption: Strings.profile-label; }
             HorizontalLayout {
                 spacing: 4px;
                 FormatChip { label: Strings.profile-quick; active: root.profile-index == 0; locked: root.busy; clicked => { root.profile-index = 0; root.profile-changed(0); } }
                 FormatChip { label: Strings.profile-standard; active: root.profile-index == 1; locked: root.busy; clicked => { root.profile-index = 1; root.profile-changed(1); } }
                 FormatChip { label: Strings.profile-deep; active: root.profile-index == 2; locked: root.busy; clicked => { root.profile-index = 2; root.profile-changed(2); } }
                 FormatChip { label: Strings.profile-custom; active: root.profile-index == 3; locked: root.busy; clicked => { root.profile-index = 3; root.profile-changed(3); } }
-                Button { text: Strings.run-quick-profile; enabled: !root.busy; clicked => { root.run-profile-clicked(); } }
             }
-            Text { text: Strings.source-kind-label; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; }
+            GhostBtn {
+                label: Strings.run-quick-profile;
+                enabled: !root.busy;
+                horizontal-stretch: 0;
+                min-width: 160px;
+                clicked => { root.run-profile-clicked(); }
+            }
+            ZoneCaption { caption: Strings.source-kind-label; }
             HorizontalLayout {
                 spacing: 4px;
                 FormatChip { label: Strings.kind-disk; active: root.source-kind-index == 0; locked: root.busy; clicked => { root.source-kind-index = 0; root.source-kind-changed(0); } }
@@ -880,23 +969,26 @@ component PrepareZone inherits Rectangle {
                 FormatChip { label: Strings.kind-ram; active: root.source-kind-index == 2; locked: root.busy; clicked => { root.source-kind-index = 2; root.source-kind-changed(2); } }
                 FormatChip { label: Strings.kind-snap; active: root.source-kind-index == 3; locked: root.busy; clicked => { root.source-kind-index = 3; root.source-kind-changed(3); } }
             }
-            Text { text: Strings.retry-label; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; }
+            ZoneCaption { caption: Strings.retry-label; }
             HorizontalLayout {
                 spacing: 4px;
                 FormatChip { label: Strings.retry-skip; active: root.retry-index == 0; locked: root.busy; clicked => { root.retry-index = 0; root.retry-changed(0); } }
                 FormatChip { label: Strings.retry-n; active: root.retry-index == 1; locked: root.busy; clicked => { root.retry-index = 1; root.retry-changed(1); } }
                 FormatChip { label: Strings.retry-fail; active: root.retry-index == 2; locked: root.busy; clicked => { root.retry-index = 2; root.retry-changed(2); } }
             }
-            Text { text: Strings.multisource-label; color: Theme.faint; font-size: 9px; font-weight: 700; font-family: "Avenir Next"; }
-            HorizontalLayout {
-                spacing: 6px;
-                LineEdit { placeholder-text: Strings.multisource-b; text <=> root.multisource-b; enabled: !root.busy; horizontal-stretch: 1; }
-                Button { text: Strings.run-multisource; enabled: !root.busy; clicked => { root.multisource-clicked(); } }
+            ZoneCaption { caption: Strings.multisource-label; }
+            LineEdit { placeholder-text: Strings.multisource-b; text <=> root.multisource-b; enabled: !root.busy; horizontal-stretch: 1; }
+            GhostBtn {
+                label: Strings.run-multisource;
+                enabled: !root.busy;
+                horizontal-stretch: 0;
+                min-width: 160px;
+                clicked => { root.multisource-clicked(); }
             }
         }
 
-        CheckBox {
-            text: Strings.write-sha512;
+        LabCheck {
+            label: Strings.write-sha512;
             checked <=> root.write-sha512;
             enabled: !root.busy;
         }
@@ -905,7 +997,6 @@ component PrepareZone inherits Rectangle {
 
         if root.show-path-editors: PathField {
             caption: Strings.path-source;
-            glyph: "📄";
             value <=> root.source-path;
             placeholder: Strings.source-placeholder;
             enabled: !root.busy;
@@ -913,7 +1004,6 @@ component PrepareZone inherits Rectangle {
         }
         if root.show-path-editors: PathField {
             caption: Strings.path-output;
-            glyph: "📁";
             value <=> root.output-dir;
             placeholder: Strings.output-placeholder;
             enabled: !root.busy;
@@ -925,7 +1015,7 @@ component PrepareZone inherits Rectangle {
             Text {
                 text: Strings.case-verify-label;
                 color: Theme.faint;
-                font-size: 9px;
+                font-size: Theme.font-caption;
                 font-weight: 700;
                 font-family: "Avenir Next";
             }
@@ -944,19 +1034,19 @@ component PrepareZone inherits Rectangle {
                         placeholder-text: root.case-id == "" ? Strings.case-verify-placeholder : root.case-id;
                         horizontal-stretch: 1;
                         font-family: "Menlo";
-                        font-size: 11px;
+                        font-size: Theme.font-body;
                     }
                 }
             }
             if !root.case-verify-ok: Text {
                 text: Strings.case-verify-mismatch;
                 color: Theme.deny;
-                font-size: 10px;
+                font-size: Theme.font-caption;
                 font-weight: 600;
                 font-family: "Avenir Next";
             }
-            CheckBox {
-                text: Strings.confirm-synthetic;
+            LabCheck {
+                label: Strings.confirm-synthetic;
                 checked <=> root.confirmed-synthetic;
                 enabled: !root.busy;
                 toggled => { root.wizard-focus = 4; }
@@ -969,17 +1059,27 @@ component PrepareZone inherits Rectangle {
             border-width: 1px;
             border-color: Theme.unsigned-border;
             HorizontalLayout {
-                padding: 10px;
-                Text { text: Strings.freespace-warn; color: Theme.unsigned-text; font-size: 11px; font-weight: 700; wrap: word-wrap; }
+                spacing: 0;
+                Rectangle { width: 4px; background: Theme.copper; border-top-left-radius: Theme.radius-sm; border-bottom-left-radius: Theme.radius-sm; }
+                HorizontalLayout {
+                    padding: 12px;
+                    Text { text: Strings.freespace-warn; color: Theme.unsigned-text; font-size: Theme.font-body; font-weight: 700; wrap: word-wrap; horizontal-stretch: 1; }
+                }
             }
         }
 
         if root.preflight-is-deny: Rectangle {
             background: Theme.deny-mist;
             border-radius: Theme.radius-sm;
+            border-width: 1px;
+            border-color: #E8C4C4;
             HorizontalLayout {
-                padding: 10px;
-                Text { text: root.preflight-hint; color: Theme.deny; font-size: 11px; font-weight: 700; wrap: word-wrap; }
+                spacing: 0;
+                Rectangle { width: 4px; background: Theme.deny; border-top-left-radius: Theme.radius-sm; border-bottom-left-radius: Theme.radius-sm; }
+                HorizontalLayout {
+                    padding: 12px;
+                    Text { text: root.preflight-hint; color: Theme.deny; font-size: Theme.font-body; font-weight: 700; wrap: word-wrap; horizontal-stretch: 1; }
+                }
             }
         }
     }
@@ -992,10 +1092,19 @@ component PackagePlaceholder inherits Rectangle {
     border-radius: Theme.radius;
     border-width: 1px;
     border-color: Theme.hairline;
+    HorizontalLayout {
+        spacing: 0;
+        Rectangle {
+            width: 4px;
+            background: Theme.copper-dim;
+            border-top-left-radius: Theme.radius;
+            border-bottom-left-radius: Theme.radius;
+        }
     VerticalLayout {
         padding: Theme.space-lg;
         spacing: 12px;
         alignment: center;
+        horizontal-stretch: 1;
         // Package outline icon
         Rectangle {
             width: 52px;
@@ -1026,9 +1135,11 @@ component PackagePlaceholder inherits Rectangle {
                     background: Theme.placeholder-line;
                 }
                 Text {
-                    text: "▣";
+                    text: "PKG";
                     color: Theme.placeholder-line;
-                    font-size: 16px;
+                    font-size: Theme.font-caption;
+                    font-weight: 800;
+                    font-family: "Menlo";
                     horizontal-alignment: center;
                 }
             }
@@ -1036,7 +1147,7 @@ component PackagePlaceholder inherits Rectangle {
         Text {
             text: Strings.seal-empty-title;
             color: Theme.readout;
-            font-size: 12px;
+            font-size: Theme.font-ui;
             font-weight: 700;
             font-family: "Avenir Next";
             horizontal-alignment: center;
@@ -1044,11 +1155,12 @@ component PackagePlaceholder inherits Rectangle {
         Text {
             text: Strings.seal-empty-body;
             color: Theme.mute;
-            font-size: 10px;
+            font-size: Theme.font-body;
             font-family: "Avenir Next";
             horizontal-alignment: center;
             wrap: word-wrap;
         }
+    }
     }
 }
 
@@ -1083,46 +1195,65 @@ component RunZone inherits Rectangle {
     border-width: 1px;
     border-color: Theme.hairline;
     border-radius: Theme.radius;
+    drop-shadow-blur: 12px;
+    drop-shadow-color: Theme.card-shadow;
+    drop-shadow-offset-y: 2px;
     VerticalLayout {
-        padding: Theme.space-md;
+        padding: Theme.space-lg;
         spacing: Theme.space-md;
 
-        FieldLabel { caption: Strings.zone-run-caption; }
+        ZoneCaption { caption: Strings.zone-run-caption; }
 
-        // Warning above START — linked to Case ID requirement
+        // Warning above START — click opens Cases when case ID is missing
         if !root.busy && !root.show-post-run && root.start-reason != "": Rectangle {
             background: Theme.deny-mist;
             border-radius: Theme.radius-sm;
             border-width: 1px;
             border-color: #E8C4C4;
             HorizontalLayout {
-                padding: 10px;
-                spacing: 8px;
+                padding: 14px;
+                spacing: 10px;
                 Text {
-                    text: "⚠";
+                    text: "!";
                     color: Theme.deny;
-                    font-size: 13px;
+                    font-size: 18px;
                     font-weight: 800;
+                    font-family: "Menlo";
                     vertical-alignment: center;
                 }
                 Text {
                     text: root.start-reason;
                     color: Theme.deny;
-                    font-size: 11px;
+                    font-size: Theme.font-ui;
                     font-weight: 700;
                     font-family: "Avenir Next";
                     wrap: word-wrap;
                     vertical-alignment: center;
                     horizontal-stretch: 1;
                 }
+                Text {
+                    text: "→";
+                    color: Theme.deny;
+                    font-size: Theme.font-ui;
+                    font-weight: 800;
+                    font-family: "Menlo";
+                    vertical-alignment: center;
+                }
+            }
+            TouchArea {
+                mouse-cursor: pointer;
+                clicked => { root.nav-index = 1; }
             }
         }
 
         if !root.busy && !root.show-post-run: Rectangle {
-            height: 48px;
+            height: 56px;
             border-radius: Theme.radius-lg;
-            background: !root.can-run ? Theme.primary-disabled
-                : (cta.has-hover ? Theme.copper-hover : Theme.copper-deep);
+            background: root.can-run
+                ? (cta.has-hover ? Theme.copper-hover : Theme.copper-deep)
+                : Theme.raised;
+            border-width: root.can-run ? 0 : 1px;
+            border-color: Theme.hairline;
             drop-shadow-blur: root.can-run ? 8px : 0px;
             drop-shadow-color: #AF622E33;
             drop-shadow-offset-y: root.can-run ? 2px : 0px;
@@ -1131,7 +1262,7 @@ component RunZone inherits Rectangle {
                 Text {
                     text: Strings.start-acquire;
                     color: root.can-run ? Theme.on-copper : Theme.mute;
-                    font-size: 14px;
+                    font-size: 16px;
                     font-weight: 800;
                     font-family: "Avenir Next";
                     letter-spacing: 0.5px;
@@ -1144,51 +1275,58 @@ component RunZone inherits Rectangle {
                 clicked => { root.wizard-focus = 5; root.run-clicked(); }
             }
         }
-        if !root.busy && !root.show-post-run && root.is-guided: ActionBtn {
-            glyph: "◈";
-            label: Strings.fill-demo;
-            enabled: !root.busy;
-            clicked => { root.fill-synthetic-clicked(); }
-        }
-
         if root.busy: Text {
             text: root.progress-phase + " · " + root.progress-label;
             color: Theme.readout;
-            font-size: 11px;
+            font-size: Theme.font-body;
             font-weight: 600;
             font-family: "Avenir Next";
         }
         if root.busy: Rectangle {
-            height: 8px;
-            border-radius: 4px;
+            height: 12px;
+            border-radius: 6px;
             background: Theme.raised;
+            border-width: 1px;
+            border-color: Theme.hairline;
             Rectangle {
                 x: 0;
                 y: 0;
                 height: 100%;
                 width: parent.width * root.progress-fraction;
                 background: Theme.copper;
-                border-radius: 4px;
+                border-radius: 6px;
             }
         }
         if root.busy: CoverageBar { ok-frac: root.coverage-ok; err-frac: root.coverage-err; }
         if root.busy: HorizontalLayout {
-            Text { text: root.throughput-label; color: Theme.mute; font-size: 10px; font-family: "Menlo"; horizontal-stretch: 1; }
-            Text { text: root.eta-label; color: Theme.mute; font-size: 10px; font-family: "Menlo"; }
+            Text { text: root.throughput-label; color: Theme.mute; font-size: Theme.font-caption; font-family: "Menlo"; horizontal-stretch: 1; }
+            Text { text: root.eta-label; color: Theme.mute; font-size: Theme.font-caption; font-family: "Menlo"; }
         }
         if root.busy: HorizontalLayout {
             spacing: Theme.space-sm;
-            GhostBtn { label: Strings.pause-acquire; clicked => { root.pause-clicked(); } }
-            GhostBtn { label: Strings.cancel; clicked => { root.cancel-clicked(); } }
+            GhostBtn {
+                label: Strings.pause-acquire;
+                horizontal-stretch: 1;
+                clicked => { root.pause-clicked(); }
+            }
+            GhostBtn {
+                label: Strings.cancel;
+                horizontal-stretch: 1;
+                clicked => { root.cancel-clicked(); }
+            }
         }
 
-        Text {
-            text: Strings.evidence-seal;
+        if !root.busy && !root.show-post-run: Text {
+            text: Strings.run-ready-hint;
             color: Theme.faint;
-            font-size: 9px;
-            font-weight: 700;
+            font-size: Theme.font-caption;
             font-family: "Avenir Next";
+            wrap: word-wrap;
         }
+
+        Rectangle { vertical-stretch: 1; min-height: 8px; }
+
+        ZoneCaption { caption: Strings.evidence-seal; }
 
         if root.show-post-run: Rectangle {
             background: Theme.seal-ok;
@@ -1199,22 +1337,38 @@ component RunZone inherits Rectangle {
                 padding: Theme.space-md;
                 spacing: Theme.space-sm;
                 Text { text: Strings.verified; color: Theme.ok-glow; font-size: 12px; font-weight: 800; font-family: "Avenir Next"; }
-                Text { text: Strings.package + ": " + root.last-package; color: Theme.mute; font-size: 10px; font-family: "Menlo"; wrap: word-wrap; }
-                Text { text: Strings.sha-label + ": " + root.evidence-sha256; color: Theme.mute; font-size: 10px; font-family: "Menlo"; wrap: word-wrap; }
+                Text { text: Strings.package + ": " + root.last-package; color: Theme.mute; font-size: Theme.font-caption; font-family: "Menlo"; wrap: word-wrap; }
+                Text { text: Strings.sha-label + ": " + root.evidence-sha256; color: Theme.mute; font-size: Theme.font-caption; font-family: "Menlo"; wrap: word-wrap; }
                 if root.evidence-sha512 != "(none)" && root.evidence-sha512 != "": Text {
                     text: Strings.sha512-label + ": " + root.evidence-sha512;
-                    color: Theme.mute; font-size: 10px; font-family: "Menlo"; wrap: word-wrap;
+                    color: Theme.mute; font-size: Theme.font-caption; font-family: "Menlo"; wrap: word-wrap;
                 }
-                Text { text: Strings.size + ": " + root.evidence-size; color: Theme.mute; font-size: 10px; font-family: "Menlo"; }
+                Text { text: Strings.size + ": " + root.evidence-size; color: Theme.mute; font-size: Theme.font-caption; font-family: "Menlo"; }
                 HorizontalLayout {
                     spacing: Theme.space-sm;
-                    Button { text: Strings.run-verify; clicked => { root.nav-index = 4; root.verify-package-clicked(); } }
-                    Button { text: Strings.export-coc; clicked => { root.export-coc-clicked(); } }
+                    PrimaryBtn {
+                        label: Strings.run-verify;
+                        horizontal-stretch: 1;
+                        clicked => { root.nav-index = 4; root.verify-package-clicked(); }
+                    }
+                    GhostBtn {
+                        label: Strings.export-coc;
+                        horizontal-stretch: 1;
+                        clicked => { root.export-coc-clicked(); }
+                    }
                 }
                 HorizontalLayout {
                     spacing: Theme.space-sm;
-                    Button { text: Strings.nav-triage; clicked => { root.nav-index = 3; } }
-                    Button { text: Strings.clear; clicked => { root.clear-clicked(); } }
+                    GhostBtn {
+                        label: Strings.nav-triage;
+                        horizontal-stretch: 1;
+                        clicked => { root.nav-index = 3; }
+                    }
+                    GhostBtn {
+                        label: Strings.clear;
+                        horizontal-stretch: 1;
+                        clicked => { root.clear-clicked(); }
+                    }
                 }
             }
         }
@@ -1227,8 +1381,8 @@ component RunZone inherits Rectangle {
 
 export component AppWindow inherits Window {
     title: "Trareon Acquire";
-    preferred-width: 1280px;
-    preferred-height: 860px;
+    preferred-width: 1320px;
+    preferred-height: 900px;
     min-width: Theme.window-min-w;
     min-height: Theme.window-min-h;
     background: Theme.void;
@@ -1360,15 +1514,15 @@ export component AppWindow inherits Window {
     property <bool> can-run: root.is-guided ? root.can-start-guided : root.can-start-std;
     property <bool> show-post-run: root.has-package && !root.busy;
     property <string> start-reason:
-        root.busy ? "Acquisition running…"
+        root.busy ? Strings.reason-busy
         : root.preflight-is-deny ? root.preflight-hint
-        : (!root.is-guided && root.case-id == "") ? "Set a case ID (Cases) before start"
-        : !root.case-verify-ok ? "Case verify must match case ID"
-        : root.source-path == "" ? "Select a source disk or path"
-        : root.output-dir == "" ? "Set an output directory"
-        : !root.confirmed-synthetic ? "Confirm source and destination"
-        : (root.blockish-source && !root.step-wb-done) ? "Confirm write-blocker (step WB)"
-        : root.identify-gate ? "Complete Identify checklist (or emergency override)"
+        : (!root.is-guided && root.case-id == "") ? Strings.reason-case
+        : !root.case-verify-ok ? Strings.reason-verify
+        : root.source-path == "" ? Strings.reason-source
+        : root.output-dir == "" ? Strings.reason-output
+        : !root.confirmed-synthetic ? Strings.reason-confirm
+        : (root.blockish-source && !root.step-wb-done) ? Strings.reason-wb
+        : root.identify-gate ? Strings.reason-identify
         : "";
     property <string> integrity-status:
         root.busy ? Strings.integrity-running
@@ -1454,9 +1608,10 @@ export component AppWindow inherits Window {
                 Text {
                     text: Strings.disclosure-banner;
                     color: Theme.unsigned-text;
-                    font-size: 11px;
+                    font-size: Theme.font-body;
                     font-weight: 700;
                     font-family: "Avenir Next";
+                    letter-spacing: 0.2px;
                     vertical-alignment: center;
                     horizontal-stretch: 1;
                 }
@@ -1476,55 +1631,64 @@ export component AppWindow inherits Window {
                 alignment: start;
                 // Brand
                 Rectangle {
-                    width: 30px;
-                    height: 30px;
-                    border-radius: 6px;
+                    width: 34px;
+                    height: 34px;
+                    border-radius: 7px;
                     background: Theme.copper;
-                    Text { text: "T"; color: white; font-size: 15px; font-weight: 800; font-family: "Avenir Next"; horizontal-alignment: center; vertical-alignment: center; }
+                    Text { text: "T"; color: Theme.on-copper; font-size: 16px; font-weight: 800; font-family: "Avenir Next"; horizontal-alignment: center; vertical-alignment: center; }
                 }
                 Text {
                     text: "TRAREON";
                     color: Theme.readout;
-                    font-size: 12px;
+                    font-size: Theme.font-ui;
                     font-weight: 800;
                     font-family: "Avenir Next";
+                    letter-spacing: 0.6px;
                     vertical-alignment: center;
                 }
-                Text { text: "|"; color: Theme.hairline; font-size: 14px; vertical-alignment: center; }
+                Text { text: "|"; color: Theme.hairline; font-size: Theme.font-ui; vertical-alignment: center; }
                 Text {
                     text: "ACQUIRE";
                     color: Theme.copper;
-                    font-size: 12px;
+                    font-size: Theme.font-ui;
                     font-weight: 800;
                     font-family: "Avenir Next";
                     vertical-alignment: center;
                 }
-                Text { text: "|"; color: Theme.hairline; font-size: 14px; vertical-alignment: center; }
+                Text { text: "|"; color: Theme.hairline; font-size: Theme.font-ui; vertical-alignment: center; }
                 // Case chip
                 Rectangle {
-                    height: 28px;
-                    min-width: 100px;
+                    height: 36px;
+                    min-width: 128px;
                     border-radius: Theme.radius-sm;
-                    background: Theme.raised;
+                    background: root.case-id == "" ? Theme.unsigned-well : Theme.raised;
                     border-width: 1px;
-                    border-color: Theme.hairline;
+                    border-color: root.case-id == "" ? Theme.copper : Theme.hairline;
                     HorizontalLayout {
-                        padding-left: 8px;
-                        padding-right: 8px;
+                        padding-left: 10px;
+                        padding-right: 10px;
                         spacing: 5px;
                         alignment: center;
-                        Text {
-                            text: Strings.chip-case + ":";
-                            color: Theme.faint;
-                            font-size: 10px;
+                        if root.case-id == "": Text {
+                            text: Strings.create-case;
+                            color: Theme.copper;
+                            font-size: Theme.font-body;
                             font-weight: 700;
                             font-family: "Avenir Next";
                             vertical-alignment: center;
                         }
-                        Text {
-                            text: root.case-id == "" ? "—" : root.case-id;
+                        if root.case-id != "": Text {
+                            text: Strings.chip-case + ":";
+                            color: Theme.faint;
+                            font-size: Theme.font-caption;
+                            font-weight: 700;
+                            font-family: "Avenir Next";
+                            vertical-alignment: center;
+                        }
+                        if root.case-id != "": Text {
+                            text: root.case-id;
                             color: Theme.readout;
-                            font-size: 11px;
+                            font-size: Theme.font-body;
                             font-weight: 700;
                             font-family: "Menlo";
                             vertical-alignment: center;
@@ -1536,67 +1700,68 @@ export component AppWindow inherits Window {
                     }
                 }
                 // Search
-                LineEdit {
-                    placeholder-text: Strings.search-placeholder;
-                    text <=> root.search-query;
+                Rectangle {
+                    height: 36px;
                     min-width: root.is-compact ? 120px : 220px;
                     horizontal-stretch: 1;
-                    accepted => { root.search-submitted(); }
-                }
-                // EN | ID
-                LocaleChip { label: Strings.lang-en; active: root.locale == "en"; clicked => { root.locale = "en"; root.locale-toggled("en"); } }
-                LocaleChip { label: Strings.lang-id; active: root.locale == "id"; clicked => { root.locale = "id"; root.locale-toggled("id"); } }
-                // Mode readout (moved from status bar)
-                Rectangle {
-                    height: 26px;
                     border-radius: Theme.radius-sm;
                     background: Theme.raised;
                     border-width: 1px;
                     border-color: Theme.hairline;
                     HorizontalLayout {
-                        padding-left: 8px;
-                        padding-right: 8px;
-                        spacing: 5px;
+                        padding-left: 10px;
+                        padding-right: 10px;
+                        spacing: 8px;
                         Text {
-                            text: Strings.mode-in-header + ":";
+                            text: "/";
                             color: Theme.faint;
-                            font-size: 10px;
-                            font-weight: 700;
-                            font-family: "Avenir Next";
-                            vertical-alignment: center;
-                        }
-                        Text {
-                            text: root.status-mode-text;
-                            color: Theme.readout;
-                            font-size: 11px;
-                            font-weight: 700;
+                            font-size: Theme.font-label;
+                            font-weight: 800;
                             font-family: "Menlo";
                             vertical-alignment: center;
                         }
+                        LineEdit {
+                            placeholder-text: Strings.search-placeholder;
+                            text <=> root.search-query;
+                            horizontal-stretch: 1;
+                            accepted => { root.search-submitted(); }
+                        }
                     }
                 }
-                // Session time (moved from status bar)
+                // EN | ID
+                HorizontalLayout {
+                    spacing: 6px;
+                    LocaleChip { label: Strings.lang-en; active: root.locale == "en"; clicked => { root.locale = "en"; root.locale-toggled("en"); } }
+                    LocaleChip { label: Strings.lang-id; active: root.locale == "id"; clicked => { root.locale = "id"; root.locale-toggled("id"); } }
+                }
+                // Session time
                 Text {
                     text: root.footer-time;
                     color: Theme.faint;
-                    font-size: 10px;
+                    font-size: Theme.font-caption;
                     font-family: "Menlo";
                     vertical-alignment: center;
                 }
                 // Theme toggle
                 Rectangle {
-                    width: 34px;
-                    height: 26px;
+                    min-width: 64px;
+                    height: 34px;
                     border-radius: Theme.radius-sm;
                     background: Theme.raised;
                     border-width: 1px;
                     border-color: Theme.hairline;
-                    Text {
-                        text: root.dark-mode ? "☾" : "☀";
-                        color: Theme.readout;
-                        font-size: 14px;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    HorizontalLayout {
+                        padding-left: 12px;
+                        padding-right: 12px;
+                        alignment: center;
+                        Text {
+                            text: root.dark-mode ? Strings.theme-dark : Strings.theme-light;
+                            color: Theme.readout;
+                            font-size: Theme.font-label;
+                            font-weight: 700;
+                            font-family: "Avenir Next";
+                            vertical-alignment: center;
+                        }
                     }
                     TouchArea {
                         mouse-cursor: pointer;
@@ -1617,59 +1782,62 @@ export component AppWindow inherits Window {
                 border-color: Theme.hairline;
                 border-width: 1px;
                 VerticalLayout {
-                    padding-left: root.is-compact ? 6px : 12px;
-                    padding-right: root.is-compact ? 6px : 12px;
-                    padding-top: 14px;
-                    padding-bottom: 14px;
-                    spacing: 4px;
+                    padding-left: root.is-compact ? 8px : 14px;
+                    padding-right: root.is-compact ? 8px : 14px;
+                    padding-top: 16px;
+                    padding-bottom: 16px;
+                    spacing: 6px;
                     if !root.is-compact: HorizontalLayout {
                         padding-left: 4px;
-                        padding-bottom: 2px;
+                        padding-bottom: 4px;
                         Text {
                             text: Strings.rail-workflow;
                             color: Theme.faint;
-                            font-size: 9px;
-                            font-weight: 700;
+                            font-size: Theme.font-caption;
+                            font-weight: 800;
                             font-family: "Avenir Next";
+                            letter-spacing: 0.8px;
                         }
                     }
-                    NavItem { glyph: "◫"; label: Strings.nav-cases; compact: root.is-compact; active: root.nav-index == 1; enabled: !root.busy; clicked => { root.nav-index = 1; } }
-                    NavItem { glyph: "◎"; label: Strings.nav-identify; compact: root.is-compact; active: root.nav-index == 2; enabled: !root.busy; clicked => { root.nav-index = 2; } }
-                    NavItem { glyph: "⬇"; label: Strings.nav-acquire; compact: root.is-compact; active: root.nav-index == 0; enabled: !root.busy; clicked => { root.nav-index = 0; } }
-                    NavItem { glyph: "▤"; label: Strings.nav-triage; compact: root.is-compact; active: root.nav-index == 3; enabled: !root.busy; clicked => { root.nav-index = 3; } }
+                    NavItem { kind: "cases"; label: Strings.nav-cases; compact: root.is-compact; active: root.nav-index == 1; enabled: !root.busy; clicked => { root.nav-index = 1; } }
+                    NavItem { kind: "identify"; label: Strings.nav-identify; compact: root.is-compact; active: root.nav-index == 2; enabled: !root.busy; clicked => { root.nav-index = 2; } }
+                    NavItem { kind: "acquire"; label: Strings.nav-acquire; compact: root.is-compact; active: root.nav-index == 0; enabled: !root.busy; clicked => { root.nav-index = 0; } }
+                    NavItem { kind: "triage"; label: Strings.nav-triage; compact: root.is-compact; active: root.nav-index == 3; enabled: !root.busy; clicked => { root.nav-index = 3; } }
                     Rectangle { height: 8px; }
                     Rectangle { height: 1px; background: Theme.hairline; }
                     Rectangle { height: 6px; }
                     if !root.is-compact: HorizontalLayout {
                         padding-left: 4px;
-                        padding-bottom: 2px;
+                        padding-bottom: 4px;
                         Text {
                             text: Strings.rail-lab;
                             color: Theme.faint;
-                            font-size: 9px;
-                            font-weight: 700;
+                            font-size: Theme.font-caption;
+                            font-weight: 800;
                             font-family: "Avenir Next";
+                            letter-spacing: 0.8px;
                         }
                     }
-                    NavItem { glyph: "⚒"; label: Strings.nav-tools; compact: root.is-compact; active: root.nav-index == 4; enabled: !root.busy; clicked => { root.nav-index = 4; } }
-                    NavItem { glyph: "◇"; label: Strings.nav-qms; compact: root.is-compact; active: root.nav-index == 5; enabled: !root.busy; clicked => { root.nav-index = 5; } }
-                    NavItem { glyph: "▣"; label: Strings.nav-boot; compact: root.is-compact; active: root.nav-index == 6; enabled: !root.busy; clicked => { root.nav-index = 6; } }
+                    NavItem { kind: "tools"; label: Strings.nav-tools; compact: root.is-compact; active: root.nav-index == 4; enabled: !root.busy; clicked => { root.nav-index = 4; } }
+                    NavItem { kind: "qms"; label: Strings.nav-qms; compact: root.is-compact; active: root.nav-index == 5; enabled: !root.busy; clicked => { root.nav-index = 5; } }
+                    NavItem { kind: "boot"; label: Strings.nav-boot; compact: root.is-compact; active: root.nav-index == 6; enabled: !root.busy; clicked => { root.nav-index = 6; } }
                     Rectangle { height: 8px; }
                     Rectangle { height: 1px; background: Theme.hairline; }
                     Rectangle { height: 6px; }
                     if !root.is-compact: HorizontalLayout {
                         padding-left: 4px;
-                        padding-bottom: 2px;
+                        padding-bottom: 4px;
                         Text {
                             text: Strings.rail-support;
                             color: Theme.faint;
-                            font-size: 9px;
-                            font-weight: 700;
+                            font-size: Theme.font-caption;
+                            font-weight: 800;
                             font-family: "Avenir Next";
+                            letter-spacing: 0.8px;
                         }
                     }
-                    NavItem { glyph: "?"; label: Strings.nav-help; compact: root.is-compact; active: root.nav-index == 7; clicked => { root.nav-index = 7; } }
-                    NavItem { glyph: "i"; label: Strings.nav-about; compact: root.is-compact; active: root.nav-index == 8; clicked => { root.nav-index = 8; } }
+                    NavItem { kind: "help"; label: Strings.nav-help; compact: root.is-compact; active: root.nav-index == 7; clicked => { root.nav-index = 7; } }
+                    NavItem { kind: "about"; label: Strings.nav-about; compact: root.is-compact; active: root.nav-index == 8; clicked => { root.nav-index = 8; } }
                     Rectangle { vertical-stretch: 1; }
                 }
             }
@@ -1689,7 +1857,8 @@ export component AppWindow inherits Window {
                         alignment: start;
                         SafetyChip {
                             caption: Strings.chip-case;
-                            value: root.case-id == "" ? "—" : root.case-id;
+                            value: root.case-id == "" ? Strings.create-case : root.case-id;
+                            warn: root.case-id == "";
                             clickable: !root.busy;
                             clicked => { if !root.busy { root.nav-index = 1; } }
                         }
@@ -1713,15 +1882,15 @@ export component AppWindow inherits Window {
                         Rectangle { horizontal-stretch: 1; }
                         // Compact stage tabs with icons
                         Rectangle {
-                            height: 34px;
+                            height: 40px;
                             border-radius: Theme.radius-sm;
                             background: Theme.stage-track;
                             HorizontalLayout {
-                                padding: 2px;
-                                spacing: 2px;
-                                StageTab { glyph: "①"; label: Strings.stage-prepare; done: root.stage-current >= 1; current: root.stage-current == 1; }
-                                StageTab { glyph: "②"; label: Strings.stage-acquire; done: root.stage-current >= 2; current: root.stage-current == 2; }
-                                StageTab { glyph: "③"; label: Strings.stage-seal; done: root.stage-current >= 3; current: root.stage-current == 3; }
+                                padding: 3px;
+                                spacing: 3px;
+                                StageTab { glyph: "1"; label: Strings.stage-prepare; done: root.stage-current >= 1; current: root.stage-current == 1; }
+                                StageTab { glyph: "2"; label: Strings.stage-acquire; done: root.stage-current >= 2; current: root.stage-current == 2; }
+                                StageTab { glyph: "3"; label: Strings.stage-seal; done: root.stage-current >= 3; current: root.stage-current == 3; }
                             }
                         }
                     }
@@ -1729,24 +1898,37 @@ export component AppWindow inherits Window {
 
                 // Identify-gate banner
                 if root.identify-gate: Rectangle {
-                    height: 34px;
+                    height: 52px;
                     background: Theme.unsigned-well;
                     border-color: Theme.unsigned-border;
                     border-width: 1px;
                     HorizontalLayout {
-                        padding-left: 12px;
-                        padding-right: 12px;
-                        spacing: 10px;
-                        alignment: start;
-                        Text {
-                            text: Strings.identify-gate-banner;
-                            color: Theme.unsigned-text;
-                            font-size: 11px;
-                            font-weight: 700;
-                            vertical-alignment: center;
-                            horizontal-stretch: 1;
+                        spacing: 0;
+                        Rectangle {
+                            width: 4px;
+                            background: Theme.copper;
                         }
-                        Button { text: Strings.open-identify; clicked => { root.nav-index = 2; } }
+                        HorizontalLayout {
+                            padding-left: 14px;
+                            padding-right: 14px;
+                            spacing: 12px;
+                            alignment: start;
+                            horizontal-stretch: 1;
+                            Text {
+                                text: Strings.identify-gate-banner;
+                                color: Theme.unsigned-text;
+                                font-size: Theme.font-ui;
+                                font-weight: 700;
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
+                            GhostBtn {
+                                label: Strings.open-identify;
+                                horizontal-stretch: 0;
+                                min-width: 140px;
+                                clicked => { root.nav-index = 2; }
+                            }
+                        }
                     }
                 }
 
@@ -1980,7 +2162,7 @@ export component AppWindow inherits Window {
                             PageHeader { title: Strings.shell-cases-title; body: Strings.shell-cases-body; }
                             if root.case-id != "": HorizontalLayout {
                                 spacing: 8px;
-                                FieldLabel { caption: Strings.active-case; }
+                                ZoneCaption { caption: Strings.active-case; }
                                 StatusBadge { label: root.case-id; warn: true; }
                                 Rectangle { horizontal-stretch: 1; }
                             }
@@ -1989,35 +2171,34 @@ export component AppWindow inherits Window {
                                 Rectangle {
                                     horizontal-stretch: 3;
                                     background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                     VerticalLayout {
-                                        padding: 14px; spacing: 8px;
+                                        padding: Theme.space-lg; spacing: 8px;
                                         HorizontalLayout {
-                                            FieldLabel { caption: Strings.case-list; }
+                                            ZoneCaption { caption: Strings.case-list; }
                                             Rectangle { horizontal-stretch: 1; }
                                             GhostBtn {
                                                 label: root.case-sort-by-id ? Strings.sort-id : Strings.sort-updated;
+                                                horizontal-stretch: 0;
+                                                min-width: 140px;
                                                 clicked => { root.case-sort-by-id = !root.case-sort-by-id; root.refresh-case-rows(); }
                                             }
                                         }
-                                        HorizontalLayout {
-                                            spacing: 8px;
-                                            LineEdit {
-                                                placeholder-text: Strings.filter-cases;
-                                                text <=> root.case-filter;
-                                                horizontal-stretch: 1;
-                                                accepted => { root.refresh-case-rows(); }
-                                            }
-                                            GhostBtn { label: Strings.refresh-cases; clicked => { root.refresh-case-rows(); } }
+                                        LineEdit {
+                                            placeholder-text: Strings.filter-cases;
+                                            text <=> root.case-filter;
+                                            horizontal-stretch: 1;
+                                            accepted => { root.refresh-case-rows(); }
                                         }
                                         if root.case-rows.length == 0: EmptyHint { title: Strings.cases-empty-title; body: Strings.cases-empty-body; }
                                         if root.case-rows.length > 0: Rectangle {
-                                            height: 24px; background: Theme.table-head; border-radius: Theme.radius-sm;
+                                            height: 40px; background: Theme.table-head; border-radius: Theme.radius-sm;
                                             HorizontalLayout {
-                                                padding-left: 10px; spacing: 8px;
-                                                Text { text: Strings.col-id; width: 140px; color: Theme.faint; font-size: 9px; font-weight: 700; vertical-alignment: center; }
-                                                Text { text: Strings.col-title; horizontal-stretch: 1; color: Theme.faint; font-size: 9px; font-weight: 700; vertical-alignment: center; }
-                                                Text { text: Strings.col-examiner; width: 90px; color: Theme.faint; font-size: 9px; font-weight: 700; vertical-alignment: center; }
-                                                Text { text: Strings.col-state; width: 72px; color: Theme.faint; font-size: 9px; font-weight: 700; vertical-alignment: center; }
+                                                padding-left: 12px; spacing: 10px;
+                                                Text { text: Strings.col-id; width: 140px; color: Theme.faint; font-size: Theme.font-label; font-weight: 700; vertical-alignment: center; }
+                                                Text { text: Strings.col-title; horizontal-stretch: 1; color: Theme.faint; font-size: Theme.font-label; font-weight: 700; vertical-alignment: center; }
+                                                Text { text: Strings.col-examiner; width: 100px; color: Theme.faint; font-size: Theme.font-label; font-weight: 700; vertical-alignment: center; }
+                                                Text { text: Strings.col-state; width: 80px; color: Theme.faint; font-size: Theme.font-label; font-weight: 700; vertical-alignment: center; }
                                             }
                                         }
                                         for row[idx] in root.case-rows: CaseRow {
@@ -2043,9 +2224,10 @@ export component AppWindow inherits Window {
                                 Rectangle {
                                     horizontal-stretch: 2;
                                     background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                     VerticalLayout {
-                                        padding: 14px; spacing: 10px;
-                                        FieldLabel { caption: Strings.create-case-heading; }
+                                        padding: Theme.space-lg; spacing: 10px;
+                                        ZoneCaption { caption: Strings.create-case-heading; }
                                         LineEdit { placeholder-text: Strings.case-title-ph; text <=> root.case-title; }
                                         LineEdit { placeholder-text: Strings.examiner-ph; text <=> root.case-identity; }
                                         PrimaryBtn { label: Strings.create-case; clicked => { root.create-case-clicked(); } }
@@ -2068,16 +2250,23 @@ export component AppWindow inherits Window {
                                 Rectangle {
                                     horizontal-stretch: 3;
                                     background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                     VerticalLayout {
-                                        padding: 14px; spacing: 8px;
-                                        FieldLabel { caption: Strings.checklist-heading; }
-                                        Text { text: Strings.chip-case + ": " + (root.case-id == "" ? "—" : root.case-id); color: Theme.readout; font-size: 13px; font-weight: 700; font-family: "Avenir Next"; }
+                                        padding: Theme.space-lg; spacing: 8px;
+                                        ZoneCaption { caption: Strings.checklist-heading; }
+                                        Text {
+                                            text: Strings.chip-case + ": " + (root.case-id == "" ? "—" : root.case-id);
+                                            color: root.case-id == "" ? Theme.faint : Theme.readout;
+                                            font-size: Theme.font-ui;
+                                            font-weight: 700;
+                                            font-family: "Avenir Next";
+                                        }
                                         CheckRow { label: Strings.id-power; hint: Strings.id-power-hint; checked <=> root.id-power; }
                                         CheckRow { label: Strings.id-network; hint: Strings.id-network-hint; checked <=> root.id-network; }
                                         CheckRow { label: Strings.id-encryption; hint: Strings.id-encryption-hint; checked <=> root.id-encryption; }
                                         CheckRow { label: Strings.id-anti; hint: Strings.id-anti-hint; checked <=> root.id-anti; }
                                         CheckRow { label: Strings.id-oov; hint: Strings.id-oov-hint; checked <=> root.id-oov; }
-                                        FieldLabel { caption: Strings.emergency-override-label; }
+                                        ZoneCaption { caption: Strings.emergency-override-label; }
                                         LineEdit { placeholder-text: Strings.emergency-override-ph; text <=> root.emergency-override; }
                                         HorizontalLayout {
                                             spacing: 8px;
@@ -2091,10 +2280,11 @@ export component AppWindow inherits Window {
                                 Rectangle {
                                     horizontal-stretch: 2;
                                     background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                     VerticalLayout {
-                                        padding: 14px; spacing: 10px;
-                                        FieldLabel { caption: Strings.why-matters-title; }
-                                        Text { text: Strings.why-matters-body; color: Theme.readout; font-size: 12px; wrap: word-wrap; }
+                                        padding: Theme.space-lg; spacing: 10px;
+                                        ZoneCaption { caption: Strings.why-matters-title; }
+                                        Text { text: Strings.why-matters-body; color: Theme.readout; font-size: Theme.font-body; font-family: "Avenir Next"; wrap: word-wrap; }
                                     }
                                 }
                             }
@@ -2107,11 +2297,17 @@ export component AppWindow inherits Window {
                             padding: Theme.page-pad;
                             spacing: 14px;
                             PageHeader { title: Strings.shell-triage-title; body: Strings.shell-triage-body; }
-                            PrimaryBtn { label: Strings.run-triage; clicked => { root.run-triage-clicked(); } }
+                            PrimaryBtn {
+                                label: Strings.run-triage;
+                                horizontal-stretch: 0;
+                                min-width: 200px;
+                                clicked => { root.run-triage-clicked(); }
+                            }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                 VerticalLayout {
-                                    padding: 14px; spacing: 6px;
+                                    padding: Theme.space-lg; spacing: 6px;
                                     if root.log-rows.length == 0: EmptyHint { title: Strings.triage-empty; body: root.panel-detail; }
                                     for line in root.log-rows: LogLineRow { level: line.level; text: line.text; }
                                 }
@@ -2130,10 +2326,11 @@ export component AppWindow inherits Window {
                                 Rectangle {
                                     horizontal-stretch: 3;
                                     background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                     VerticalLayout {
-                                        padding: 14px; spacing: 8px;
+                                        padding: Theme.space-lg; spacing: 8px;
                                         HorizontalLayout {
-                                            FieldLabel { caption: Strings.last-package; }
+                                            ZoneCaption { caption: Strings.last-package; }
                                             Rectangle { horizontal-stretch: 1; }
                                             StatusBadge {
                                                 label: root.has-package ? Strings.sealed-label : Strings.unsealed-label;
@@ -2146,26 +2343,26 @@ export component AppWindow inherits Window {
                                         if root.has-package: MetaRow { caption: "SHA-256"; value: root.evidence-sha256; copyable: true; copy-clicked => { root.copy-text-clicked(root.evidence-sha256); } }
                                         if root.has-package: MetaRow { caption: "SHA-512"; value: root.evidence-sha512; copyable: true; copy-clicked => { root.copy-text-clicked(root.evidence-sha512); } }
                                         if root.has-package: MetaRow { caption: Strings.size; value: root.evidence-size; }
-                                        FieldLabel { caption: Strings.custody-timeline; }
+                                        ZoneCaption { caption: Strings.custody-timeline; }
                                         for line in root.log-rows: LogLineRow { level: line.level; text: line.text; }
-                                        if root.qr-image-path != "": FieldLabel { caption: Strings.qr-preview; }
-                                        if root.qr-image-path != "": Text { text: root.qr-image-path; color: Theme.mute; font-size: 11px; font-family: "Menlo"; wrap: word-wrap; }
+                                        if root.qr-image-path != "": ZoneCaption { caption: Strings.qr-preview; }
+                                        if root.qr-image-path != "": Text { text: root.qr-image-path; color: Theme.mute; font-size: Theme.font-body; font-family: "Menlo"; wrap: word-wrap; }
                                     }
                                 }
                                 Rectangle {
                                     horizontal-stretch: 2;
                                     background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                     VerticalLayout {
-                                        padding: 14px; spacing: 8px;
-                                        FieldLabel { caption: Strings.tools-actions; }
+                                        padding: Theme.space-lg; spacing: 8px;
+                                        ZoneCaption { caption: Strings.tools-actions; }
                                         GhostBtn { label: Strings.browse-package; clicked => { root.browse-package-clicked(); } }
                                         PrimaryBtn { label: Strings.run-verify; clicked => { root.verify-package-clicked(); } }
                                         GhostBtn { label: Strings.run-hash; clicked => { root.hash-only-clicked(); } }
-                                        GhostBtn { label: Strings.export-coc; clicked => { root.export-coc-clicked(); } }
                                         GhostBtn { label: Strings.export-full-coc; clicked => { root.export-full-coc-clicked(); } }
                                         GhostBtn { label: Strings.export-report; clicked => { root.export-report-clicked(); } }
                                         GhostBtn { label: Strings.analysis-lite; clicked => { root.analysis-lite-clicked(); } }
-                                        FieldLabel { caption: Strings.coc-form-label; }
+                                        ZoneCaption { caption: Strings.coc-form-label; }
                                         LineEdit { placeholder-text: Strings.coc-device; text <=> root.coc-device; }
                                         HorizontalLayout {
                                             spacing: 6px;
@@ -2178,9 +2375,10 @@ export component AppWindow inherits Window {
                             }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                 VerticalLayout {
-                                    padding: 14px; spacing: 8px;
-                                    FieldLabel { caption: Strings.compare-summary; }
+                                    padding: Theme.space-lg; spacing: 8px;
+                                    ZoneCaption { caption: Strings.compare-summary; }
                                     LineEdit { placeholder-text: Strings.compare-package-b-ph; text <=> root.compare-package-b; }
                                     HorizontalLayout {
                                         spacing: 8px;
@@ -2192,15 +2390,18 @@ export component AppWindow inherits Window {
                             }
                             if root.recent-rows.length > 0: Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                 VerticalLayout {
-                                    padding: 14px; spacing: 6px;
-                                    FieldLabel { caption: Strings.recent-packages; }
+                                    padding: Theme.space-lg; spacing: 6px;
+                                    ZoneCaption { caption: Strings.recent-packages; }
                                     for row[idx] in root.recent-rows: Rectangle {
-                                        height: 32px; border-radius: Theme.radius-sm; background: rta.has-hover ? Theme.raised : transparent;
+                                        height: 44px; border-radius: Theme.radius-sm; background: rta.has-hover ? Theme.raised : transparent;
+                                        border-width: 1px;
+                                        border-color: rta.has-hover ? Theme.hairline : transparent;
                                         HorizontalLayout {
-                                            padding-left: 8px; spacing: 8px;
-                                            Text { text: row.case-id; width: 120px; color: Theme.copper; font-size: 11px; font-family: "Menlo"; vertical-alignment: center; }
-                                            Text { text: row.package-path; horizontal-stretch: 1; color: Theme.mute; font-size: 11px; font-family: "Menlo"; vertical-alignment: center; overflow: elide; }
+                                            padding-left: 12px; padding-right: 12px; spacing: 10px;
+                                            Text { text: row.case-id; width: 140px; color: Theme.copper; font-size: Theme.font-ui; font-weight: 700; font-family: "Menlo"; vertical-alignment: center; }
+                                            Text { text: row.package-path; horizontal-stretch: 1; color: Theme.mute; font-size: Theme.font-mono; font-family: "Menlo"; vertical-alignment: center; overflow: elide; }
                                         }
                                         rta := TouchArea { mouse-cursor: pointer; clicked => { root.recent-selected(idx); } }
                                     }
@@ -2211,24 +2412,26 @@ export component AppWindow inherits Window {
                                 Rectangle {
                                     horizontal-stretch: 1;
                                     background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                     VerticalLayout {
-                                        padding: 14px; spacing: 6px;
-                                        FieldLabel { caption: Strings.analysis-timeline; }
+                                        padding: Theme.space-lg; spacing: 6px;
+                                        ZoneCaption { caption: Strings.analysis-timeline; }
                                         for row in root.timeline-rows: Text {
                                             text: row.when + " · " + row.what;
-                                            color: Theme.readout; font-size: 11px; font-family: "Menlo"; wrap: word-wrap;
+                                            color: Theme.readout; font-size: Theme.font-body; font-family: "Menlo"; wrap: word-wrap;
                                         }
                                     }
                                 }
                                 Rectangle {
                                     horizontal-stretch: 1;
                                     background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                    drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                     VerticalLayout {
-                                        padding: 14px; spacing: 6px;
-                                        FieldLabel { caption: Strings.analysis-listing; }
+                                        padding: Theme.space-lg; spacing: 6px;
+                                        ZoneCaption { caption: Strings.analysis-listing; }
                                         for row in root.listing-rows: Text {
                                             text: row.path + " · " + row.size;
-                                            color: Theme.mute; font-size: 10px; font-family: "Menlo"; overflow: elide;
+                                            color: Theme.mute; font-size: Theme.font-caption; font-family: "Menlo"; overflow: elide;
                                         }
                                     }
                                 }
@@ -2242,11 +2445,17 @@ export component AppWindow inherits Window {
                             padding: Theme.page-pad;
                             spacing: 14px;
                             PageHeader { title: Strings.shell-qms-title; body: Strings.shell-qms-body; }
-                            PrimaryBtn { label: Strings.run-qms; clicked => { root.run-qms-clicked(); } }
+                            PrimaryBtn {
+                                label: Strings.run-qms;
+                                horizontal-stretch: 0;
+                                min-width: 200px;
+                                clicked => { root.run-qms-clicked(); }
+                            }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                 VerticalLayout {
-                                    padding: 14px; spacing: 8px;
+                                    padding: Theme.space-lg; spacing: 8px;
                                     if root.result-rows.length == 0: EmptyHint { title: Strings.qms-empty; body: root.panel-detail; }
                                     for row in root.result-rows: ResultRow { name: row.name; ok: row.ok; detail: row.detail; }
                                 }
@@ -2262,8 +2471,9 @@ export component AppWindow inherits Window {
                             PageHeader { title: Strings.shell-boot-title; body: Strings.shell-boot-body; }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                 VerticalLayout {
-                                    padding: 14px; spacing: 10px;
+                                    padding: Theme.space-lg; spacing: 10px;
                                     HorizontalLayout {
                                         spacing: 8px;
                                         LineEdit { placeholder-text: Strings.boot-image-ph; text <=> root.boot-image-path; horizontal-stretch: 1; }
@@ -2284,27 +2494,39 @@ export component AppWindow inherits Window {
                             PageHeader { title: Strings.shell-help-title; body: Strings.shell-help-body; }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                 VerticalLayout {
-                                    padding: 14px; spacing: 10px;
-                                    FieldLabel { caption: Strings.settings-label; }
+                                    padding: Theme.space-lg; spacing: 12px;
+                                    ZoneCaption { caption: Strings.settings-label; }
+                                    LabCheck {
+                                        label: Strings.theme-dark;
+                                        checked <=> root.dark-mode;
+                                        toggled => { root.theme-toggled(root.dark-mode); }
+                                    }
+                                    LabCheck { label: Strings.reduced-motion; checked <=> root.reduce-motion; }
                                     HorizontalLayout {
                                         spacing: 8px;
-                                        CheckBox {
-                                            text: Strings.theme-dark;
-                                            checked: root.dark-mode;
-                                            toggled => {
-                                                root.dark-mode = !root.dark-mode;
-                                                root.theme-toggled(root.dark-mode);
-                                            }
+                                        Text {
+                                            text: Strings.locale-label;
+                                            color: Theme.mute;
+                                            font-size: Theme.font-body;
+                                            font-family: "Avenir Next";
+                                            vertical-alignment: center;
                                         }
-                                        CheckBox { text: Strings.reduced-motion; checked <=> root.reduce-motion; }
                                         LocaleChip { label: Strings.lang-en; active: root.locale == "en"; clicked => { root.locale = "en"; root.locale-toggled("en"); } }
                                         LocaleChip { label: Strings.lang-id; active: root.locale == "id"; clicked => { root.locale = "id"; root.locale-toggled("id"); } }
+                                        Rectangle { horizontal-stretch: 1; }
                                     }
                                     LineEdit { placeholder-text: Strings.default-examiner-ph; text <=> root.case-identity; }
-                                    GhostBtn { label: Strings.open-user-guide; clicked => { root.open-user-guide-clicked(); } }
+                                    GhostBtn {
+                                        label: Strings.open-user-guide;
+                                        horizontal-stretch: 0;
+                                        min-width: 180px;
+                                        clicked => { root.open-user-guide-clicked(); }
+                                    }
                                 }
                             }
+                            ZoneCaption { caption: "TOPICS"; }
                             HelpTopic { title: "Write-blocker"; body: Strings.help_wb; }
                             HelpTopic { title: "Out of validation"; body: Strings.help_oov; }
                             HelpTopic { title: "Seal vs signature"; body: Strings.help_seal_vs_sig; }
@@ -2321,21 +2543,23 @@ export component AppWindow inherits Window {
                             PageHeader { title: "TRAREON ACQUIRE"; body: Strings.about-product; }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                 VerticalLayout {
                                     padding: Theme.space-lg; spacing: Theme.space-md;
-                                    FieldLabel { caption: Strings.about-build; }
-                                    Text { text: root.about-text; color: Theme.readout; font-size: 12px; font-family: "Menlo"; wrap: word-wrap; }
+                                    ZoneCaption { caption: Strings.about-build; }
+                                    Text { text: root.about-text; color: Theme.readout; font-size: Theme.font-mono; font-family: "Menlo"; wrap: word-wrap; }
                                     MetaRow { caption: Strings.about-version-label; value: root.app-version; }
                                     MetaRow { caption: Strings.build-label; value: root.app-build == "" ? "—" : root.app-build; }
-                                    Text { text: Strings.license-gpl; color: Theme.mute; font-size: 11px; wrap: word-wrap; }
-                                    Text { text: Strings.alpha-line; color: Theme.faint; font-size: 10px; font-family: "Menlo"; }
+                                    Text { text: Strings.license-gpl; color: Theme.mute; font-size: Theme.font-body; font-family: "Avenir Next"; wrap: word-wrap; }
+                                    Text { text: Strings.alpha-line; color: Theme.faint; font-size: Theme.font-caption; font-family: "Menlo"; }
                                 }
                             }
                             Rectangle {
                                 background: Theme.panel; border-radius: Theme.radius; border-width: 1px; border-color: Theme.hairline;
+                                drop-shadow-blur: 10px; drop-shadow-color: Theme.card-shadow; drop-shadow-offset-y: 2px;
                                 VerticalLayout {
                                     padding: Theme.space-lg; spacing: Theme.space-sm;
-                                    FieldLabel { caption: Strings.session-label; }
+                                    ZoneCaption { caption: Strings.session-label; }
                                     MetaRow { caption: Strings.footer-time-label; value: root.footer-time; }
                                     MetaRow { caption: Strings.footer-user-label; value: root.footer-user; }
                                     MetaRow { caption: Strings.footer-host-label; value: root.footer-host; }
@@ -2346,13 +2570,34 @@ export component AppWindow inherits Window {
 
                     // Toast
                     if root.show-toast: Rectangle {
-                        height: 36px;
+                        height: 48px;
                         background: Theme.ok-mist;
                         border-width: 1px;
                         border-color: Theme.ok-glow;
+                        drop-shadow-blur: 12px;
+                        drop-shadow-color: #2F855A22;
+                        drop-shadow-offset-y: -2px;
                         HorizontalLayout {
-                            padding-left: 14px;
-                            Text { text: root.toast-text; color: Theme.ok-glow; font-size: 12px; font-weight: 700; vertical-alignment: center; }
+                            padding-left: 18px;
+                            padding-right: 18px;
+                            spacing: 10px;
+                            Text {
+                                text: "OK";
+                                color: Theme.ok-glow;
+                                font-size: Theme.font-caption;
+                                font-weight: 800;
+                                font-family: "Menlo";
+                                vertical-alignment: center;
+                            }
+                            Text {
+                                text: root.toast-text;
+                                color: Theme.ok-glow;
+                                font-size: Theme.font-ui;
+                                font-weight: 700;
+                                font-family: "Avenir Next";
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
                         }
                     }
                 }
@@ -2386,12 +2631,40 @@ export component AppWindow inherits Window {
                             ok: root.integrity-status == Strings.integrity-sealed || root.integrity-status == Strings.integrity-ready;
                         }
                         Rectangle { horizontal-stretch: 1; }
-                        Text {
-                            text: Strings.status-coverage + ": " + root.status-coverage-text;
-                            color: Theme.mute;
-                            font-size: 11px;
-                            font-family: "Menlo";
-                            vertical-alignment: center;
+                        HorizontalLayout {
+                            spacing: 10px;
+                            alignment: center;
+                            Text {
+                                text: Strings.status-coverage;
+                                color: Theme.mute;
+                                font-size: Theme.font-body;
+                                font-family: "Menlo";
+                                vertical-alignment: center;
+                            }
+                            Rectangle {
+                                width: 88px;
+                                height: 10px;
+                                border-radius: 5px;
+                                background: Theme.raised;
+                                border-width: 1px;
+                                border-color: Theme.hairline;
+                                y: (parent.height - self.height) / 2;
+                                if root.busy: Rectangle {
+                                    x: 0;
+                                    y: 0;
+                                    height: 100%;
+                                    width: parent.width * root.coverage-ok;
+                                    background: Theme.ok-glow;
+                                    border-radius: 5px;
+                                }
+                            }
+                            Text {
+                                text: root.status-coverage-text;
+                                color: Theme.mute;
+                                font-size: Theme.font-body;
+                                font-family: "Menlo";
+                                vertical-alignment: center;
+                            }
                         }
                     }
                 }
@@ -2404,25 +2677,44 @@ export component AppWindow inherits Window {
         y: 0;
         width: parent.width;
         height: parent.height;
-        background: #00000066;
+        background: #1E2A3644;
         VerticalLayout {
             alignment: center;
             HorizontalLayout {
                 alignment: center;
                 Rectangle {
-                    width: 360px;
+                    width: 460px;
                     background: Theme.panel;
                     border-radius: Theme.radius-lg;
                     border-width: 1px;
                     border-color: Theme.hairline;
+                    drop-shadow-blur: 28px;
+                    drop-shadow-color: Theme.card-shadow;
+                    drop-shadow-offset-y: 8px;
                     VerticalLayout {
-                        padding: 20px;
-                        spacing: 14px;
-                        Text { text: root.confirm-message; color: Theme.readout; font-size: 14px; font-weight: 700; wrap: word-wrap; }
+                        padding: Theme.space-xl;
+                        spacing: Theme.space-lg;
+                        ZoneCaption { caption: Strings.confirm-heading; }
+                        Text {
+                            text: root.confirm-message;
+                            color: Theme.readout;
+                            font-size: Theme.font-ui;
+                            font-weight: 700;
+                            font-family: "Avenir Next";
+                            wrap: word-wrap;
+                        }
                         HorizontalLayout {
-                            spacing: 10px;
-                            GhostBtn { label: Strings.confirm-no; clicked => { root.show-confirm = false; root.confirm-cancelled(); } }
-                            PrimaryBtn { label: Strings.confirm-yes; clicked => { root.show-confirm = false; root.confirm-accepted(); } }
+                            spacing: 12px;
+                            GhostBtn {
+                                label: Strings.confirm-no;
+                                horizontal-stretch: 1;
+                                clicked => { root.show-confirm = false; root.confirm-cancelled(); }
+                            }
+                            PrimaryBtn {
+                                label: Strings.confirm-yes;
+                                horizontal-stretch: 1;
+                                clicked => { root.show-confirm = false; root.confirm-accepted(); }
+                            }
                         }
                     }
                 }

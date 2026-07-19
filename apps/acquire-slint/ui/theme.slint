@@ -2,18 +2,18 @@
 
 export global Theme {
     in-out property <bool> dark: false;
-    in-out property <color> void: #F4F6F8;
+    in-out property <color> void: #F8F9FA;
     in-out property <color> ink: #FFFFFF;
     in-out property <color> panel: #FFFFFF;
-    in-out property <color> raised: #EEF1F4;
-    in-out property <color> hairline: #D8DDE3;
+    in-out property <color> raised: #F3F5F7;
+    in-out property <color> hairline: #E0E3E7;
     in-out property <color> copper: #AF622E;
     in-out property <color> copper-dim: #8F4A24;
     in-out property <color> copper-deep: #8A3F1A;
     in-out property <color> copper-hot: #C96A38;
     in-out property <color> copper-hover: #B85A28;
-    in-out property <color> readout: #1E2A36;
-    in-out property <color> mute: #5F6F7F;
+    in-out property <color> readout: #2C3E50;
+    in-out property <color> mute: #718096;
     in-out property <color> faint: #8A94A0;
     in-out property <color> deny: #B04040;
     in-out property <color> deny-mist: #F8EAEA;
@@ -25,7 +25,7 @@ export global Theme {
     in-out property <color> rail-active: #FFF4EC;
     in-out property <color> pipeline-bg: #FFFFFF;
     in-out property <color> badge-bg: #F0F3F6;
-    in-out property <color> primary-disabled: #E4D2C4;
+    in-out property <color> primary-disabled: #D9C4B4;
     in-out property <color> warning: #AF622E;
     in-out property <color> info: #5F6F7F;
     in-out property <color> focus-ring: #C96A38;
@@ -39,22 +39,37 @@ export global Theme {
     in-out property <color> icon-soft: #A8B4C0;
     in-out property <color> placeholder-line: #C5CDD6;
     in-out property <color> stage-track: #E8ECF0;
-    in-out property <length> radius: 8px;
+    in-out property <color> card-shadow: #1E2A3614;
+    in-out property <length> radius: 6px;
     in-out property <length> radius-sm: 5px;
-    in-out property <length> radius-lg: 10px;
+    in-out property <length> radius-lg: 8px;
     in-out property <length> space-xs: 4px;
     in-out property <length> space-sm: 8px;
     in-out property <length> space-md: 14px;
     in-out property <length> space-lg: 18px;
     in-out property <length> space-xl: 22px;
+    in-out property <length> page-pad: 26px;
+
+    // Readable type scale (lab UI — avoid sub-12px body)
+    out property <length> font-caption: 12px;
+    out property <length> font-body: 14px;
+    out property <length> font-label: 13px;
+    out property <length> font-ui: 14px;
+    out property <length> font-title: 26px;
+    out property <length> font-mono: 13px;
+    out property <length> btn-h: 44px;
+    out property <length> btn-min-w: 140px;
+    out property <length> ghost-min-w: 120px;
+    out property <length> nav-item-h: 48px;
+    out property <length> icon-box: 34px;
 
     // ASCII chrome metrics (wide defaults; rail collapses in compact via app.slint)
-    out property <length> banner-h: 26px;
-    out property <length> header-h: 48px;
-    out property <length> safety-h: 40px;
-    out property <length> status-h: 30px;
-    out property <length> rail-w: 188px;
-    out property <length> rail-w-compact: 56px;
+    out property <length> banner-h: 30px;
+    out property <length> header-h: 56px;
+    out property <length> safety-h: 48px;
+    out property <length> status-h: 40px;
+    out property <length> rail-w: 216px;
+    out property <length> rail-w-compact: 72px;
     out property <length> zone-source-min: 280px;
     out property <length> zone-prepare-min: 260px;
     out property <length> zone-run-min: 220px;
@@ -87,7 +102,7 @@ export global Theme {
             rail-active = #1A2430;
             pipeline-bg = #121820;
             badge-bg = #1A2430;
-            primary-disabled = #2A221C;
+            primary-disabled = #3A322C;
             warning = #C4845A;
             info = #8B9AAB;
             focus-ring = #E0A070;
@@ -101,19 +116,20 @@ export global Theme {
             icon-soft = #5C6B7A;
             placeholder-line = #3A4654;
             stage-track = #1C2630;
+            card-shadow = #00000055;
         } else {
-            void = #F4F6F8;
+            void = #F8F9FA;
             ink = #FFFFFF;
             panel = #FFFFFF;
-            raised = #EEF1F4;
-            hairline = #D8DDE3;
+            raised = #F3F5F7;
+            hairline = #E0E3E7;
             copper = #AF622E;
             copper-dim = #8F4A24;
             copper-deep = #8A3F1A;
             copper-hot = #C96A38;
             copper-hover = #B85A28;
-            readout = #1E2A36;
-            mute = #5F6F7F;
+            readout = #2C3E50;
+            mute = #718096;
             faint = #8A94A0;
             deny = #B04040;
             deny-mist = #F8EAEA;
@@ -125,7 +141,7 @@ export global Theme {
             rail-active = #FFF4EC;
             pipeline-bg = #FFFFFF;
             badge-bg = #F0F3F6;
-            primary-disabled = #E4D2C4;
+            primary-disabled = #D9C4B4;
             warning = #AF622E;
             info = #5F6F7F;
             focus-ring = #C96A38;
@@ -139,6 +155,7 @@ export global Theme {
             icon-soft = #A8B4C0;
             placeholder-line = #C5CDD6;
             stage-track = #E8ECF0;
+            card-shadow = #1E2A3614;
         }
     }
 }

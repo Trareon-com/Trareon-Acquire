@@ -184,6 +184,182 @@ pub fn refresh_cases_text() -> String {
     }
 }
 
+/// Structured case rows for the Cases table (mirrors DiskUiRow).
+#[derive(Debug, Clone)]
+pub struct CaseUiRow {
+    pub id: String,
+    pub title: String,
+    pub examiner: String,
+    pub state: String,
+    pub updated: String,
+}
+
+pub fn list_case_ui_rows(filter: &str, sort_by_id: bool) -> Vec<CaseUiRow> {
+    let Some(store) = cases::CaseStore::local() else {
+        return Vec::new();
+    };
+    let Ok(mut list) = store.list() else {
+        return Vec::new();
+    };
+    let filter = filter.trim().to_ascii_lowercase();
+    if !filter.is_empty() {
+        list.retain(|c| {
+            c.id.to_ascii_lowercase().contains(&filter)
+                || c.title.to_ascii_lowercase().contains(&filter)
+                || c.examiner.to_ascii_lowercase().contains(&filter)
+        });
+    }
+    if sort_by_id {
+        list.sort_by(|a, b| a.id.cmp(&b.id));
+    }
+    list.into_iter()
+        .map(|c| CaseUiRow {
+            id: c.id,
+            title: c.title,
+            examiner: c.examiner,
+            state: format!("{:?}", c.state),
+            updated: c.updated_at.chars().take(16).collect(),
+        })
+        .collect()
+}
+
+pub fn archive_case(id: &str) -> Result<String, String> {
+    let store = cases::CaseStore::local().ok_or("case store unavailable")?;
+    let record = store.archive(id)?;
+    Ok(format!(
+        "Archived {} — state {:?}.",
+        record.id, record.state
+    ))
+}
+
+#[derive(Debug, Clone)]
+pub struct ResultUiRow {
+    pub name: String,
+    pub ok: bool,
+    pub detail: String,
+}
+
+pub fn qms_check_ui_rows() -> Vec<ResultUiRow> {
+    qms::validation_matrix()
+        .checks
+        .into_iter()
+        .map(|c| ResultUiRow {
+            name: c.name,
+            ok: c.passed,
+            detail: c.detail,
+        })
+        .collect()
+}
+
+#[derive(Debug, Clone)]
+pub struct LogUiRow {
+    pub level: String,
+    pub text: String,
+}
+
+pub fn text_to_log_rows(body: &str) -> Vec<LogUiRow> {
+    body.lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let lower = line.to_ascii_lowercase();
+            let level = if lower.contains("fail")
+                || lower.contains("error")
+                || lower.contains("deny")
+                || lower.contains("tolak")
+            {
+                "err"
+            } else if lower.contains("pass")
+                || lower.contains("ok")
+                || lower.contains("verified")
+                || lower.contains("sealed")
+            {
+                "ok"
+            } else {
+                "info"
+            };
+            LogUiRow {
+                level: level.into(),
+                text: line.to_string(),
+            }
+        })
+        .collect()
+}
+
+pub fn compare_summary_rows(package_a: &str, package_b: &str) -> Vec<ResultUiRow> {
+    let text = compare_packages_text(package_a, package_b);
+    text.lines()
+        .filter(|l| !l.trim().is_empty())
+        .map(|line| {
+            let ok = !line.to_ascii_lowercase().contains("mismatch")
+                && !line.to_ascii_lowercase().contains("fail")
+                && !line.to_ascii_lowercase().contains("differ");
+            ResultUiRow {
+                name: if ok {
+                    "Match".into()
+                } else {
+                    "Mismatch".into()
+                },
+                ok,
+                detail: line.to_string(),
+            }
+        })
+        .collect()
+}
+
+#[derive(Debug, Clone)]
+pub struct TimelineUiRow {
+    pub when: String,
+    pub what: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct ListingUiRow {
+    pub path: String,
+    pub size: String,
+    pub kind: String,
+}
+
+pub fn analysis_lite_rows(
+    package: &str,
+    out_dir: &str,
+) -> Result<(Vec<TimelineUiRow>, Vec<ListingUiRow>, String), String> {
+    if package.trim().is_empty() || package == "(none)" {
+        return Err("No package selected.".into());
+    }
+    let out = if out_dir.trim().is_empty() {
+        std::env::temp_dir()
+    } else {
+        PathBuf::from(out_dir)
+    };
+    let index_dir = out.join("analysis-index");
+    let report_dir = out.join("analysis-report");
+    let result = analysis_ui::import_for_analysis(Path::new(package), &index_dir, &report_dir)?;
+    let timeline = result
+        .timeline
+        .into_iter()
+        .map(|e| TimelineUiRow {
+            when: e.timestamp_utc.clone(),
+            what: format!("{} · {}", e.state, e.action),
+        })
+        .collect();
+    let listing = result
+        .listing
+        .into_iter()
+        .take(200)
+        .map(|e| ListingUiRow {
+            path: e.relative_path.clone(),
+            size: e.size.to_string(),
+            kind: "file".into(),
+        })
+        .collect();
+    let summary = format!(
+        "Analysis lite OK — report {}\nindex {}",
+        result.report_path.display(),
+        result.index_path.display()
+    );
+    Ok((timeline, listing, summary))
+}
+
 pub fn create_case(title: &str, examiner: &str, notes: &str) -> Result<String, String> {
     let store = cases::CaseStore::local().ok_or("case store unavailable")?;
     let record = store.create(title, examiner, notes)?;
@@ -512,7 +688,15 @@ pub fn acquire_with_format(
     segment_mib: u64,
     sha512: bool,
 ) -> Result<(String, String, u64), String> {
-    acquire_with_format_controls(source, output, format_index, segment_mib, sha512, None, None)
+    acquire_with_format_controls(
+        source,
+        output,
+        format_index,
+        segment_mib,
+        sha512,
+        None,
+        None,
+    )
 }
 
 /// Acquire with cancel + progress wired for every format path.
@@ -686,7 +870,12 @@ pub fn custody_timeline(case_id: &str, package: &str, sha: &str, sealed: bool) -
 
 #[cfg(test)]
 mod disk_ui_tests {
-    use super::{bus_from_kind, format_size_label, nav_index_for_search};
+    use super::{
+        analysis_lite_rows, boot_plan_text, bus_from_kind, compare_packages_text,
+        compare_summary_rows, export_report_text, format_size_label, hash_only_text,
+        identify_probe_text, list_case_ui_rows, nav_index_for_search, qms_check_ui_rows,
+        run_qms_text, text_to_log_rows, verify_tools_text,
+    };
 
     #[test]
     fn size_and_bus_labels_match_bench_table() {
@@ -702,5 +891,72 @@ mod disk_ui_tests {
         assert_eq!(nav_index_for_search("Cases"), Some(1));
         assert_eq!(nav_index_for_search("about"), Some(8));
         assert_eq!(nav_index_for_search("xyz"), None);
+    }
+
+    #[test]
+    fn case_and_qms_rows_are_structured() {
+        let _ = list_case_ui_rows("", false);
+        let checks = qms_check_ui_rows();
+        assert!(!checks.is_empty());
+        assert!(checks.iter().all(|c| !c.name.is_empty()));
+        let logs = text_to_log_rows("COMPARE OK — packages match.\nCOMPARE FAIL: boom");
+        assert_eq!(logs.len(), 2);
+        assert_eq!(logs[0].level, "ok");
+        assert_eq!(logs[1].level, "err");
+    }
+
+    /// End-to-end shell surfaces against synthetic .fsnap packages (no real disks).
+    #[test]
+    fn synthetic_shell_smoke_covers_tools_pipeline() {
+        let a_dir = tempfile::tempdir().unwrap();
+        let b_dir = tempfile::tempdir().unwrap();
+        let out = tempfile::tempdir().unwrap();
+        let package_a = crate::run_synthetic_demo(a_dir.path()).expect("synthetic A");
+        let package_b = crate::run_synthetic_demo(b_dir.path()).expect("synthetic B");
+        let pkg_a = package_a.to_string_lossy();
+        let pkg_b = package_b.to_string_lossy();
+        let source = a_dir.path().join("synthetic-source.bin");
+
+        let verify = verify_tools_text(&pkg_a);
+        assert!(verify.starts_with("VERIFY OK"), "{verify}");
+
+        let hash = hash_only_text(&pkg_a);
+        assert!(hash.contains("hash-only"), "{hash}");
+        assert!(hash.contains("262144"), "{hash}");
+
+        let compare = compare_packages_text(&pkg_a, &pkg_b);
+        assert!(
+            compare.starts_with("COMPARE OK") || compare.starts_with("COMPARE DIFF"),
+            "{compare}"
+        );
+        let rows = compare_summary_rows(&pkg_a, &pkg_b);
+        assert!(!rows.is_empty());
+        assert!(rows.iter().all(|r| !r.detail.is_empty()));
+
+        let export = export_report_text(&pkg_a, &out.path().to_string_lossy());
+        assert!(export.contains("Export written"), "{export}");
+        assert!(out.path().join("export-evidence.bin").is_file());
+
+        let (timeline, listing, summary) =
+            analysis_lite_rows(&pkg_a, &out.path().to_string_lossy()).expect("analysis");
+        assert!(summary.contains("Analysis lite OK"), "{summary}");
+        assert!(!listing.is_empty());
+        let _ = timeline;
+
+        let identify = identify_probe_text(&source.to_string_lossy());
+        assert!(!identify.contains("Set a source path"), "{identify}");
+
+        let boot = boot_plan_text(&source.to_string_lossy(), "/dev/null");
+        assert!(
+            boot.contains("DRY-RUN") || boot.contains("failed"),
+            "{boot}"
+        );
+
+        let qms = run_qms_text();
+        assert!(qms.contains("self-test: PASS"), "{qms}");
+        assert!(qms.contains("known-dataset: PASS"), "{qms}");
+
+        let checks = qms_check_ui_rows();
+        assert!(checks.iter().any(|c| c.ok), "{checks:?}");
     }
 }

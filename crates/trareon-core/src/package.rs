@@ -93,7 +93,9 @@ fn hash_files_concat(paths: &[&Path]) -> Result<(u64, String), CoreError> {
 }
 
 /// One pass: per-segment (size, sha256) plus concatenated digest of all segment bytes.
-fn hash_segments_and_concat(paths: &[&Path]) -> Result<(Vec<(u64, String)>, u64, String), CoreError> {
+type SegmentHashPass = (Vec<(u64, String)>, u64, String);
+
+fn hash_segments_and_concat(paths: &[&Path]) -> Result<SegmentHashPass, CoreError> {
     let mut concat = Sha256::new();
     let mut total = 0u64;
     let mut per = Vec::with_capacity(paths.len());
@@ -122,8 +124,7 @@ fn hash_segments_and_concat(paths: &[&Path]) -> Result<(Vec<(u64, String)>, u64,
 /// Copy `source` → `destination`, hashing bytes while writing (one pass).
 fn copy_hash_and_sync(source: &Path, destination: &Path) -> Result<(u64, String), CoreError> {
     let mut input = File::open(source).map_err(|error| CoreError::Io(error.to_string()))?;
-    let mut output =
-        File::create(destination).map_err(|error| CoreError::Io(error.to_string()))?;
+    let mut output = File::create(destination).map_err(|error| CoreError::Io(error.to_string()))?;
     let mut hasher = Sha256::new();
     let mut buffer = [0u8; 64 * 1024];
     let mut size = 0u64;
@@ -232,8 +233,7 @@ pub fn create_fsnap_from_segments(
         let relative = segment_relative_path(index + 1);
         let dest = package.join(&relative);
         let (size, sha256) = {
-            let mut input =
-                File::open(source).map_err(|error| CoreError::Io(error.to_string()))?;
+            let mut input = File::open(source).map_err(|error| CoreError::Io(error.to_string()))?;
             let mut output =
                 File::create(&dest).map_err(|error| CoreError::Io(error.to_string()))?;
             let mut seg = Sha256::new();

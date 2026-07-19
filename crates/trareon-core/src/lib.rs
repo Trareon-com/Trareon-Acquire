@@ -36,7 +36,9 @@ pub use coc::{EvidenceCoC, EvidenceId};
 pub use custody::{CUSTODY_SCHEMA, CustodyEntry, append_custody_jsonl, read_custody_jsonl};
 pub use disk_enum::{DiskRow, EnumError, enumerate_disks};
 pub use domain::{AcquisitionId, AcquisitionState, CaseId, CoreError};
-pub use format::{CaseMetadata, E01Summary, read_e01_to_raw, verify_e01, write_e01, write_e01_lite};
+pub use format::{
+    CaseMetadata, E01Summary, read_e01_to_raw, verify_e01, write_e01, write_e01_lite,
+};
 #[cfg(feature = "libewf-oracle")]
 pub use format::{OracleStatus, ewfverify, resolve_ewfverify};
 #[cfg(feature = "zff")]

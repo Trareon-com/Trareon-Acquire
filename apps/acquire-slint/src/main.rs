@@ -809,9 +809,8 @@ fn main() -> Result<(), slint::PlatformError> {
                                     }
                                 } else {
                                     (
-                                        format!(
-                                            "ACQUIRED — container written (external verify if not .fsnap)"
-                                        ),
+                                        "ACQUIRED — container written (external verify if not .fsnap)"
+                                            .to_string(),
                                         false,
                                     )
                                 };

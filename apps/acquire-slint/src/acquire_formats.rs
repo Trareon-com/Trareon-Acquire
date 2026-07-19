@@ -23,16 +23,6 @@ pub enum UiOutputFormat {
     Zff,
 }
 
-impl UiOutputFormat {
-    fn extension(self) -> &'static str {
-        match self {
-            Self::RawFsnap => "fsnap",
-            Self::E01 => "e01",
-            Self::Zff => "z01",
-        }
-    }
-}
-
 /// Read adapter: cancel + throttled progress while feeding a format writer.
 struct ProgressCancelReader<R> {
     inner: R,

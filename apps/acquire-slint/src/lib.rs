@@ -133,8 +133,8 @@ pub fn seed_synthetic_gui_smoke(root: &Path) -> Result<PathBuf, String> {
     let out_dir = root.join("out");
     std::fs::create_dir_all(&out_dir).map_err(|e| e.to_string())?;
 
-    let package_a = std::fs::canonicalize(run_synthetic_demo(&a_dir)?)
-        .map_err(|e| e.to_string())?;
+    let package_a =
+        std::fs::canonicalize(run_synthetic_demo(&a_dir)?).map_err(|e| e.to_string())?;
     let source_b = b_dir.join("synthetic-source.bin");
     std::fs::create_dir_all(&b_dir).map_err(|e| e.to_string())?;
     std::fs::write(&source_b, vec![0xA5u8; 256 * 1024]).map_err(|e| e.to_string())?;
@@ -144,8 +144,8 @@ pub fn seed_synthetic_gui_smoke(root: &Path) -> Result<PathBuf, String> {
             .package_path,
     ))
     .map_err(|e| e.to_string())?;
-    let source_a = std::fs::canonicalize(a_dir.join("synthetic-source.bin"))
-        .map_err(|e| e.to_string())?;
+    let source_a =
+        std::fs::canonicalize(a_dir.join("synthetic-source.bin")).map_err(|e| e.to_string())?;
     let source_b = std::fs::canonicalize(&source_b).map_err(|e| e.to_string())?;
     let out_dir = std::fs::canonicalize(&out_dir).map_err(|e| e.to_string())?;
     let root = std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf());
@@ -217,7 +217,10 @@ mod tests {
         assert!(package.join("manifest/manifest.json").is_file());
         assert!(root.join("PATHS.txt").is_file());
         assert!(root.join("pkg-a/qr.png").is_file());
-        eprintln!("{}", std::fs::read_to_string(root.join("PATHS.txt")).unwrap());
+        eprintln!(
+            "{}",
+            std::fs::read_to_string(root.join("PATHS.txt")).unwrap()
+        );
     }
 
     #[test]

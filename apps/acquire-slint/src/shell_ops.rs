@@ -226,7 +226,10 @@ pub fn list_case_ui_rows(filter: &str, sort_by_id: bool) -> Vec<CaseUiRow> {
 pub fn archive_case(id: &str) -> Result<String, String> {
     let store = cases::CaseStore::local().ok_or("case store unavailable")?;
     let record = store.archive(id)?;
-    Ok(format!("Archived {} — state {:?}.", record.id, record.state))
+    Ok(format!(
+        "Archived {} — state {:?}.",
+        record.id, record.state
+    ))
 }
 
 #[derive(Debug, Clone)]
@@ -291,7 +294,11 @@ pub fn compare_summary_rows(package_a: &str, package_b: &str) -> Vec<ResultUiRow
                 && !line.to_ascii_lowercase().contains("fail")
                 && !line.to_ascii_lowercase().contains("differ");
             ResultUiRow {
-                name: if ok { "Match".into() } else { "Mismatch".into() },
+                name: if ok {
+                    "Match".into()
+                } else {
+                    "Mismatch".into()
+                },
                 ok,
                 detail: line.to_string(),
             }
@@ -681,7 +688,15 @@ pub fn acquire_with_format(
     segment_mib: u64,
     sha512: bool,
 ) -> Result<(String, String, u64), String> {
-    acquire_with_format_controls(source, output, format_index, segment_mib, sha512, None, None)
+    acquire_with_format_controls(
+        source,
+        output,
+        format_index,
+        segment_mib,
+        sha512,
+        None,
+        None,
+    )
 }
 
 /// Acquire with cancel + progress wired for every format path.
@@ -932,7 +947,10 @@ mod disk_ui_tests {
         assert!(!identify.contains("Set a source path"), "{identify}");
 
         let boot = boot_plan_text(&source.to_string_lossy(), "/dev/null");
-        assert!(boot.contains("DRY-RUN") || boot.contains("failed"), "{boot}");
+        assert!(
+            boot.contains("DRY-RUN") || boot.contains("failed"),
+            "{boot}"
+        );
 
         let qms = run_qms_text();
         assert!(qms.contains("self-test: PASS"), "{qms}");

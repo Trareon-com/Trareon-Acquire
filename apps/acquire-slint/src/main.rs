@@ -455,7 +455,8 @@ fn main() -> Result<(), slint::PlatformError> {
         let ui_weak = ui.as_weak();
         ui.on_open_user_guide_clicked(move || {
             if let Some(ui) = ui_weak.upgrade() {
-                let guide = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../docs/USER-GUIDE.md");
+                let guide =
+                    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../docs/USER-GUIDE.md");
                 #[cfg(target_os = "macos")]
                 {
                     let _ = std::process::Command::new("open").arg(&guide).spawn();
@@ -956,10 +957,7 @@ fn main() -> Result<(), slint::PlatformError> {
                         } else {
                             s.case_id.as_str()
                         };
-                        let leaf = row
-                            .device
-                            .to_ascii_lowercase()
-                            .replace(' ', "");
+                        let leaf = row.device.to_ascii_lowercase().replace(' ', "");
                         let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
                         s.output_dir = format!("{home}/Evidence/{case}/Acquire/{leaf}");
                     }
@@ -995,13 +993,11 @@ fn main() -> Result<(), slint::PlatformError> {
                         s.case_identity = examiner;
                         apply(&ui, &s);
                         ui.set_case_verify(s.case_id.clone().into());
-                        ui.set_case_subtitle(
-                            if title.trim().is_empty() {
-                                "New case".into()
-                            } else {
-                                title.into()
-                            },
-                        );
+                        ui.set_case_subtitle(if title.trim().is_empty() {
+                            "New case".into()
+                        } else {
+                            title.into()
+                        });
                         ui.set_panel_detail(
                             format!(
                                 "{msg}\n{}\nNext: Identify checklist, then Acquire.",

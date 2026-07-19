@@ -106,14 +106,7 @@ pub fn acquire_to_format_with_sha512(
     format: UiOutputFormat,
     write_sha512_sidecar: bool,
 ) -> Result<PathBuf, String> {
-    acquire_to_format_with_controls(
-        source,
-        output_dir,
-        format,
-        write_sha512_sidecar,
-        None,
-        None,
-    )
+    acquire_to_format_with_controls(source, output_dir, format, write_sha512_sidecar, None, None)
 }
 
 /// Stream source → E01 in one pass; ZFF still stages once (external tool needs a path).
@@ -136,12 +129,8 @@ pub fn acquire_to_format_with_controls(
             let total = source.metadata().ok().map(|m| m.len());
             let file = File::open(source).map_err(|error| error.to_string())?;
             let cancel = cancel_flag.clone();
-            let reader = ProgressCancelReader::new(
-                BufReader::new(file),
-                cancel_flag,
-                progress,
-                total,
-            );
+            let reader =
+                ProgressCancelReader::new(BufReader::new(file), cancel_flag, progress, total);
             write_e01(reader, &output, &CaseMetadata::default()).map_err(|error| {
                 let msg = error.to_string();
                 if msg.to_lowercase().contains("cancel") || msg.contains("Interrupted") {
